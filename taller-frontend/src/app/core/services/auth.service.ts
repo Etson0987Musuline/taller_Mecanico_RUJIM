@@ -28,12 +28,28 @@ export class AuthService {
   }
 
   isLoggedIn(): boolean {
-    return !!localStorage.getItem('token');
+    if (!localStorage.getItem('token')) return false;
+    if (!this.isTokenValido()) {
+      this.logout();
+      return false;
+    }
+    return true;
   }
 
   logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('usuario');
     this.router.navigate(['/login']);
+  }
+
+  isTokenValido(): boolean {
+    const token = localStorage.getItem('token');
+    if (!token) return false;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.exp * 1000 > Date.now();
+    } catch {
+      return false;
+    }
   }
 }

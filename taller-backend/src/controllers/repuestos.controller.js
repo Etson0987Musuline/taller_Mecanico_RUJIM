@@ -1,23 +1,34 @@
-const pool  = require('../config/db');
-const XLSX  = require('xlsx');
-const sharp = require('sharp');
-const path  = require('path');
-const fs    = require('fs');
+const supabase = require('../config/supabase');
+const XLSX     = require('xlsx');
+const sharp    = require('sharp');
+const path     = require('path');
+const fs       = require('fs');
 
 const getRepuestos = async (req, res) => {
   try {
-    const [rows] = await pool.query('SELECT * FROM repuestos ORDER BY nombre');
-    res.json(rows);
+    const { data, error } = await supabase
+      .from('repuestos')
+      .select('*')
+      .order('nombre');
+
+    if (error) throw error;
+    res.json(data);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ mensaje: 'Error al obtener repuestos' });
   }
 };
 
 const getStockBajo = async (req, res) => {
   try {
-    const [rows] = await pool.query('SELECT * FROM v_stock_bajo');
-    res.json(rows);
+    const { data, error } = await supabase
+      .from('v_stock_bajo')
+      .select('*');
+
+    if (error) throw error;
+    res.json(data);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ mensaje: 'Error al obtener stock bajo' });
   }
 };
@@ -34,33 +45,58 @@ const createRepuesto = async (req, res) => {
     imagen = await procesarImagen(req.file);
   }
 
+  const valCodigo = (codigo && String(codigo).trim()) ? String(codigo).trim() : null;
+  const valCodigoBarra = (codigo_barra && String(codigo_barra).trim()) ? String(codigo_barra).trim() : null;
+
   try {
-    const [result] = await pool.query(
-      `INSERT INTO repuestos (codigo, nombre, descripcion, categoria, stock, stock_minimo,
-        precio_compra, precio_venta, proveedor, unidad_medida, precio_mayor, cantidad_mayor,
-        codigo_barra, marca, moneda, marca_oem, proveedor_oem, codigo_oem, codigo_original,
-        precio_dist1, precio_dist2, precio_dist3, imagen)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-      [codigo, nombre, descripcion, categoria, stock||0, stock_minimo||5,
-       precio_compra||0, precio_venta||0, proveedor, unidad_medida, precio_mayor||0,
-       cantidad_mayor||0, codigo_barra, marca, moneda||'PEN', marca_oem, proveedor_oem,
-       codigo_oem, codigo_original, precio_dist1||0, precio_dist2||0, precio_dist3||0, imagen]
-    );
-    res.status(201).json({ mensaje: 'Repuesto creado', id: result.insertId });
+    const { data, error } = await supabase
+      .from('repuestos')
+      .insert([{
+        codigo: valCodigo,
+        nombre,
+        descripcion,
+        categoria,
+        stock: Number(stock) || 0,
+        stock_minimo: Number(stock_minimo) || 5,
+        precio_compra: Number(precio_compra) || 0,
+        precio_venta: Number(precio_venta) || 0,
+        proveedor,
+        unidad_medida,
+        precio_mayor: Number(precio_mayor) || 0,
+        cantidad_mayor: Number(cantidad_mayor) || 0,
+        codigo_barra: valCodigoBarra,
+        marca,
+        moneda: moneda || 'PEN',
+        marca_oem,
+        proveedor_oem,
+        codigo_oem,
+        codigo_original,
+        precio_dist1: Number(precio_dist1) || 0,
+        precio_dist2: Number(precio_dist2) || 0,
+        precio_dist3: Number(precio_dist3) || 0,
+        imagen
+      }])
+      .select('id')
+      .single();
+
+    if (error) throw error;
+    res.status(201).json({ mensaje: 'Repuesto creado', id: data.id });
   } catch (err) {
+    console.error('Error al crear repuesto:', err);
     res.status(500).json({ mensaje: 'Error al crear repuesto' });
   }
 };
 
 const updateRepuesto = async (req, res) => {
-  const { nombre, descripcion, categoria, precio_compra, precio_venta,
+  const { codigo, nombre, descripcion, categoria, precio_compra, precio_venta,
           proveedor, unidad_medida, precio_mayor, cantidad_mayor,
           codigo_barra, marca, moneda, marca_oem, proveedor_oem, codigo_oem,
           codigo_original, precio_dist1, precio_dist2, precio_dist3 } = req.body;
 
-  // Parsear números correctamente desde FormData (vienen como string)
   const stock        = parseFloat(req.body.stock)        || 0;
   const stock_minimo = parseFloat(req.body.stock_minimo) || 0;
+  const valCodigo = (codigo && String(codigo).trim()) ? String(codigo).trim() : null;
+  const valCodigoBarra = (codigo_barra && String(codigo_barra).trim()) ? String(codigo_barra).trim() : null;
 
   try {
     let imagen = req.body.imagen_actual || null;
@@ -73,34 +109,61 @@ const updateRepuesto = async (req, res) => {
       imagen = await procesarImagen(req.file);
     }
 
-    await pool.query(
-      `UPDATE repuestos SET nombre=?, descripcion=?, categoria=?, stock=?, stock_minimo=?,
-        precio_compra=?, precio_venta=?, proveedor=?, unidad_medida=?, precio_mayor=?,
-        cantidad_mayor=?, codigo_barra=?, marca=?, moneda=?, marca_oem=?, proveedor_oem=?,
-        codigo_oem=?, codigo_original=?, precio_dist1=?, precio_dist2=?, precio_dist3=?, imagen=?
-       WHERE id=?`,
-      [nombre, descripcion, categoria, stock, stock_minimo,
-       parseFloat(precio_compra)||0, parseFloat(precio_venta)||0,
-       proveedor, unidad_medida, parseFloat(precio_mayor)||0,
-       parseInt(cantidad_mayor)||0, codigo_barra, marca,
-       moneda||'PEN', marca_oem, proveedor_oem, codigo_oem, codigo_original,
-       parseFloat(precio_dist1)||0, parseFloat(precio_dist2)||0,
-       parseFloat(precio_dist3)||0, imagen, req.params.id]
-    );
+    const { error } = await supabase
+      .from('repuestos')
+      .update({
+        codigo: valCodigo,
+        nombre,
+        descripcion,
+        categoria,
+        stock,
+        stock_minimo,
+        precio_compra: parseFloat(precio_compra) || 0,
+        precio_venta: parseFloat(precio_venta) || 0,
+        proveedor,
+        unidad_medida,
+        precio_mayor: parseFloat(precio_mayor) || 0,
+        cantidad_mayor: parseInt(cantidad_mayor) || 0,
+        codigo_barra: valCodigoBarra,
+        marca,
+        moneda: moneda || 'PEN',
+        marca_oem,
+        proveedor_oem,
+        codigo_oem,
+        codigo_original,
+        precio_dist1: parseFloat(precio_dist1) || 0,
+        precio_dist2: parseFloat(precio_dist2) || 0,
+        precio_dist3: parseFloat(precio_dist3) || 0,
+        imagen,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', req.params.id);
+
+    if (error) throw error;
     res.json({ mensaje: 'Repuesto actualizado' });
   } catch (err) {
-    console.error(err);
+    console.error('Error al actualizar repuesto:', err);
     res.status(500).json({ mensaje: 'Error al actualizar repuesto' });
   }
 };
 
 const eliminarRepuesto = async (req, res) => {
   try {
-    const [rows] = await pool.query('SELECT imagen FROM repuestos WHERE id = ?', [req.params.id]);
-    if (rows.length && rows[0].imagen) eliminarImagenDisco(rows[0].imagen);
-    await pool.query('DELETE FROM repuestos WHERE id = ?', [req.params.id]);
-    res.json({ mensaje: 'Repuesto eliminado' });
+    const { data: rows } = await supabase
+      .from('repuestos')
+      .select('imagen')
+      .eq('id', req.params.id);
+
+    await supabase.from('detalle_ventas').update({ repuesto_id: null }).eq('repuesto_id', req.params.id);
+    await supabase.from('orden_repuestos').update({ repuesto_id: null }).eq('repuesto_id', req.params.id);
+    const { error } = await supabase.from('repuestos').delete().eq('id', req.params.id);
+
+    if (error) throw error;
+    if (rows && rows.length && rows[0].imagen) eliminarImagenDisco(rows[0].imagen);
+
+    res.json({ mensaje: 'Repuesto eliminado correctamente' });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ mensaje: 'Error al eliminar repuesto' });
   }
 };
@@ -109,26 +172,29 @@ const eliminarGrupal = async (req, res) => {
   const { ids, categoria } = req.body;
   try {
     let repuestos = [];
+
     if (categoria) {
-      const [rows] = await pool.query('SELECT id, imagen FROM repuestos WHERE categoria = ?', [categoria]);
-      repuestos = rows;
+      const { data } = await supabase.from('repuestos').select('id, imagen').eq('categoria', categoria);
+      repuestos = data || [];
     } else if (ids && ids.length > 0) {
-      const placeholders = ids.map(() => '?').join(',');
-      const [rows] = await pool.query(`SELECT id, imagen FROM repuestos WHERE id IN (${placeholders})`, ids);
-      repuestos = rows;
+      const { data } = await supabase.from('repuestos').select('id, imagen').in('id', ids);
+      repuestos = data || [];
     } else {
       return res.status(400).json({ mensaje: 'Debes enviar ids o categoria' });
     }
 
-    if (repuestos.length === 0) return res.status(404).json({ mensaje: 'No se encontraron productos' });
+    if (repuestos.length === 0) {
+      return res.status(404).json({ mensaje: 'No se encontraron productos' });
+    }
 
-    // Eliminar imágenes
-    repuestos.forEach(r => { if (r.imagen) eliminarImagenDisco(r.imagen); });
-
-    // Eliminar registros
     const idsEliminar = repuestos.map(r => r.id);
-    const placeholders = idsEliminar.map(() => '?').join(',');
-    await pool.query(`DELETE FROM repuestos WHERE id IN (${placeholders})`, idsEliminar);
+
+    await supabase.from('detalle_ventas').update({ repuesto_id: null }).in('repuesto_id', idsEliminar);
+    await supabase.from('orden_repuestos').update({ repuesto_id: null }).in('repuesto_id', idsEliminar);
+    const { error } = await supabase.from('repuestos').delete().in('id', idsEliminar);
+
+    if (error) throw error;
+    repuestos.forEach(r => { if (r.imagen) eliminarImagenDisco(r.imagen); });
 
     res.json({ mensaje: `${repuestos.length} producto(s) eliminados`, eliminados: repuestos.length });
   } catch (err) {
@@ -142,95 +208,197 @@ const previewEliminar = async (req, res) => {
   try {
     let rows = [];
     if (categoria) {
-      [rows] = await pool.query(
-        'SELECT id, nombre, categoria FROM repuestos WHERE categoria = ?', [categoria]);
+      const { data } = await supabase.from('repuestos').select('id, nombre, categoria').eq('categoria', categoria);
+      rows = data || [];
     } else if (ids && ids.length > 0) {
-      const placeholders = ids.map(() => '?').join(',');
-      [rows] = await pool.query(
-        `SELECT id, nombre, categoria FROM repuestos WHERE id IN (${placeholders})`, ids);
+      const { data } = await supabase.from('repuestos').select('id, nombre, categoria').in('id', ids);
+      rows = data || [];
     }
     res.json({ total: rows.length, productos: rows });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ mensaje: 'Error al obtener preview' });
   }
 };
 
+// ── Helpers para importación de Excel ──
+function normalizarClave(texto) {
+  return String(texto || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '');
+}
+
+function getValor(filaNorm, aliasList) {
+  for (const alias of aliasList) {
+    const clave = normalizarClave(alias);
+    if (filaNorm[clave] !== undefined && filaNorm[clave] !== null) {
+      const val = String(filaNorm[clave]).trim();
+      if (val !== '') return val;
+    }
+  }
+  return '';
+}
+
+function getNumero(filaNorm, aliasList, defecto = 0) {
+  const val = getValor(filaNorm, aliasList);
+  if (val === '') return defecto;
+  const num = parseFloat(String(val).replace(/,/g, ''));
+  return isNaN(num) ? defecto : num;
+}
+
 const importarExcel = async (req, res) => {
   if (!req.file) return res.status(400).json({ mensaje: 'No se envió ningún archivo' });
+
   try {
     const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
-    const hoja     = workbook.Sheets[workbook.SheetNames[0]];
-    const filas    = XLSX.utils.sheet_to_json(hoja, { defval: '' });
-    if (filas.length === 0) return res.status(400).json({ mensaje: 'El archivo está vacío' });
+    let filas = [];
+    for (const name of workbook.SheetNames) {
+      const hoja = workbook.Sheets[name];
+      const data = XLSX.utils.sheet_to_json(hoja, { defval: '' });
+      if (data && data.length > 0) {
+        filas = data;
+        break;
+      }
+    }
+
+    if (filas.length === 0) {
+      return res.status(400).json({ mensaje: 'El archivo Excel no contiene datos o está vacío' });
+    }
+
+    // Precargar repuestos existentes para búsqueda rápida en memoria
+    const { data: existentes } = await supabase.from('repuestos').select('id, codigo, codigo_barra, nombre');
+    const mapCodigo = new Map();
+    const mapBarra  = new Map();
+    const mapNombre = new Map();
+
+    for (const r of (existentes || [])) {
+      if (r.codigo && String(r.codigo).trim()) {
+        mapCodigo.set(String(r.codigo).trim().toUpperCase(), r.id);
+      }
+      if (r.codigo_barra && String(r.codigo_barra).trim()) {
+        mapBarra.set(String(r.codigo_barra).trim().toUpperCase(), r.id);
+      }
+      if (r.nombre && String(r.nombre).trim()) {
+        mapNombre.set(String(r.nombre).trim().toLowerCase(), r.id);
+      }
+    }
 
     let insertados = 0, actualizados = 0, errores = 0;
     const detalleErrores = [];
 
-    for (const fila of filas) {
+    for (let i = 0; i < filas.length; i++) {
+      const fila = filas[i];
+      const tieneValores = Object.values(fila).some(v => String(v || '').trim() !== '');
+      if (!tieneValores) continue;
+
+      const filaNorm = {};
+      for (const [k, v] of Object.entries(fila)) {
+        filaNorm[normalizarClave(k)] = v;
+      }
+
+      const nombre = getValor(filaNorm, [
+        'nombre', 'producto', 'articulo', 'descripcion', 'descripcion producto',
+        'repuesto', 'tablet descripcion', 'item'
+      ]);
+
+      if (!nombre) {
+        errores++;
+        detalleErrores.push(`Fila ${i + 2}: Sin nombre de repuesto`);
+        continue;
+      }
+
+      const rawCodigo = getValor(filaNorm, [
+        'ubicacion', 'codigo', 'cod', 'codigo ubicacion', 'cod interno',
+        'codigo interno', 'ubicacion codigo'
+      ]);
+      const codigo = rawCodigo ? rawCodigo : null;
+
+      const rawBarra = getValor(filaNorm, [
+        'codigo barra', 'codigo de barra', 'codigo de barras', 'barcode',
+        'cod barra', 'codigo_barra'
+      ]);
+      const codigo_barra = rawBarra ? rawBarra : null;
+
+      const stock          = getNumero(filaNorm, ['stock', 'cantidad', 'cant', 'existencias', 'stock actual'], 0);
+      const precio_venta   = getNumero(filaNorm, ['precio unidad', 'precio venta', 'p venta', 'p. venta', 'precio', 'pvp', 'precio unitario'], 0);
+      const precio_compra  = getNumero(filaNorm, ['costo unidad', 'precio compra', 'costo', 'p compra', 'p. compra', 'costo unitario', 'precio costo'], 0);
+      const unidad_medida  = getValor(filaNorm, ['unidad de medida', 'unidad', 'medida', 'um', 'u.m.', 'und']) || 'UND';
+      const precio_mayor   = getNumero(filaNorm, ['precio por mayor', 'precio mayor', 'p mayor', 'p. mayor'], 0);
+      const cantidad_mayor = Math.round(getNumero(filaNorm, ['cantidad por mayor', 'cantidad mayor', 'cant mayor', 'cant. mayor'], 0));
+      const categoria      = getValor(filaNorm, ['categoria', 'rubro', 'familia', 'linea', 'grupo']) || null;
+      const marca          = getValor(filaNorm, ['marca', 'brand', 'fabricante']) || null;
+      const moneda         = getValor(filaNorm, ['tipo de moneda', 'moneda', 'divisa']) || 'PEN';
+      const marca_oem      = getValor(filaNorm, ['marca oem', 'marca_oem', 'oem marca']) || null;
+      const proveedor_oem  = getValor(filaNorm, ['proveedor oem', 'provedor oem', 'proveedor_oem', 'provedor_oem']) || null;
+      const proveedor      = getValor(filaNorm, ['proveedor', 'provedor']) || proveedor_oem || null;
+      const codigo_oem     = getValor(filaNorm, ['codigo oem', 'codigo_oem', 'cod oem']) || null;
+      const codigo_original= getValor(filaNorm, ['codigo original', 'codigo_original', 'cod original']) || null;
+      const precio_dist1   = getNumero(filaNorm, ['precio distribuidor 1', 'precio dist 1', 'p dist 1', 'precio dist1', 'distribuidor 1'], 0);
+      const precio_dist2   = getNumero(filaNorm, ['precio distribuidor 2', 'precio dist 2', 'p dist 2', 'precio dist2', 'distribuidor 2'], 0);
+      const precio_dist3   = getNumero(filaNorm, ['precio distribuidor 3', 'precio dist 3', 'p dist 3', 'precio dist3', 'distribuidor 3'], 0);
+      const imagen         = getValor(filaNorm, ['imagen', 'foto', 'img', 'url imagen']) || null;
+
       try {
-        const nombre          = String(fila['NOMBRE']              || '').trim();
-        const codigo          = String(fila['UBICACION']           || '').trim();
-        const stock           = parseFloat(fila['STOCK'])          || 0;
-        const precio_venta    = parseFloat(fila['PRECIO UNIDAD'])  || 0;
-        const precio_compra   = parseFloat(fila['COSTO UNIDAD'])   || 0;
-        const unidad_medida   = String(fila['UNIDAD DE MEDIDA']    || '').trim();
-        const precio_mayor    = parseFloat(fila['PRECIO POR MAYOR'])    || 0;
-        const cantidad_mayor  = parseInt(fila['CANTIDAD POR MAYOR'])    || 0;
-        const codigo_barra    = String(fila['CODIGO BARRA']        || '').trim();
-        const categoria       = String(fila['CATEGORIA']           || '').trim();
-        const marca           = String(fila['MARCA']               || '').trim();
-        const moneda          = String(fila['TIPO DE MONEDA']      || 'PEN').trim();
-        const marca_oem       = String(fila['MARCA OEM']           || '').trim();
-        const proveedor_oem   = String(fila['PROVEEDOR OEM']       || '').trim();
-        const codigo_oem      = String(fila['CODIGO OEM']          || '').trim();
-        const codigo_original = String(fila['CODIGO ORIGINAL']     || '').trim();
-        const precio_dist1    = parseFloat(fila['PRECIO DISTRIBUIDOR 1']) || 0;
-        const precio_dist2    = parseFloat(fila['PRECIO DISTRIBUIDOR 2 '] || fila['PRECIO DISTRIBUIDOR 2']) || 0;
-        const precio_dist3    = parseFloat(fila['PRECIO DISTRIBUIDOR 3']) || 0;
-        const imagen          = String(fila['IMAGEN'] || '').trim() || null;
+        let targetId = null;
+        if (codigo && mapCodigo.has(codigo.toUpperCase())) {
+          targetId = mapCodigo.get(codigo.toUpperCase());
+        } else if (codigo_barra && mapBarra.has(codigo_barra.toUpperCase())) {
+          targetId = mapBarra.get(codigo_barra.toUpperCase());
+        } else if (mapNombre.has(nombre.toLowerCase())) {
+          targetId = mapNombre.get(nombre.toLowerCase());
+        }
 
-        if (!nombre) { errores++; continue; }
+        const repuestoPayload = {
+          nombre,
+          codigo,
+          stock,
+          precio_venta,
+          precio_compra,
+          unidad_medida,
+          precio_mayor,
+          cantidad_mayor,
+          codigo_barra,
+          categoria,
+          marca,
+          moneda,
+          marca_oem,
+          proveedor_oem,
+          proveedor,
+          codigo_oem,
+          codigo_original,
+          precio_dist1,
+          precio_dist2,
+          precio_dist3,
+          ...(imagen ? { imagen } : {})
+        };
 
-        const [existe] = await pool.query('SELECT id FROM repuestos WHERE codigo = ?', [codigo]);
-        if (existe.length > 0) {
-          await pool.query(
-            `UPDATE repuestos SET nombre=?, stock=?, precio_venta=?, precio_compra=?,
-              unidad_medida=?, precio_mayor=?, cantidad_mayor=?, codigo_barra=?, categoria=?,
-              marca=?, moneda=?, marca_oem=?, proveedor_oem=?, codigo_oem=?, codigo_original=?,
-              precio_dist1=?, precio_dist2=?, precio_dist3=?
-              ${imagen ? ', imagen=?' : ''}
-             WHERE codigo=?`,
-            imagen
-              ? [nombre, stock, precio_venta, precio_compra, unidad_medida, precio_mayor,
-                 cantidad_mayor, codigo_barra, categoria, marca, moneda, marca_oem, proveedor_oem,
-                 codigo_oem, codigo_original, precio_dist1, precio_dist2, precio_dist3, imagen, codigo]
-              : [nombre, stock, precio_venta, precio_compra, unidad_medida, precio_mayor,
-                 cantidad_mayor, codigo_barra, categoria, marca, moneda, marca_oem, proveedor_oem,
-                 codigo_oem, codigo_original, precio_dist1, precio_dist2, precio_dist3, codigo]
-          );
+        if (targetId) {
+          await supabase.from('repuestos').update(repuestoPayload).eq('id', targetId);
+          if (codigo) mapCodigo.set(codigo.toUpperCase(), targetId);
+          if (codigo_barra) mapBarra.set(codigo_barra.toUpperCase(), targetId);
+          mapNombre.set(nombre.toLowerCase(), targetId);
           actualizados++;
         } else {
-          await pool.query(
-            `INSERT INTO repuestos (codigo, nombre, stock, precio_venta, precio_compra,
-              unidad_medida, precio_mayor, cantidad_mayor, codigo_barra, categoria, marca,
-              moneda, marca_oem, proveedor_oem, codigo_oem, codigo_original,
-              precio_dist1, precio_dist2, precio_dist3, stock_minimo, imagen)
-             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-            [codigo, nombre, stock, precio_venta, precio_compra, unidad_medida, precio_mayor,
-             cantidad_mayor, codigo_barra, categoria, marca, moneda, marca_oem, proveedor_oem,
-             codigo_oem, codigo_original, precio_dist1, precio_dist2, precio_dist3, 5, imagen]
-          );
+          const { data: newRow, error: insErr } = await supabase.from('repuestos').insert([repuestoPayload]).select('id').single();
+          if (insErr) throw insErr;
+          const newId = newRow.id;
+          if (codigo) mapCodigo.set(codigo.toUpperCase(), newId);
+          if (codigo_barra) mapBarra.set(codigo_barra.toUpperCase(), newId);
+          mapNombre.set(nombre.toLowerCase(), newId);
           insertados++;
         }
-      } catch (err) {
+      } catch (rowErr) {
         errores++;
-        detalleErrores.push(String(fila['NOMBRE'] || 'Fila desconocida'));
+        detalleErrores.push(`${nombre}: ${rowErr.message}`);
       }
     }
+
     res.json({ mensaje: 'Importación completada', insertados, actualizados, errores, detalleErrores });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ mensaje: 'Error al procesar el archivo Excel' });
+    console.error('Error al importar Excel:', err);
+    res.status(500).json({ mensaje: 'Error al procesar el archivo Excel: ' + (err.message || 'Error interno') });
   }
 };
 
@@ -238,12 +406,18 @@ const importarExcel = async (req, res) => {
 async function procesarImagen(file) {
   const nombreOptimizado = `opt_${Date.now()}.webp`;
   const rutaSalida = path.join(__dirname, '../uploads/repuestos', nombreOptimizado);
+  
   await sharp(file.path)
     .resize(400, 400, { fit: 'inside', withoutEnlargement: true })
     .webp({ quality: 80 })
     .toFile(rutaSalida);
-  // Eliminar original
-  if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+
+  setTimeout(() => {
+    try {
+      if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+    } catch (e) {}
+  }, 500);
+
   return `/uploads/repuestos/${nombreOptimizado}`;
 }
 

@@ -2,12 +2,19 @@
   <!-- Encabezado -->
   <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
-      <h4 class="fw-bold mb-0"><i class="bi bi-clipboard2-check-fill text-warning me-2"></i>Órdenes de trabajo</h4>
+      <h4 class="fw-bold mb-0">
+        <i class="bi bi-clipboard2-check-fill text-warning me-2"></i>Órdenes de trabajo
+      </h4>
       <small class="text-muted">{{ ordenes.length }} órdenes en total</small>
     </div>
-    <button class="btn btn-warning fw-semibold" (click)="nueva()">
-      <i class="bi bi-plus-lg me-1"></i>Nueva orden
-    </button>
+    <div class="d-flex gap-2">
+      <button class="btn btn-outline-dark fw-semibold" (click)="abrirHistorialPlaca()">
+        <i class="bi bi-clock-history me-1"></i>Hoja de Vida por Placa
+      </button>
+      <button class="btn btn-warning fw-semibold" (click)="nueva()">
+        <i class="bi bi-plus-lg me-1"></i>Nueva orden
+      </button>
+    </div>
   </div>
 
   <!-- Filtros -->
@@ -48,40 +55,68 @@
         </thead>
         <tbody>
           <tr *ngIf="cargando">
-            <td colspan="7" class="text-center py-4"><div class="spinner-border text-warning"></div></td>
+            <td colspan="7" class="text-center py-4">
+              <div class="spinner-border text-warning"></div>
+            </td>
           </tr>
           <tr *ngFor="let o of filtradas">
             <td><strong>{{ o.codigo }}</strong></td>
             <td>
               <div class="fw-semibold small">{{ o.cliente }}</div>
-              <span class="badge bg-light text-dark border">{{ o.vehiculo }} · {{ o.placa }}</span>
+              <span class="badge bg-light text-dark border me-1">{{ o.vehiculo }}</span>
+              <span class="badge bg-dark" (click)="abrirHistorialPlaca(o.placa)" style="cursor:pointer" title="Ver historial de esta placa">
+                {{ o.placa }} <i class="bi bi-search ms-1" style="font-size:0.65rem"></i>
+              </span>
             </td>
             <td class="small">{{ o.mecanico || '—' }}</td>
-            <td><span [class]="getBadge(o.estado).clase">{{ getBadge(o.estado).label }}</span></td>
-            <td class="small text-muted">{{ o.fecha_ingreso | date:'dd/MM/yy' }}</td>
-            <td class="small text-muted">{{ o.fecha_estimada ? (o.fecha_estimada | date:'dd/MM/yy') : '—' }}</td>
             <td>
-              <div class="d-flex gap-1">
-                <button class="btn btn-sm btn-outline-secondary" (click)="verOrden(o)" title="Ver detalle">
+              <span [class]="getBadge(o.estado).clase">{{ getBadge(o.estado).label }}</span>
+            </td>
+            <td class="small text-muted">{{ o.fecha_ingreso | date:'dd/MM/yy' }}</td>
+            <td class="small text-muted">
+              {{ o.fecha_estimada ? (o.fecha_estimada | date:'dd/MM/yy') : '—' }}
+            </td>
+            <td>
+              <div class="d-flex gap-1 align-items-center">
+                <!-- Botón WhatsApp -->
+                <button class="btn btn-sm btn-outline-success"
+                        (click)="abrirModalWhatsApp(o)" title="Notificar cliente por WhatsApp">
+                  <i class="bi bi-whatsapp"></i>
+                </button>
+                <!-- Botón Historial Placa -->
+                <button class="btn btn-sm btn-outline-info"
+                        (click)="abrirHistorialPlaca(o.placa)" title="Hoja de vida / Historial de este auto">
+                  <i class="bi bi-clock-history"></i>
+                </button>
+                <!-- Botón Ver Detalle -->
+                <button class="btn btn-sm btn-outline-secondary"
+                        (click)="verOrden(o)" title="Ver detalle">
                   <i class="bi bi-eye"></i>
                 </button>
+                <!-- Botón Editar -->
                 <button *ngIf="rol.puedeEditarOrdenBasico()"
-                        class="btn btn-sm btn-outline-primary" (click)="editarOrden(o)" title="Editar orden">
+                        class="btn btn-sm btn-outline-primary"
+                        (click)="editarOrden(o)" title="Editar orden">
                   <i class="bi bi-pencil"></i>
                 </button>
                 <button *ngIf="!rol.puedeEditarOrdenBasico()"
-                        class="btn btn-sm btn-outline-warning" (click)="editarOrden(o)" title="Gestionar orden">
+                        class="btn btn-sm btn-outline-warning"
+                        (click)="editarOrden(o)" title="Gestionar orden">
                   <i class="bi bi-tools"></i>
                 </button>
+                <!-- Botón Eliminar -->
                 <button *ngIf="rol.puedeEliminarOrden()"
-                        class="btn btn-sm btn-outline-danger" (click)="eliminarOrden(o)" title="Eliminar orden">
+                        class="btn btn-sm btn-outline-danger"
+                        (click)="eliminarOrden(o)" title="Eliminar orden">
                   <i class="bi bi-trash"></i>
                 </button>
               </div>
             </td>
           </tr>
           <tr *ngIf="!cargando && filtradas.length === 0">
-            <td colspan="7" class="text-center text-muted py-4">No hay órdenes para mostrar</td>
+            <td colspan="7" class="text-center text-muted py-4">
+              No hay órdenes para mostrar
+            </td>
           </tr>
         </tbody>
       </table>
@@ -92,11 +127,14 @@
 <!-- ══════════════════════════════════════════
      MODAL NUEVA ORDEN
 ══════════════════════════════════════════ -->
-<div class="modal-backdrop-custom" *ngIf="mostrarModalNueva" (click)="mostrarModalNueva=false"></div>
+<div class="modal-backdrop-custom" *ngIf="mostrarModalNueva"
+     (click)="mostrarModalNueva=false"></div>
 <div class="modal-custom" *ngIf="mostrarModalNueva">
   <div class="modal-dialog-xl">
     <div class="modal-header">
-      <h5 class="modal-title fw-bold"><i class="bi bi-clipboard2-plus me-2"></i>Nueva orden de trabajo</h5>
+      <h5 class="modal-title fw-bold">
+        <i class="bi bi-clipboard2-plus me-2"></i>Nueva orden de trabajo
+      </h5>
       <button class="btn-close" (click)="mostrarModalNueva=false"></button>
     </div>
     <div class="modal-body">
@@ -108,33 +146,50 @@
 
           <!-- Vehículo -->
           <div class="mb-2">
-            <label class="form-label small fw-semibold"><i class="bi bi-car-front me-1"></i>Vehículo *</label>
+            <label class="form-label small fw-semibold">
+              <i class="bi bi-car-front me-1"></i>Vehículo *
+            </label>
             <div class="position-relative">
               <input class="form-control" placeholder="Nombre del cliente o placa..."
                      [(ngModel)]="busquedaVehiculo" (input)="buscarVehiculo()">
               <div *ngIf="mostrarVehiculos" class="sugerencias-dropdown">
-                <div *ngFor="let v of vehiculosFiltrados" class="sugerencia-item" (click)="seleccionarVehiculo(v)">
+                <div *ngFor="let v of vehiculosFiltrados" class="sugerencia-item"
+                     (click)="seleccionarVehiculo(v)">
                   <div class="fw-semibold small">{{ v.cliente }}</div>
-                  <div class="text-muted" style="font-size:0.75rem">{{ v.marca }} {{ v.modelo }} — <span class="badge bg-dark">{{ v.placa }}</span></div>
+                  <div class="text-muted" style="font-size:0.75rem">
+                    {{ v.marca }} {{ v.modelo }} —
+                    <span class="badge bg-dark">{{ v.placa }}</span>
+                  </div>
                 </div>
               </div>
             </div>
-            <div *ngIf="vehiculoSeleccionado" class="alert alert-success py-1 px-2 mt-1 small mb-0">
-              <i class="bi bi-check-circle me-1"></i>{{ vehiculoSeleccionado.marca }} {{ vehiculoSeleccionado.modelo }} ({{ vehiculoSeleccionado.placa }})
+            <div *ngIf="vehiculoSeleccionado"
+                 class="alert alert-success py-1 px-2 mt-1 small mb-0">
+              <i class="bi bi-check-circle me-1"></i>
+              {{ vehiculoSeleccionado.marca }} {{ vehiculoSeleccionado.modelo }}
+              ({{ vehiculoSeleccionado.placa }})
             </div>
           </div>
 
           <!-- Mecánico -->
           <div class="mb-2">
-            <label class="form-label small fw-semibold"><i class="bi bi-person-gear me-1"></i>Mecánico</label>
+            <label class="form-label small fw-semibold">
+              <i class="bi bi-person-gear me-1"></i>Mecánico
+            </label>
             <div class="position-relative">
               <input class="form-control" placeholder="Nombre del mecánico..."
                      [(ngModel)]="busquedaMecanico" (input)="buscarMecanico(false)">
               <div *ngIf="mostrarMecanicos" class="sugerencias-dropdown">
-                <div *ngFor="let m of mecanicosFiltrados" class="sugerencia-item" (click)="seleccionarMecanico(m, false)">
+                <div *ngFor="let m of mecanicosFiltrados" class="sugerencia-item"
+                     (click)="seleccionarMecanico(m, false)">
                   <div class="fw-semibold small">{{ m.nombre }}</div>
+                  <div class="text-muted" style="font-size:0.72rem">{{ m.rol }}</div>
                 </div>
               </div>
+            </div>
+            <div *ngIf="mecanicoSeleccionado"
+                 class="alert alert-success py-1 px-2 mt-1 small mb-0">
+              <i class="bi bi-check-circle me-1"></i>{{ mecanicoSeleccionado.nombre }}
             </div>
           </div>
 
@@ -142,23 +197,27 @@
           <div class="row g-2">
             <div class="col-6">
               <label class="form-label small fw-semibold">Kilometraje</label>
-              <input class="form-control" type="number" [(ngModel)]="ordenForm.km_actual">
+              <input class="form-control" type="number"
+                     [(ngModel)]="ordenForm.km_actual" placeholder="Ej: 45000">
             </div>
             <div class="col-6">
-              <label class="form-label small fw-semibold">Fecha estimada</label>
-              <input class="form-control" type="date" [(ngModel)]="ordenForm.fecha_estimada">
+              <label class="form-label small fw-semibold">Fecha estimada entrega</label>
+              <input class="form-control" type="date"
+                     [(ngModel)]="ordenForm.fecha_estimada">
             </div>
             <div class="col-6">
               <label class="form-label small fw-semibold">Mano de obra (S/)</label>
-              <input class="form-control" type="number" step="0.01" [(ngModel)]="ordenForm.mano_obra">
+              <input class="form-control" type="number" step="0.01"
+                     [(ngModel)]="ordenForm.mano_obra" placeholder="0.00">
             </div>
           </div>
 
           <!-- Problema -->
           <div class="mt-2">
             <label class="form-label small fw-semibold">Problema reportado *</label>
-            <textarea class="form-control" rows="3" [(ngModel)]="ordenForm.descripcion_problema"
-                      placeholder="Describe el problema..."></textarea>
+            <textarea class="form-control" rows="3"
+                      [(ngModel)]="ordenForm.descripcion_problema"
+                      placeholder="Describe el problema reportado por el cliente..."></textarea>
           </div>
         </div>
 
@@ -168,42 +227,67 @@
 
           <!-- Servicios -->
           <div class="detalle-seccion mb-3">
-            <div class="fw-semibold small mb-2"><i class="bi bi-tools me-1"></i>Servicios</div>
+            <div class="fw-semibold small mb-2">
+              <i class="bi bi-tools me-1"></i>Servicios
+            </div>
             <div class="position-relative mb-2">
-              <input class="form-control form-control-sm" placeholder="Buscar servicio..."
-                     [(ngModel)]="busquedaServicioNueva" (input)="buscarServicioNueva()">
+              <input class="form-control form-control-sm"
+                     placeholder="Buscar servicio..."
+                     [(ngModel)]="busquedaServicioNueva"
+                     (input)="buscarServicioNueva()">
               <div *ngIf="mostrarSugServicioNueva" class="sugerencias-dropdown">
-                <div *ngFor="let s of serviciosFiltradosNueva" class="sugerencia-item" (click)="seleccionarServicioNueva(s)">
+                <div *ngFor="let s of serviciosFiltradosNueva" class="sugerencia-item"
+                     (click)="seleccionarServicioNueva(s)">
                   <div class="fw-semibold small">{{ s.nombre }}</div>
-                  <div class="text-muted" style="font-size:0.75rem">S/ {{ s.precio_base | number:'1.2-2' }}</div>
+                  <div class="text-muted" style="font-size:0.75rem">
+                    S/ {{ s.precio_base | number:'1.2-2' }}
+                    <span class="badge bg-light text-dark border ms-1">{{ s.categoria }}</span>
+                  </div>
                 </div>
               </div>
             </div>
             <div *ngIf="servicioFormNueva.servicio_id" class="d-flex gap-1 mb-2">
               <input class="form-control form-control-sm" type="number" step="0.01"
-                     [(ngModel)]="servicioFormNueva.precio" placeholder="Precio" style="max-width:90px">
-              <input class="form-control form-control-sm" [(ngModel)]="servicioFormNueva.observacion" placeholder="Obs.">
-              <button class="btn btn-sm btn-success" (click)="agregarServicioNueva()"><i class="bi bi-plus-lg"></i></button>
+                     [(ngModel)]="servicioFormNueva.precio"
+                     placeholder="Precio" style="max-width:90px">
+              <input class="form-control form-control-sm"
+                     [(ngModel)]="servicioFormNueva.observacion"
+                     placeholder="Observación">
+              <button class="btn btn-sm btn-success" (click)="agregarServicioNueva()">
+                <i class="bi bi-plus-lg"></i>
+              </button>
             </div>
             <div *ngFor="let s of serviciosNuevaOrden; let i=index"
                  class="d-flex justify-content-between align-items-center py-1 border-bottom small">
-              <span>{{ s.nombre }}</span>
+              <div>
+                <div class="fw-semibold">{{ s.nombre }}</div>
+                <div class="text-muted" *ngIf="s.observacion">{{ s.observacion }}</div>
+              </div>
               <div class="d-flex gap-1 align-items-center">
                 <span class="text-success fw-bold">S/ {{ s.precio | number:'1.2-2' }}</span>
-                <button class="btn btn-sm btn-outline-danger py-0 px-1" (click)="quitarServicioNueva(i)"><i class="bi bi-x"></i></button>
+                <button class="btn btn-sm btn-outline-danger py-0 px-1"
+                        (click)="quitarServicioNueva(i)">
+                  <i class="bi bi-x"></i>
+                </button>
               </div>
             </div>
-            <div *ngIf="!serviciosNuevaOrden.length" class="text-muted small text-center py-1">Sin servicios</div>
+            <div *ngIf="!serviciosNuevaOrden.length"
+                 class="text-muted small text-center py-1">Sin servicios</div>
           </div>
 
           <!-- Repuestos -->
           <div class="detalle-seccion mb-3">
-            <div class="fw-semibold small mb-2"><i class="bi bi-box-seam me-1"></i>Repuestos</div>
+            <div class="fw-semibold small mb-2">
+              <i class="bi bi-box-seam me-1"></i>Repuestos
+            </div>
             <div class="position-relative mb-2">
-              <input class="form-control form-control-sm" placeholder="Buscar repuesto..."
-                     [(ngModel)]="busquedaRepuestoNueva" (input)="buscarRepuestoNueva()">
+              <input class="form-control form-control-sm"
+                     placeholder="Buscar repuesto..."
+                     [(ngModel)]="busquedaRepuestoNueva"
+                     (input)="buscarRepuestoNueva()">
               <div *ngIf="mostrarSugRepuestoNueva" class="sugerencias-dropdown">
-                <div *ngFor="let r of repuestosFiltradosNueva" class="sugerencia-item" (click)="seleccionarRepuestoNueva(r)">
+                <div *ngFor="let r of repuestosFiltradosNueva" class="sugerencia-item"
+                     (click)="seleccionarRepuestoNueva(r)">
                   <div class="fw-semibold small">{{ r.nombre }}</div>
                   <div class="d-flex justify-content-between" style="font-size:0.75rem">
                     <span class="text-muted">Stock: {{ r.stock }}</span>
@@ -213,21 +297,34 @@
               </div>
             </div>
             <div *ngIf="repuestoFormNueva.repuesto_id" class="d-flex gap-1 mb-2">
-              <input class="form-control form-control-sm" type="number" [(ngModel)]="repuestoFormNueva.cantidad"
+              <input class="form-control form-control-sm" type="number"
+                     [(ngModel)]="repuestoFormNueva.cantidad"
                      placeholder="Cant." style="max-width:70px">
               <input class="form-control form-control-sm" type="number" step="0.01"
-                     [(ngModel)]="repuestoFormNueva.precio_unitario" placeholder="Precio">
-              <button class="btn btn-sm btn-success" (click)="agregarRepuestoNueva()"><i class="bi bi-plus-lg"></i></button>
+                     [(ngModel)]="repuestoFormNueva.precio_unitario"
+                     placeholder="Precio unit.">
+              <button class="btn btn-sm btn-success" (click)="agregarRepuestoNueva()">
+                <i class="bi bi-plus-lg"></i>
+              </button>
             </div>
             <div *ngFor="let r of repuestosNuevaOrden; let i=index"
                  class="d-flex justify-content-between align-items-center py-1 border-bottom small">
-              <span>{{ r.nombre }} x{{ r.cantidad }}</span>
+              <div>
+                <div class="fw-semibold">{{ r.nombre }}</div>
+                <div class="text-muted">{{ r.cantidad }} x S/ {{ r.precio_unitario | number:'1.2-2' }}</div>
+              </div>
               <div class="d-flex gap-1 align-items-center">
-                <span class="text-success fw-bold">S/ {{ r.precio_unitario * r.cantidad | number:'1.2-2' }}</span>
-                <button class="btn btn-sm btn-outline-danger py-0 px-1" (click)="quitarRepuestoNueva(i)"><i class="bi bi-x"></i></button>
+                <span class="text-success fw-bold">
+                  S/ {{ r.precio_unitario * r.cantidad | number:'1.2-2' }}
+                </span>
+                <button class="btn btn-sm btn-outline-danger py-0 px-1"
+                        (click)="quitarRepuestoNueva(i)">
+                  <i class="bi bi-x"></i>
+                </button>
               </div>
             </div>
-            <div *ngIf="!repuestosNuevaOrden.length" class="text-muted small text-center py-1">Sin repuestos</div>
+            <div *ngIf="!repuestosNuevaOrden.length"
+                 class="text-muted small text-center py-1">Sin repuestos</div>
           </div>
 
           <!-- Total estimado -->
@@ -252,77 +349,164 @@
 <!-- ══════════════════════════════════════════
      MODAL VER (solo lectura)
 ══════════════════════════════════════════ -->
-<div class="modal-backdrop-custom" *ngIf="mostrarModalVer" (click)="mostrarModalVer=false"></div>
+<div class="modal-backdrop-custom" *ngIf="mostrarModalVer"
+     (click)="mostrarModalVer=false"></div>
 <div class="modal-custom" *ngIf="mostrarModalVer && ordenActual">
   <div class="modal-dialog-xl">
     <div class="modal-header">
       <div>
-        <h5 class="modal-title fw-bold mb-0"><i class="bi bi-eye me-2 text-warning"></i>{{ ordenActual.codigo }}</h5>
-        <small class="text-muted">{{ ordenActual.cliente }} — {{ ordenActual.vehiculo }} ({{ ordenActual.placa }})</small>
+        <h5 class="modal-title fw-bold mb-0">
+          <i class="bi bi-eye me-2 text-warning"></i>{{ ordenActual.codigo }}
+        </h5>
+        <small class="text-muted">
+          {{ ordenActual.cliente }} — {{ ordenActual.vehiculo }} ({{ ordenActual.placa }})
+        </small>
       </div>
       <button class="btn-close" (click)="mostrarModalVer=false"></button>
     </div>
     <div class="modal-body">
       <div class="row g-3">
+
+        <!-- Columna izquierda -->
         <div class="col-md-7">
 
-          <!-- Info -->
+          <!-- Info general -->
           <div class="detalle-seccion mb-3">
             <div class="row g-2 small">
-              <div class="col-6"><span class="text-muted">Estado:</span>
-                <span [class]="getBadge(ordenActual.estado).clase + ' ms-1'">{{ getBadge(ordenActual.estado).label }}</span>
+              <div class="col-6">
+                <span class="text-muted">Estado:</span>
+                <span [class]="getBadge(ordenActual.estado).clase + ' ms-1'">
+                  {{ getBadge(ordenActual.estado).label }}
+                </span>
               </div>
-              <div class="col-6"><span class="text-muted">Mecánico:</span> <strong class="ms-1">{{ ordenActual.mecanico || '—' }}</strong></div>
-              <div class="col-6"><span class="text-muted">Ingreso:</span> <strong class="ms-1">{{ ordenActual.fecha_ingreso | date:'dd/MM/yyyy' }}</strong></div>
-              <div class="col-6"><span class="text-muted">Estimado:</span> <strong class="ms-1">{{ ordenActual.fecha_estimada ? (ordenActual.fecha_estimada | date:'dd/MM/yyyy') : '—' }}</strong></div>
-              <div class="col-12"><span class="text-muted">Problema:</span> <span class="ms-1">{{ ordenActual.descripcion_problema }}</span></div>
-              <div class="col-12" *ngIf="ordenActual.observaciones"><span class="text-muted">Observaciones:</span> <span class="ms-1">{{ ordenActual.observaciones }}</span></div>
+              <div class="col-6">
+                <span class="text-muted">Mecánico:</span>
+                <strong class="ms-1">{{ ordenActual.mecanico || '—' }}</strong>
+              </div>
+              <div class="col-6">
+                <span class="text-muted">Ingreso:</span>
+                <strong class="ms-1">{{ ordenActual.fecha_ingreso | date:'dd/MM/yyyy' }}</strong>
+              </div>
+              <div class="col-6">
+                <span class="text-muted">Estimado:</span>
+                <strong class="ms-1">
+                  {{ ordenActual.fecha_estimada ? (ordenActual.fecha_estimada | date:'dd/MM/yyyy') : '—' }}
+                </strong>
+              </div>
+              <div class="col-6">
+                <span class="text-muted">Kilometraje:</span>
+                <strong class="ms-1">
+                  {{ ordenActual.km_actual ? (ordenActual.km_actual | number) + ' km' : '—' }}
+                </strong>
+              </div>
+              <div class="col-6">
+                <span class="text-muted">Mano de obra:</span>
+                <strong class="ms-1">S/ {{ ordenActual.mano_obra | number:'1.2-2' }}</strong>
+              </div>
+              <div class="col-12">
+                <span class="text-muted">Problema:</span>
+                <span class="ms-1">{{ ordenActual.descripcion_problema }}</span>
+              </div>
+              <div class="col-12" *ngIf="ordenActual.observaciones">
+                <span class="text-muted">Observaciones:</span>
+                <span class="ms-1">{{ ordenActual.observaciones }}</span>
+              </div>
             </div>
           </div>
 
           <!-- Servicios -->
           <div class="detalle-seccion mb-3">
-            <h6 class="fw-bold mb-2"><i class="bi bi-tools me-1 text-warning"></i>Servicios</h6>
-            <div *ngFor="let s of ordenActual.servicios" class="d-flex justify-content-between py-1 border-bottom small">
-              <div><div class="fw-semibold">{{ s.servicio_nombre }}</div><div class="text-muted">{{ s.observacion }}</div></div>
+            <h6 class="fw-bold mb-2">
+              <i class="bi bi-tools me-1 text-warning"></i>Servicios
+            </h6>
+            <div *ngFor="let s of ordenActual.servicios"
+                 class="d-flex justify-content-between py-1 border-bottom small">
+              <div>
+                <div class="fw-semibold">{{ s.servicio_nombre }}</div>
+                <div class="text-muted" *ngIf="s.observacion">{{ s.observacion }}</div>
+              </div>
               <span class="text-success fw-bold">S/ {{ s.precio | number:'1.2-2' }}</span>
             </div>
-            <div *ngIf="!ordenActual.servicios?.length" class="text-muted small text-center py-2">Sin servicios</div>
+            <div *ngIf="!ordenActual.servicios?.length"
+                 class="text-muted small text-center py-2">Sin servicios</div>
           </div>
 
           <!-- Repuestos -->
           <div class="detalle-seccion">
-            <h6 class="fw-bold mb-2"><i class="bi bi-box-seam me-1 text-warning"></i>Repuestos</h6>
-            <div *ngFor="let r of ordenActual.repuestos" class="d-flex justify-content-between py-1 border-bottom small">
-              <div><div class="fw-semibold">{{ r.repuesto_nombre }}</div><div class="text-muted">{{ r.cantidad }} x S/ {{ r.precio_unitario | number:'1.2-2' }}</div></div>
-              <span class="text-success fw-bold">S/ {{ r.precio_unitario * r.cantidad | number:'1.2-2' }}</span>
+            <h6 class="fw-bold mb-2">
+              <i class="bi bi-box-seam me-1 text-warning"></i>Repuestos
+            </h6>
+            <div *ngFor="let r of ordenActual.repuestos"
+                 class="d-flex justify-content-between py-1 border-bottom small">
+              <div>
+                <div class="fw-semibold">{{ r.repuesto_nombre }}</div>
+                <div class="text-muted">
+                  {{ r.cantidad }} x S/ {{ r.precio_unitario | number:'1.2-2' }}
+                </div>
+              </div>
+              <span class="text-success fw-bold">
+                S/ {{ r.precio_unitario * r.cantidad | number:'1.2-2' }}
+              </span>
             </div>
-            <div *ngIf="!ordenActual.repuestos?.length" class="text-muted small text-center py-2">Sin repuestos</div>
+            <div *ngIf="!ordenActual.repuestos?.length"
+                 class="text-muted small text-center py-2">Sin repuestos</div>
           </div>
 
         </div>
+
+        <!-- Columna derecha -->
         <div class="col-md-5">
 
-          <!-- Costos -->
+          <!-- Resumen costos -->
           <div class="detalle-seccion mb-3">
-            <h6 class="fw-bold mb-2"><i class="bi bi-calculator me-1 text-warning"></i>Resumen de costos</h6>
-            <div class="d-flex justify-content-between small mb-1"><span class="text-muted">Servicios:</span><span>S/ {{ ordenActual.totalServicios | number:'1.2-2' }}</span></div>
-            <div class="d-flex justify-content-between small mb-1"><span class="text-muted">Repuestos:</span><span>S/ {{ ordenActual.totalRepuestos | number:'1.2-2' }}</span></div>
-            <div class="d-flex justify-content-between small mb-1"><span class="text-muted">Mano de obra:</span><span>S/ {{ ordenActual.mano_obra | number:'1.2-2' }}</span></div>
+            <h6 class="fw-bold mb-2">
+              <i class="bi bi-calculator me-1 text-warning"></i>Resumen de costos
+            </h6>
+            <div class="d-flex justify-content-between small mb-1">
+              <span class="text-muted">Servicios:</span>
+              <span>S/ {{ ordenActual.totalServicios | number:'1.2-2' }}</span>
+            </div>
+            <div class="d-flex justify-content-between small mb-1">
+              <span class="text-muted">Repuestos:</span>
+              <span>S/ {{ ordenActual.totalRepuestos | number:'1.2-2' }}</span>
+            </div>
+            <div class="d-flex justify-content-between small mb-1">
+              <span class="text-muted">Mano de obra:</span>
+              <span>S/ {{ ordenActual.mano_obra | number:'1.2-2' }}</span>
+            </div>
             <hr class="my-1">
-            <div class="d-flex justify-content-between small mb-1"><span class="text-muted">Subtotal:</span><span>S/ {{ ordenActual.subtotal | number:'1.2-2' }}</span></div>
-            <div class="d-flex justify-content-between small mb-1"><span class="text-muted">IGV (18%):</span><span>S/ {{ ordenActual.igv | number:'1.2-2' }}</span></div>
-            <div class="d-flex justify-content-between fw-bold"><span>TOTAL:</span><span class="text-warning" style="font-size:1.2rem">S/ {{ ordenActual.total | number:'1.2-2' }}</span></div>
+            <div class="d-flex justify-content-between small mb-1">
+              <span class="text-muted">Subtotal:</span>
+              <span>S/ {{ ordenActual.subtotal | number:'1.2-2' }}</span>
+            </div>
+            <div class="d-flex justify-content-between small mb-1">
+              <span class="text-muted">IGV (18%):</span>
+              <span>S/ {{ ordenActual.igv | number:'1.2-2' }}</span>
+            </div>
+            <div class="d-flex justify-content-between fw-bold">
+              <span>TOTAL:</span>
+              <span class="text-warning" style="font-size:1.2rem">
+                S/ {{ ordenActual.total | number:'1.2-2' }}
+              </span>
+            </div>
           </div>
 
           <!-- Historial -->
           <div class="detalle-seccion">
-            <h6 class="fw-bold mb-2"><i class="bi bi-clock-history me-1 text-warning"></i>Historial de estados</h6>
+            <h6 class="fw-bold mb-2">
+              <i class="bi bi-clock-history me-1 text-warning"></i>Historial de estados
+            </h6>
             <div *ngFor="let seg of ordenActual.seguimiento" class="seguimiento-item">
-              <span [class]="getBadge(seg.estado).clase + ' small'">{{ getBadge(seg.estado).label }}</span>
+              <span [class]="getBadge(seg.estado).clase + ' small'">
+                {{ getBadge(seg.estado).label }}
+              </span>
               <div class="small mt-1" *ngIf="seg.comentario">{{ seg.comentario }}</div>
-              <div style="font-size:0.7rem" class="text-muted">{{ seg.usuario_nombre || 'Sistema' }} · {{ seg.fecha | date:'dd/MM/yy HH:mm' }}</div>
+              <div style="font-size:0.7rem" class="text-muted">
+                {{ seg.usuario_nombre || 'Sistema' }} · {{ seg.fecha | date:'dd/MM/yy HH:mm' }}
+              </div>
             </div>
+            <div *ngIf="!ordenActual.seguimiento?.length"
+                 class="text-muted small text-center py-2">Sin historial</div>
           </div>
 
         </div>
@@ -330,7 +514,8 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" (click)="mostrarModalVer=false">Cerrar</button>
-      <button class="btn btn-primary" (click)="mostrarModalVer=false; editarOrden(ordenActual)">
+      <button class="btn btn-primary"
+              (click)="mostrarModalVer=false; editarOrden(ordenActual)">
         <i class="bi bi-pencil me-1"></i>Editar esta orden
       </button>
     </div>
@@ -340,13 +525,18 @@
 <!-- ══════════════════════════════════════════
      MODAL EDITAR ORDEN
 ══════════════════════════════════════════ -->
-<div class="modal-backdrop-custom" *ngIf="mostrarModalEditar" (click)="mostrarModalEditar=false"></div>
+<div class="modal-backdrop-custom" *ngIf="mostrarModalEditar"
+     (click)="mostrarModalEditar=false"></div>
 <div class="modal-custom" *ngIf="mostrarModalEditar && ordenActual">
   <div class="modal-dialog-xl">
     <div class="modal-header">
       <div>
-        <h5 class="modal-title fw-bold mb-0"><i class="bi bi-pencil me-2 text-warning"></i>Editar — {{ ordenActual.codigo }}</h5>
-        <small class="text-muted">{{ ordenActual.cliente }} — {{ ordenActual.vehiculo }} ({{ ordenActual.placa }})</small>
+        <h5 class="modal-title fw-bold mb-0">
+          <i class="bi bi-pencil me-2 text-warning"></i>Editar — {{ ordenActual.codigo }}
+        </h5>
+        <small class="text-muted">
+          {{ ordenActual.cliente }} — {{ ordenActual.vehiculo }} ({{ ordenActual.placa }})
+        </small>
       </div>
       <button class="btn-close" (click)="mostrarModalEditar=false"></button>
     </div>
@@ -359,13 +549,18 @@
 
           <!-- Mecánico -->
           <div class="mb-2">
-            <label class="form-label small fw-semibold"><i class="bi bi-person-gear me-1"></i>Mecánico</label>
+            <label class="form-label small fw-semibold">
+              <i class="bi bi-person-gear me-1"></i>Mecánico
+            </label>
             <div class="position-relative">
               <input class="form-control" placeholder="Nombre del mecánico..."
-                     [(ngModel)]="busquedaMecanicoEdit" (input)="buscarMecanico(true)">
+                     [(ngModel)]="busquedaMecanicoEdit"
+                     (input)="buscarMecanico(true)">
               <div *ngIf="mostrarMecanicosEdit" class="sugerencias-dropdown">
-                <div *ngFor="let m of mecanicosFiltradosEdit" class="sugerencia-item" (click)="seleccionarMecanico(m, true)">
+                <div *ngFor="let m of mecanicosFiltradosEdit" class="sugerencia-item"
+                     (click)="seleccionarMecanico(m, true)">
                   <div class="fw-semibold small">{{ m.nombre }}</div>
+                  <div class="text-muted" style="font-size:0.72rem">{{ m.rol }}</div>
                 </div>
               </div>
             </div>
@@ -375,40 +570,49 @@
           <div class="row g-2 mb-2">
             <div class="col-6">
               <label class="form-label small fw-semibold">Fecha estimada</label>
-              <input class="form-control" type="date" [(ngModel)]="ordenEditForm.fecha_estimada">
+              <input class="form-control" type="date"
+                     [(ngModel)]="ordenEditForm.fecha_estimada">
             </div>
             <div class="col-6">
               <label class="form-label small fw-semibold">Kilometraje</label>
-              <input class="form-control" type="number" [(ngModel)]="ordenEditForm.km_actual">
+              <input class="form-control" type="number"
+                     [(ngModel)]="ordenEditForm.km_actual">
             </div>
             <div class="col-6">
               <label class="form-label small fw-semibold">Mano de obra (S/)</label>
-              <input class="form-control" type="number" step="0.01" [(ngModel)]="ordenEditForm.mano_obra">
+              <input class="form-control" type="number" step="0.01"
+                     [(ngModel)]="ordenEditForm.mano_obra">
             </div>
           </div>
 
           <!-- Problema -->
           <div class="mb-2">
             <label class="form-label small fw-semibold">Descripción del problema</label>
-            <textarea class="form-control" rows="2" [(ngModel)]="ordenEditForm.descripcion_problema"></textarea>
+            <textarea class="form-control" rows="2"
+                      [(ngModel)]="ordenEditForm.descripcion_problema"></textarea>
           </div>
 
           <!-- Observaciones -->
           <div class="mb-2">
             <label class="form-label small fw-semibold">Observaciones internas</label>
-            <textarea class="form-control" rows="2" [(ngModel)]="ordenEditForm.observaciones"
+            <textarea class="form-control" rows="2"
+                      [(ngModel)]="ordenEditForm.observaciones"
                       placeholder="Notas internas del taller..."></textarea>
           </div>
 
           <!-- Actualizar estado -->
           <div class="detalle-seccion">
-            <div class="fw-semibold small mb-2"><i class="bi bi-arrow-repeat me-1 text-warning"></i>Actualizar estado</div>
-            <select class="form-select form-select-sm mb-2" [(ngModel)]="estadoForm.estado">
+            <div class="fw-semibold small mb-2">
+              <i class="bi bi-arrow-repeat me-1 text-warning"></i>Actualizar estado
+            </div>
+            <select class="form-select form-select-sm mb-2"
+                    [(ngModel)]="estadoForm.estado">
               <option *ngFor="let e of estados" [value]="e">{{ getBadge(e).label }}</option>
             </select>
             <textarea class="form-control form-control-sm" rows="2"
                       [(ngModel)]="estadoForm.comentario"
-                      placeholder="Comentario para el cliente (visible en consulta pública)..."></textarea>
+                      placeholder="Comentario visible para el cliente en consulta pública...">
+            </textarea>
           </div>
         </div>
 
@@ -416,44 +620,68 @@
         <div class="col-md-6">
           <h6 class="fw-bold text-warning mb-2">Servicios y Repuestos</h6>
 
-          <!-- Agregar servicio -->
+          <!-- Servicios -->
           <div class="detalle-seccion mb-3">
-            <div class="fw-semibold small mb-2"><i class="bi bi-tools me-1"></i>Servicios</div>
+            <div class="fw-semibold small mb-2">
+              <i class="bi bi-tools me-1"></i>Servicios
+            </div>
             <div class="position-relative mb-2">
-              <input class="form-control form-control-sm" placeholder="Buscar servicio..."
-                     [(ngModel)]="busquedaServicio" (input)="buscarServicio()">
+              <input class="form-control form-control-sm"
+                     placeholder="Buscar servicio..."
+                     [(ngModel)]="busquedaServicio"
+                     (input)="buscarServicio()">
               <div *ngIf="mostrarSugServicio" class="sugerencias-dropdown">
-                <div *ngFor="let s of serviciosFiltrados" class="sugerencia-item" (click)="seleccionarServicio(s)">
+                <div *ngFor="let s of serviciosFiltrados" class="sugerencia-item"
+                     (click)="seleccionarServicio(s)">
                   <div class="fw-semibold small">{{ s.nombre }}</div>
-                  <div class="text-muted" style="font-size:0.75rem">S/ {{ s.precio_base | number:'1.2-2' }}</div>
+                  <div class="text-muted" style="font-size:0.75rem">
+                    S/ {{ s.precio_base | number:'1.2-2' }}
+                  </div>
                 </div>
               </div>
             </div>
             <div *ngIf="servicioForm.servicio_id" class="d-flex gap-1 mb-2">
               <input class="form-control form-control-sm" type="number" step="0.01"
-                     [(ngModel)]="servicioForm.precio" placeholder="Precio" style="max-width:90px">
-              <input class="form-control form-control-sm" [(ngModel)]="servicioForm.observacion" placeholder="Obs.">
-              <button class="btn btn-sm btn-success" (click)="agregarServicio()"><i class="bi bi-plus-lg"></i></button>
+                     [(ngModel)]="servicioForm.precio"
+                     placeholder="Precio" style="max-width:90px">
+              <input class="form-control form-control-sm"
+                     [(ngModel)]="servicioForm.observacion"
+                     placeholder="Observación">
+              <button class="btn btn-sm btn-success" (click)="agregarServicio()">
+                <i class="bi bi-plus-lg"></i>
+              </button>
             </div>
             <div *ngFor="let s of ordenActual.servicios"
                  class="d-flex justify-content-between align-items-center py-1 border-bottom small">
-              <div><div class="fw-semibold">{{ s.servicio_nombre }}</div><div class="text-muted small">{{ s.observacion }}</div></div>
+              <div>
+                <div class="fw-semibold">{{ s.servicio_nombre }}</div>
+                <div class="text-muted small" *ngIf="s.observacion">{{ s.observacion }}</div>
+              </div>
               <div class="d-flex align-items-center gap-1">
                 <span class="text-success fw-bold">S/ {{ s.precio | number:'1.2-2' }}</span>
-                <button class="btn btn-sm btn-outline-danger py-0 px-1" (click)="eliminarServicio(s.id)"><i class="bi bi-x"></i></button>
+                <button class="btn btn-sm btn-outline-danger py-0 px-1"
+                        (click)="eliminarServicio(s.id)">
+                  <i class="bi bi-x"></i>
+                </button>
               </div>
             </div>
-            <div *ngIf="!ordenActual.servicios?.length" class="text-muted small text-center py-1">Sin servicios</div>
+            <div *ngIf="!ordenActual.servicios?.length"
+                 class="text-muted small text-center py-1">Sin servicios</div>
           </div>
 
-          <!-- Agregar repuesto -->
+          <!-- Repuestos -->
           <div class="detalle-seccion mb-3">
-            <div class="fw-semibold small mb-2"><i class="bi bi-box-seam me-1"></i>Repuestos</div>
+            <div class="fw-semibold small mb-2">
+              <i class="bi bi-box-seam me-1"></i>Repuestos
+            </div>
             <div class="position-relative mb-2">
-              <input class="form-control form-control-sm" placeholder="Buscar repuesto..."
-                     [(ngModel)]="busquedaRepuesto" (input)="buscarRepuesto()">
+              <input class="form-control form-control-sm"
+                     placeholder="Buscar repuesto..."
+                     [(ngModel)]="busquedaRepuesto"
+                     (input)="buscarRepuesto()">
               <div *ngIf="mostrarSugRepuesto" class="sugerencias-dropdown">
-                <div *ngFor="let r of repuestosFiltrados" class="sugerencia-item" (click)="seleccionarRepuesto(r)">
+                <div *ngFor="let r of repuestosFiltrados" class="sugerencia-item"
+                     (click)="seleccionarRepuesto(r)">
                   <div class="fw-semibold small">{{ r.nombre }}</div>
                   <div class="d-flex justify-content-between" style="font-size:0.75rem">
                     <span class="text-muted">Stock: {{ r.stock }}</span>
@@ -464,29 +692,63 @@
             </div>
             <div *ngIf="repuestoForm.repuesto_id" class="d-flex gap-1 mb-2">
               <input class="form-control form-control-sm" type="number"
-                     [(ngModel)]="repuestoForm.cantidad" placeholder="Cant." style="max-width:70px">
+                     [(ngModel)]="repuestoForm.cantidad"
+                     placeholder="Cant." style="max-width:70px">
               <input class="form-control form-control-sm" type="number" step="0.01"
-                     [(ngModel)]="repuestoForm.precio_unitario" placeholder="Precio">
-              <button class="btn btn-sm btn-success" (click)="agregarRepuesto()"><i class="bi bi-plus-lg"></i></button>
+                     [(ngModel)]="repuestoForm.precio_unitario"
+                     placeholder="Precio unit.">
+              <button class="btn btn-sm btn-success" (click)="agregarRepuesto()">
+                <i class="bi bi-plus-lg"></i>
+              </button>
             </div>
             <div *ngFor="let r of ordenActual.repuestos"
                  class="d-flex justify-content-between align-items-center py-1 border-bottom small">
-              <div><div class="fw-semibold">{{ r.repuesto_nombre }}</div><div class="text-muted">{{ r.cantidad }} x S/ {{ r.precio_unitario | number:'1.2-2' }}</div></div>
+              <div>
+                <div class="fw-semibold">{{ r.repuesto_nombre }}</div>
+                <div class="text-muted">
+                  {{ r.cantidad }} x S/ {{ r.precio_unitario | number:'1.2-2' }}
+                </div>
+              </div>
               <div class="d-flex align-items-center gap-1">
-                <span class="text-success fw-bold">S/ {{ r.precio_unitario * r.cantidad | number:'1.2-2' }}</span>
-                <button class="btn btn-sm btn-outline-danger py-0 px-1" (click)="eliminarRepuesto(r.id)"><i class="bi bi-x"></i></button>
+                <span class="text-success fw-bold">
+                  S/ {{ r.precio_unitario * r.cantidad | number:'1.2-2' }}
+                </span>
+                <button class="btn btn-sm btn-outline-danger py-0 px-1"
+                        (click)="eliminarRepuesto(r.id)">
+                  <i class="bi bi-x"></i>
+                </button>
               </div>
             </div>
-            <div *ngIf="!ordenActual.repuestos?.length" class="text-muted small text-center py-1">Sin repuestos</div>
+            <div *ngIf="!ordenActual.repuestos?.length"
+                 class="text-muted small text-center py-1">Sin repuestos</div>
           </div>
 
           <!-- Resumen costos -->
           <div class="detalle-seccion">
-            <h6 class="fw-bold mb-2"><i class="bi bi-calculator me-1 text-warning"></i>Resumen</h6>
-            <div class="d-flex justify-content-between small mb-1"><span class="text-muted">Servicios:</span><span>S/ {{ ordenActual.totalServicios | number:'1.2-2' }}</span></div>
-            <div class="d-flex justify-content-between small mb-1"><span class="text-muted">Repuestos:</span><span>S/ {{ ordenActual.totalRepuestos | number:'1.2-2' }}</span></div>
-            <div class="d-flex justify-content-between small mb-1"><span class="text-muted">Mano de obra:</span><span>S/ {{ ordenEditForm.mano_obra | number:'1.2-2' }}</span></div>
+            <h6 class="fw-bold mb-2">
+              <i class="bi bi-calculator me-1 text-warning"></i>Resumen de costos
+            </h6>
+            <div class="d-flex justify-content-between small mb-1">
+              <span class="text-muted">Servicios:</span>
+              <span>S/ {{ ordenActual.totalServicios | number:'1.2-2' }}</span>
+            </div>
+            <div class="d-flex justify-content-between small mb-1">
+              <span class="text-muted">Repuestos:</span>
+              <span>S/ {{ ordenActual.totalRepuestos | number:'1.2-2' }}</span>
+            </div>
+            <div class="d-flex justify-content-between small mb-1">
+              <span class="text-muted">Mano de obra:</span>
+              <span>S/ {{ ordenEditForm.mano_obra | number:'1.2-2' }}</span>
+            </div>
             <hr class="my-1">
+            <div class="d-flex justify-content-between small mb-1">
+              <span class="text-muted">Subtotal:</span>
+              <span>S/ {{ ordenActual.subtotal | number:'1.2-2' }}</span>
+            </div>
+            <div class="d-flex justify-content-between small mb-1">
+              <span class="text-muted">IGV (18%):</span>
+              <span>S/ {{ ordenActual.igv | number:'1.2-2' }}</span>
+            </div>
             <div class="d-flex justify-content-between fw-bold">
               <span>TOTAL:</span>
               <span class="text-warning">S/ {{ ordenActual.total | number:'1.2-2' }}</span>
@@ -498,10 +760,230 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" (click)="mostrarModalEditar=false">Cancelar</button>
-      <button class="btn btn-warning fw-semibold" (click)="guardarEdicion()" [disabled]="guardando">
+      <button class="btn btn-warning fw-semibold"
+              (click)="guardarEdicion()" [disabled]="guardando">
         <span *ngIf="guardando" class="spinner-border spinner-border-sm me-1"></span>
         {{ guardando ? 'Guardando...' : 'Guardar cambios' }}
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MODAL NOTIFICAR POR WHATSAPP
+══════════════════════════════════════════ -->
+<div class="modal-backdrop-custom" *ngIf="mostrarModalWhatsApp" (click)="mostrarModalWhatsApp=false"></div>
+<div class="modal-custom" *ngIf="mostrarModalWhatsApp">
+  <div class="modal-dialog-custom">
+    <div class="modal-header bg-success text-white">
+      <h5 class="modal-title fw-bold">
+        <i class="bi bi-whatsapp me-2"></i>Notificar al Cliente por WhatsApp
+      </h5>
+      <button class="btn-close btn-close-white" (click)="mostrarModalWhatsApp=false"></button>
+    </div>
+    <div class="modal-body" *ngIf="ordenWhatsApp">
+      <!-- Info cliente -->
+      <div class="d-flex align-items-center justify-content-between p-2 mb-3 bg-light rounded border">
+        <div>
+          <div class="fw-bold text-dark">{{ ordenWhatsApp.cliente }}</div>
+          <div class="small text-muted">
+            <span class="badge bg-dark me-1">{{ ordenWhatsApp.placa }}</span> {{ ordenWhatsApp.vehiculo }}
+          </div>
+        </div>
+        <div class="text-end">
+          <span class="badge bg-secondary mb-1">Orden #{{ ordenWhatsApp.codigo }}</span>
+          <div class="small fw-semibold text-success">{{ getBadge(ordenWhatsApp.estado).label }}</div>
+        </div>
+      </div>
+
+      <!-- Teléfono destino -->
+      <div class="mb-3">
+        <label class="form-label small fw-semibold">
+          <i class="bi bi-telephone-fill me-1 text-success"></i>Número de WhatsApp (con código de país ej: 51)
+        </label>
+        <div class="input-group">
+          <span class="input-group-text bg-success-subtle text-success fw-bold"><i class="bi bi-phone"></i></span>
+          <input type="text" class="form-control" [(ngModel)]="telefonoWhatsApp" placeholder="51987654321">
+        </div>
+        <small class="text-muted" style="font-size:0.75rem">Se agregará automáticamente el prefijo Perú 51 si tiene 9 dígitos.</small>
+      </div>
+
+      <!-- Plantillas rápidas -->
+      <div class="mb-3">
+        <label class="form-label small fw-semibold">
+          <i class="bi bi-lightning-charge-fill me-1 text-warning"></i>Seleccionar plantilla rápida:
+        </label>
+        <div class="d-flex flex-wrap gap-1">
+          <button type="button" class="btn btn-sm"
+                  [class.btn-success]="plantillaActiva==='listo'"
+                  [class.btn-outline-success]="plantillaActiva!=='listo'"
+                  (click)="seleccionarPlantillaWhatsApp('listo')">
+            <i class="bi bi-check-circle-fill me-1"></i>¡Vehículo Listo!
+          </button>
+          <button type="button" class="btn btn-sm"
+                  [class.btn-primary]="plantillaActiva==='avance'"
+                  [class.btn-outline-primary]="plantillaActiva!=='avance'"
+                  (click)="seleccionarPlantillaWhatsApp('avance')">
+            <i class="bi bi-tools me-1"></i>En Reparación
+          </button>
+          <button type="button" class="btn btn-sm"
+                  [class.btn-info]="plantillaActiva==='diagnostico'"
+                  [class.btn-outline-info]="plantillaActiva!=='diagnostico'"
+                  (click)="seleccionarPlantillaWhatsApp('diagnostico')">
+            <i class="bi bi-search me-1"></i>Diagnóstico
+          </button>
+          <button type="button" class="btn btn-sm"
+                  [class.btn-secondary]="plantillaActiva==='ingreso'"
+                  [class.btn-outline-secondary]="plantillaActiva!=='ingreso'"
+                  (click)="seleccionarPlantillaWhatsApp('ingreso')">
+            <i class="bi bi-box-arrow-in-down me-1"></i>Recepción
+          </button>
+        </div>
+      </div>
+
+      <!-- Mensaje editable -->
+      <div class="mb-3">
+        <label class="form-label small fw-semibold">
+          <i class="bi bi-chat-dots-fill me-1 text-primary"></i>Mensaje que se enviará:
+        </label>
+        <textarea class="form-control" rows="5" [(ngModel)]="mensajeWhatsApp"
+                  placeholder="Escribe el mensaje..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="mostrarModalWhatsApp=false">Cancelar</button>
+      <button class="btn btn-success fw-bold px-4" (click)="enviarWhatsApp()">
+        <i class="bi bi-whatsapp me-2"></i>Enviar WhatsApp
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MODAL HOJA DE VIDA / HISTORIAL POR PLACA
+══════════════════════════════════════════ -->
+<div class="modal-backdrop-custom" *ngIf="mostrarModalHistorial" (click)="mostrarModalHistorial=false"></div>
+<div class="modal-custom" *ngIf="mostrarModalHistorial">
+  <div class="modal-dialog-xl">
+    <div class="modal-header bg-dark text-white">
+      <h5 class="modal-title fw-bold">
+        <i class="bi bi-clock-history text-warning me-2"></i>Hoja de Vida del Vehículo (Historial Técnico)
+      </h5>
+      <button class="btn-close btn-close-white" (click)="mostrarModalHistorial=false"></button>
+    </div>
+    <div class="modal-body">
+      <!-- Buscador de placa -->
+      <div class="row g-2 align-items-center mb-3">
+        <div class="col-md-6">
+          <div class="input-group">
+            <span class="input-group-text bg-warning text-dark fw-bold"><i class="bi bi-car-front-fill me-1"></i>Placa</span>
+            <input type="text" class="form-control text-uppercase fw-bold"
+                   placeholder="Ej: ABC123, 5AD..."
+                   [(ngModel)]="placaBusquedaHistorial"
+                   (keyup.enter)="buscarHistorialPlaca()">
+            <button class="btn btn-warning fw-semibold" (click)="buscarHistorialPlaca()" [disabled]="cargandoHistorialPlaca">
+              <span *ngIf="cargandoHistorialPlaca" class="spinner-border spinner-border-sm me-1"></span>
+              <i *ngIf="!cargandoHistorialPlaca" class="bi bi-search me-1"></i>Consultar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Error -->
+      <div *ngIf="errorHistorialPlaca" class="alert alert-warning py-2">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ errorHistorialPlaca }}
+      </div>
+
+      <!-- Resultados -->
+      <div *ngIf="historialPlacaDatos">
+        <!-- Ficha técnica del vehículo -->
+        <div class="card bg-light border-0 mb-4 shadow-sm">
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-3 text-center border-end">
+                <div class="display-6 fw-bold text-dark font-monospace">{{ historialPlacaDatos.vehiculo.placa }}</div>
+                <div class="badge bg-warning text-dark mt-1">{{ historialPlacaDatos.vehiculo.tipo || 'Vehículo' }}</div>
+              </div>
+              <div class="col-md-5 border-end">
+                <h6 class="fw-bold mb-1">{{ historialPlacaDatos.vehiculo.marca }} {{ historialPlacaDatos.vehiculo.modelo }}</h6>
+                <div class="small text-muted">
+                  Año: <strong>{{ historialPlacaDatos.vehiculo.anio || '—' }}</strong> · 
+                  Color: <strong>{{ historialPlacaDatos.vehiculo.color || '—' }}</strong>
+                </div>
+                <div class="small text-muted" *ngIf="historialPlacaDatos.vehiculo.vin">
+                  VIN / Chasis: <code>{{ historialPlacaDatos.vehiculo.vin }}</code>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="small text-muted">Propietario / Cliente:</div>
+                <div class="fw-bold text-dark">{{ historialPlacaDatos.vehiculo.cliente }}</div>
+                <div class="small text-muted" *ngIf="historialPlacaDatos.vehiculo.telefono">
+                  <i class="bi bi-telephone me-1"></i>{{ historialPlacaDatos.vehiculo.telefono }}
+                </div>
+                <div class="small text-muted" *ngIf="historialPlacaDatos.vehiculo.dni">
+                  DNI/RUC: {{ historialPlacaDatos.vehiculo.dni }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Timeline de visitas -->
+        <h6 class="fw-bold mb-3">
+          <i class="bi bi-list-check me-2 text-warning"></i>Historial de Mantenimientos y Reparaciones ({{ historialPlacaDatos.ordenes.length }})
+        </h6>
+
+        <div *ngIf="historialPlacaDatos.ordenes.length === 0" class="alert alert-info py-3 text-center">
+          No hay órdenes de trabajo registradas previamente para este vehículo.
+        </div>
+
+        <div class="timeline-ordenes" *ngIf="historialPlacaDatos.ordenes.length > 0">
+          <div *ngFor="let ord of historialPlacaDatos.ordenes" class="card border mb-3 shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center py-2">
+              <div>
+                <strong class="text-primary me-2">#{{ ord.codigo }}</strong>
+                <span class="small text-muted">{{ ord.fecha_ingreso | date:'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+              <div class="d-flex align-items-center gap-2">
+                <span *ngIf="ord.km_actual" class="badge bg-light text-dark border">
+                  <i class="bi bi-speedometer2 me-1"></i>{{ ord.km_actual | number }} km
+                </span>
+                <span [class]="getBadge(ord.estado).clase">{{ getBadge(ord.estado).label }}</span>
+                <span class="badge bg-dark">S/ {{ ord.total_factura | number:'1.2-2' }}</span>
+              </div>
+            </div>
+            <div class="card-body py-2">
+              <div class="row g-2">
+                <div class="col-md-7">
+                  <div class="small text-muted fw-semibold">Motivo de ingreso / Diagnóstico:</div>
+                  <p class="small mb-1">{{ ord.descripcion_problema }}</p>
+                  <p class="small text-muted mb-0" *ngIf="ord.observaciones">
+                    <em>Observaciones: {{ ord.observaciones }}</em>
+                  </p>
+                </div>
+                <div class="col-md-5">
+                  <div class="small text-muted fw-semibold">Mecánico a cargo:</div>
+                  <div class="small mb-2">{{ ord.mecanico || 'No asignado' }}</div>
+                  
+                  <!-- Repuestos cambiados -->
+                  <div *ngIf="ord.repuestos?.length > 0">
+                    <div class="small text-muted fw-semibold">Repuestos reemplazados:</div>
+                    <ul class="list-unstyled mb-0" style="font-size:0.75rem">
+                      <li *ngFor="let rep of ord.repuestos">
+                        • {{ rep.repuesto_nombre }} (x{{ rep.cantidad }})
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="mostrarModalHistorial=false">Cerrar</button>
     </div>
   </div>
 </div>

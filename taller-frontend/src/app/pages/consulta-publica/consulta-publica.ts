@@ -1,68 +1,248 @@
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component, ChangeDetectorRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { SeguimientoService } from '../../core/services/seguimiento.service';
+import { WhatsappWidgetComponent } from '../../shared/components/whatsapp-widget/whatsapp-widget';
 
 @Component({
   selector: 'app-consulta-publica',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, WhatsappWidgetComponent],
   templateUrl: './consulta-publica.html',
   styleUrl: './consulta-publica.css'
 })
-export class ConsultaPublicaComponent {
-  busqueda  = '';
-  tipoBusqueda: 'nombre' | 'dni' = 'nombre';
+export class ConsultaPublicaComponent implements OnInit {
+  busqueda = '';
+  tipoBusqueda: 'placa' | 'dni' | 'nombre' = 'placa';
   resultados: any[] = [];
-  buscando  = false;
-  buscado   = false;
-  error     = '';
+  buscando = false;
+  buscado = false;
+  error = '';
 
-  estadoConfig: any = {
-    recibido:         { label: 'Recibido',              clase: 'bg-secondary', icono: 'bi-inbox' },
-    diagnostico:      { label: 'En diagnóstico',        clase: 'bg-info',      icono: 'bi-search' },
-    en_reparacion:    { label: 'En reparación',         clase: 'bg-primary',   icono: 'bi-tools' },
-    espera_repuestos: { label: 'Espera repuestos',      clase: 'bg-warning text-dark', icono: 'bi-hourglass-split' },
-    listo:            { label: '¡Listo para retirar!',  clase: 'bg-success',   icono: 'bi-check-circle' },
-    entregado:        { label: 'Entregado',             clase: 'bg-dark',      icono: 'bi-check2-all' },
-    cancelado:        { label: 'Cancelado',             clase: 'bg-danger',    icono: 'bi-x-circle' },
+  // Configuración WhatsApp
+  whatsappNumber: string = '51977398357';
+  whatsappDisplay: string = '+51 977 398 357';
+  tallerNombre: string = 'Taller Automotriz RUJIM';
+
+  anioActual: number = new Date().getFullYear();
+
+  estadoConfig: Record<string, { label: string; badgeClass: string; icon: string; stepNumber: number; descripcion: string }> = {
+    recibido: {
+      label: 'Vehículo Recibido',
+      badgeClass: 'badge-recibido',
+      icon: 'bi-box-arrow-in-down',
+      stepNumber: 1,
+      descripcion: 'El vehículo ingresó a las instalaciones y fue registrado en el sistema.'
+    },
+    diagnostico: {
+      label: 'En Diagnóstico',
+      badgeClass: 'badge-diagnostico',
+      icon: 'bi-search',
+      stepNumber: 2,
+      descripcion: 'Nuestros mecánicos están realizando el escaneo e inspección integral.'
+    },
+    en_reparacion: {
+      label: 'En Reparación',
+      badgeClass: 'badge-reparacion',
+      icon: 'bi-tools',
+      stepNumber: 3,
+      descripcion: 'Los especialistas están trabajando activamente en las reparaciones acordadas.'
+    },
+    espera_repuestos: {
+      label: 'Espera de Repuestos',
+      badgeClass: 'badge-repuestos',
+      icon: 'bi-hourglass-split',
+      stepNumber: 3,
+      descripcion: 'Aguardando repuestos o autopartes solicitadas para continuar el trabajo.'
+    },
+    listo: {
+      label: '¡Listo para Retirar!',
+      badgeClass: 'badge-listo',
+      icon: 'bi-check-circle-fill',
+      stepNumber: 4,
+      descripcion: 'Trabajo concluido y verificado. Puedes pasar a retirar tu vehículo.'
+    },
+    entregado: {
+      label: 'Vehículo Entregado',
+      badgeClass: 'badge-entregado',
+      icon: 'bi-shield-check',
+      stepNumber: 5,
+      descripcion: 'Vehículo entregado al cliente satisfecho.'
+    },
+    cancelado: {
+      label: 'Orden Cancelada',
+      badgeClass: 'badge-cancelado',
+      icon: 'bi-x-circle-fill',
+      stepNumber: 0,
+      descripcion: 'El servicio fue cancelado o desestimado.'
+    }
   };
+
+  stepsList = [
+    { num: 1, key: 'recibido', label: 'Recepción' },
+    { num: 2, key: 'diagnostico', label: 'Diagnóstico' },
+    { num: 3, key: 'en_reparacion', label: 'Reparación' },
+    { num: 4, key: 'listo', label: 'Listo' },
+    { num: 5, key: 'entregado', label: 'Entregado' }
+  ];
+
+  serviciosDestacados = [
+    {
+      titulo: 'Mantenimiento Preventivo',
+      icono: 'bi-wrench-adjustable',
+      desc: 'Cambio de aceite, filtros, bujías y revisión general por kilometraje.',
+      tag: 'Esencial'
+    },
+    {
+      titulo: 'Diagnóstico Computarizado',
+      icono: 'bi-cpu',
+      desc: 'Escaneo con tecnología OBD-II de última generación para todas las marcas.',
+      tag: 'Alta Precisión'
+    },
+    {
+      titulo: 'Motor y Transmisión',
+      icono: 'bi-gear-wide-connected',
+      desc: 'Reparación y ajuste integral de motores a gasolina, diésel y cajas de cambios.',
+      tag: 'Especialistas'
+    },
+    {
+      titulo: 'Frenos y Suspensión',
+      icono: 'bi-disc',
+      desc: 'Rectificación de discos, cambio de pastillas, amortiguadores y terminales.',
+      tag: 'Seguridad'
+    },
+    {
+      titulo: 'Sistema Eléctrico y Baterías',
+      icono: 'bi-lightning-charge',
+      desc: 'Reparación de alternadores, arrancadores, cableado y diagnóstico de baterías.',
+      tag: 'Garantizado'
+    },
+    {
+      titulo: 'Venta de Repuestos Originales',
+      icono: 'bi-box-seam',
+      desc: 'Catálogo de autopartes originales y de primera calidad con garantía.',
+      tag: 'Stock Disponible'
+    }
+  ];
+
+  faqList = [
+    {
+      pregunta: '¿Cómo puedo saber el avance de mi vehículo?',
+      respuesta: 'Ingresa tu número de placa (ej. ABC-123) o tu número de DNI en el buscador superior. Podrás ver en tiempo real la fase actual, el último comentario del mecánico y la fecha estimada de entrega.',
+      abierta: false
+    },
+    {
+      pregunta: '¿Cómo me comunico por WhatsApp para una consulta urgente?',
+      respuesta: 'Haz clic en el botón flotante verde de WhatsApp en la esquina inferior derecha o en el botón "Consultar por esta orden" en la tarjeta de tu vehículo. Te conectará directamente con nuestro equipo técnico.',
+      abierta: false
+    },
+    {
+      pregunta: '¿Cuáles son los horarios de atención del taller?',
+      respuesta: 'Atendemos en nuestro local de Huamanga, Ayacucho de Lunes a Sábado de 8:00 AM a 6:00 PM de forma continua.',
+      abierta: false
+    }
+  ];
 
   constructor(
     private seguimiento: SeguimientoService,
     private cdr: ChangeDetectorRef
   ) {}
 
-  consultar() {
-    if (!this.busqueda.trim()) return;
-    this.buscando   = true;
-    this.buscado    = false;
-    this.error      = '';
+  ngOnInit(): void {
+    this.anioActual = new Date().getFullYear();
+  }
+
+  consultar(): void {
+    const query = this.busqueda.trim();
+    if (!query) return;
+
+    this.buscando = true;
+    this.buscado = false;
+    this.error = '';
     this.resultados = [];
     this.cdr.detectChanges();
 
-    const obs = this.tipoBusqueda === 'dni'
-      ? this.seguimiento.consultarPorDni(this.busqueda.trim())
-      : this.seguimiento.consultarPorNombre(this.busqueda.trim());
+    let obs;
+    if (this.tipoBusqueda === 'placa') {
+      obs = this.seguimiento.consultarPorPlaca(query);
+    } else if (this.tipoBusqueda === 'dni') {
+      obs = this.seguimiento.consultarPorDni(query);
+    } else {
+      obs = this.seguimiento.consultarPorNombre(query);
+    }
 
     obs.subscribe({
       next: (data) => {
         this.resultados = data;
-        this.buscando   = false;
-        this.buscado    = true;
+        this.buscando = false;
+        this.buscado = true;
         this.cdr.detectChanges();
       },
       error: () => {
-        this.error    = 'No se encontraron órdenes para esa búsqueda.';
+        this.error = `No se encontraron órdenes registradas para la búsqueda "${query}".`;
         this.buscando = false;
-        this.buscado  = true;
+        this.buscado = true;
         this.cdr.detectChanges();
       }
     });
   }
 
+  setTipoBusqueda(tipo: 'placa' | 'dni' | 'nombre'): void {
+    this.tipoBusqueda = tipo;
+    this.busqueda = '';
+    this.error = '';
+  }
+
   getEstado(estado: string) {
-    return this.estadoConfig[estado] || { label: estado, clase: 'bg-secondary', icono: 'bi-circle' };
+    return this.estadoConfig[estado] || {
+      label: estado,
+      badgeClass: 'badge-recibido',
+      icon: 'bi-circle',
+      stepNumber: 1,
+      descripcion: 'Estado en proceso.'
+    };
+  }
+
+  getStepStatus(estadoActual: string, stepNumber: number): 'completed' | 'current' | 'pending' {
+    const actualConfig = this.getEstado(estadoActual);
+    const actualStep = actualConfig.stepNumber;
+
+    if (estadoActual === 'cancelado') return 'pending';
+
+    if (actualStep > stepNumber) return 'completed';
+    if (actualStep === stepNumber) return 'current';
+    return 'pending';
+  }
+
+  getProgressPercentage(estado: string): number {
+    switch (estado) {
+      case 'recibido': return 20;
+      case 'diagnostico': return 45;
+      case 'en_reparacion': return 70;
+      case 'espera_repuestos': return 65;
+      case 'listo': return 95;
+      case 'entregado': return 100;
+      case 'cancelado': return 10;
+      default: return 30;
+    }
+  }
+
+  consultarOrdenPorWhatsApp(r: any): void {
+    const texto = `Hola Taller Automotriz RUJIM 👋. Mi nombre es *${r.cliente || 'Cliente'}* y deseo consultar información sobre mi vehículo *${r.vehiculo}* (Placa: *${r.placa}*), correspondiente a la Orden de Servicio *#${r.orden}*. El estado actual es: *${this.getEstado(r.estado).label}*. ¡Gracias!`;
+    const url = `https://wa.me/${this.whatsappNumber}?text=${encodeURIComponent(texto)}`;
+    window.open(url, '_blank');
+  }
+
+  contactarWhatsAppGeneral(motivo?: string): void {
+    const texto = motivo 
+      ? `Hola Taller Automotriz RUJIM 👋, deseo consultar sobre: ${motivo}.`
+      : 'Hola Taller Automotriz RUJIM 👋, quisiera consultar información sobre sus servicios mecánicos.';
+    const url = `https://wa.me/${this.whatsappNumber}?text=${encodeURIComponent(texto)}`;
+    window.open(url, '_blank');
+  }
+
+  toggleFaq(item: any): void {
+    item.abierta = !item.abierta;
   }
 }

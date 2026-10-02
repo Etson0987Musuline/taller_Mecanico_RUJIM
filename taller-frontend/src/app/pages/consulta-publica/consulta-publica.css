@@ -1,3 +1,733 @@
+/* ============================================================
+   ESTILOS MODERNOS - PÁGINA PÚBLICA TALLER AUTOMOTRIZ RUJIM
+   ============================================================ */
+
 .consulta-wrapper {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  background-color: #080a0f;
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(245, 158, 11, 0.05) 0%, transparent 40%),
+    radial-gradient(circle at 90% 70%, rgba(6, 182, 212, 0.04) 0%, transparent 45%),
+    linear-gradient(180deg, #090c13 0%, #0d121c 100%);
+  color: #f8fafc;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+
+.text-secondary-custom {
+  color: #94a3b8 !important;
+}
+
+.hover-white:hover {
+  color: #ffffff !important;
+}
+
+/* ============================================================
+   BARRA SUPERIOR (TOP INFO BAR)
+   ============================================================ */
+.top-info-bar {
+  background: #06080c;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.divider-dot {
+  color: #475569;
+}
+
+.top-contact-link {
+  color: #cbd5e1;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.top-contact-link:hover {
+  color: #25D366;
+}
+
+/* ============================================================
+   NAVBAR PRINCIPAL
+   ============================================================ */
+.site-nav {
+  background: rgba(10, 14, 22, 0.85) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 12px 0;
+  transition: all 0.3s ease;
+}
+
+.brand-logo {
+  text-decoration: none;
+}
+
+.brand-icon-box {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #1e2634 0%, #111622 100%);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+.brand-name {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800;
+  font-size: 1.25rem;
+  letter-spacing: 0.04em;
+  color: #ffffff;
+  display: block;
+  line-height: 1.1;
+}
+
+.brand-sub {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: #f59e0b;
+  display: block;
+}
+
+.nav-whatsapp-btn {
+  border-color: rgba(37, 211, 102, 0.4);
+  color: #25D366;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 6px 14px;
+}
+
+.nav-whatsapp-btn:hover {
+  background: #25D366;
+  border-color: #25D366;
+  color: #0f172a;
+}
+
+.nav-login-btn {
+  border-color: rgba(255, 255, 255, 0.18);
+  font-weight: 500;
+  border-radius: 8px;
+  padding: 6px 14px;
+}
+
+.nav-login-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: #ffffff;
+}
+
+/* ============================================================
+   HERO SECTION & BUSCADOR
+   ============================================================ */
+.hero-section {
+  position: relative;
+  background-image: url('/img/taller-hero.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  overflow: hidden;
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, rgba(8, 10, 15, 0.88) 0%, rgba(9, 13, 20, 0.94) 60%, #080a0f 100%);
+}
+
+.hero-glow {
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 500px;
+  height: 250px;
+  background: radial-gradient(ellipse, rgba(245, 158, 11, 0.12) 0%, transparent 70%);
+  filter: blur(40px);
+  pointer-events: none;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+}
+
+.hero-pill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: #f59e0b;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 6px 16px;
+  border-radius: 30px;
+}
+
+.hero-title {
+  font-family: 'Outfit', sans-serif;
+  color: #ffffff;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 60%, #ffffff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-subtitle {
+  color: #cbd5e1;
+  font-size: 1.05rem;
+  max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.5;
+}
+
+/* Tarjeta de Búsqueda */
+.search-card-wrapper {
+  max-width: 620px;
+  background: rgba(19, 25, 36, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6), 0 0 30px rgba(245, 158, 11, 0.1);
+}
+
+.search-tabs-container {
+  display: flex;
+  background: #0d1118;
+  border-radius: 12px;
+  padding: 4px;
+  gap: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.search-tab-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-tab-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.search-tab-btn.active {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #0f172a;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
+}
+
+.search-input-group {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.search-icon-addon {
+  background: #0d121c;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-right: none;
+  font-size: 1.25rem;
+}
+
+.search-input {
+  background: #0d121c;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-left: none;
+  border-right: none;
+  color: #ffffff;
+  font-size: 1.05rem;
+  font-weight: 500;
+}
+
+.search-input:focus {
+  background: #0d121c;
+  color: #ffffff;
+  border-color: #f59e0b;
+  box-shadow: none;
+}
+
+.search-input::placeholder {
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+.search-submit-btn {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  border: 1px solid #f59e0b;
+  color: #0f172a;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 0.02em;
+}
+
+.search-submit-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.5);
+  color: #000;
+}
+
+.search-tip {
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+.whatsapp-link-inline {
+  color: #25D366;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.whatsapp-link-inline:hover {
+  text-decoration: underline;
+  color: #3fe27d;
+}
+
+/* ============================================================
+   ALERTAS PERSONALIZADAS
+   ============================================================ */
+.custom-alert-danger {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 12px;
+}
+
+/* ============================================================
+   TARJETAS DE RESULTADOS (VEHICLE ORDER CARDS)
+   ============================================================ */
+.vehicle-order-card {
+  background: #111722;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-left: 4px solid #f59e0b !important;
+  border-radius: 16px;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.vehicle-order-card:hover {
+  border-color: rgba(245, 158, 11, 0.4);
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.5), 0 0 20px rgba(245, 158, 11, 0.08);
+}
+
+.vehicle-title {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 1.35rem;
+  color: #ffffff;
+}
+
+/* Badges de Estado */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 30px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.badge-recibido {
+  background: rgba(148, 163, 184, 0.15);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  color: #cbd5e1;
+}
+
+.badge-diagnostico {
+  background: rgba(6, 182, 212, 0.15);
+  border: 1px solid rgba(6, 182, 212, 0.4);
+  color: #38bdf8;
+}
+
+.badge-reparacion {
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  color: #60a5fa;
+}
+
+.badge-repuestos {
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #fbbf24;
+}
+
+.badge-listo {
+  background: rgba(34, 197, 94, 0.18);
+  border: 1px solid rgba(34, 197, 94, 0.45);
+  color: #4ade80;
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.25);
+}
+
+.badge-entregado {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #94a3b8;
+}
+
+.badge-cancelado {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #f87171;
+}
+
+/* Stepper de progreso */
+.timeline-stepper {
+  position: relative;
+  padding: 10px 0 20px 0;
+}
+
+.progress-track {
+  height: 6px;
+  background-color: #1e2634;
+  border-radius: 4px;
+  position: relative;
+  margin: 0 15px;
+}
+
+.progress-bar-glow {
+  background: linear-gradient(90deg, #f59e0b, #06b6d4, #22c55e);
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.4);
+  border-radius: 4px;
+  transition: width 0.6s ease;
+}
+
+.stepper-nodes {
+  display: flex;
+  justify-content: space-between;
+  margin-top: -16px;
+  position: relative;
+  z-index: 2;
+}
+
+.stepper-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.node-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #18202d;
+  border: 2px solid #334155;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  transition: all 0.3s;
+}
+
+.node-label {
+  font-size: 0.72rem;
+  color: #64748b;
+  font-weight: 600;
+  text-align: center;
+}
+
+.stepper-node.completed .node-circle {
+  background: #22c55e;
+  border-color: #22c55e;
+  color: #0f172a;
+}
+
+.stepper-node.completed .node-label {
+  color: #cbd5e1;
+}
+
+.stepper-node.current .node-circle {
+  background: #f59e0b;
+  border-color: #fbbf24;
+  color: #0f172a;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
+  transform: scale(1.15);
+}
+
+.stepper-node.current .node-label {
+  color: #f59e0b;
+  font-weight: 700;
+}
+
+/* Grid de métricas */
+.order-info-grid {
+  margin: 10px 0;
+}
+
+.info-metric-card {
+  background: #0a0d14;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+}
+
+.metric-label {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  margin-bottom: 2px;
+}
+
+.metric-value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #f1f5f9;
+}
+
+/* Caja de notas del mecánico */
+.mechanic-notes-box {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+}
+
+.notes-text {
+  font-size: 0.88rem;
+  color: #cbd5e1;
+  line-height: 1.45;
+}
+
+/* Estado Vacío */
+.empty-search-state {
+  background: #111722;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 40px 20px;
+}
+
+.empty-icon-circle {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: #192231;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+}
+
+.max-w-500 {
+  max-width: 500px;
+}
+
+.max-w-600 {
+  max-width: 600px;
+}
+
+/* ============================================================
+   SERVICIOS DESTACADOS (CARDS)
+   ============================================================ */
+.service-feature-card {
+  background: #111722;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+.service-feature-card:hover {
+  background: #161e2c;
+  border-color: rgba(245, 158, 11, 0.4);
+  transform: translateY(-6px);
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.45);
+}
+
+.service-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: #f59e0b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+}
+
+.service-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.service-card-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.service-card-desc {
+  font-size: 0.88rem;
+  line-height: 1.45;
+  flex-grow: 1;
+}
+
+.btn-service-action {
+  background: none;
+  border: none;
+  color: #25D366;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-service-action:hover {
+  color: #4ade80;
+  transform: translateX(4px);
+}
+
+/* ============================================================
+   WORKFLOW SECTION (PASOS)
+   ============================================================ */
+.workflow-card {
+  background: linear-gradient(135deg, #121824 0%, #0d121c 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 20px;
+}
+
+.letter-spacing-1 {
+  letter-spacing: 1px;
+}
+
+.steps-flow-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.step-flow-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.2s;
+}
+
+.step-flow-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.step-flow-badge {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #f59e0b;
+  color: #0f172a;
+  font-weight: 800;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
+}
+
+/* ============================================================
+   PREGUNTAS FRECUENTES (FAQ)
+   ============================================================ */
+.faq-item {
+  background: #111722;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.faq-item:hover {
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.faq-item.open {
+  border-color: #f59e0b;
+  background: #141c2a;
+}
+
+/* ============================================================
+   FOOTER PREMIUM
+   ============================================================ */
+.site-footer {
+  background: #06090e;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin-top: auto;
+}
+
+.footer-social-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #131924;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  font-size: 1.1rem;
+  transition: all 0.2s;
+}
+
+.footer-social-btn:hover {
+  background: #f59e0b;
+  color: #0f172a;
+  border-color: #f59e0b;
+}
+
+.footer-contact-list li {
+  margin-bottom: 8px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 2rem;
+  }
+  .search-card-wrapper {
+    padding: 16px;
+  }
+  .stepper-nodes .node-label {
+    display: none;
+  }
 }

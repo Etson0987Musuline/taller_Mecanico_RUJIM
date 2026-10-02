@@ -21,7 +21,7 @@
     </div>
   </div>
 
-  <!-- ═══════════════ VISTA CARRITO ═══════════════ -->
+  <!-- ═══ CARRITO ═══ -->
   <div *ngIf="vista === 'carrito'">
 
     <!-- Venta exitosa -->
@@ -30,7 +30,7 @@
         <i class="bi bi-check-circle-fill text-success" style="font-size:3.5rem"></i>
         <h4 class="mt-3 fw-bold text-success">¡Venta registrada!</h4>
         <p class="text-muted mb-1">Boleta: <strong>{{ ventaExitosa.numero }}</strong></p>
-        <p class="mb-3" style="font-size:1.5rem; font-weight:700; color:#198754">
+        <p class="mb-3 fw-bold text-success" style="font-size:1.5rem">
           S/ {{ ventaExitosa.total | number:'1.2-2' }}
         </p>
         <div class="d-flex justify-content-center gap-2">
@@ -46,7 +46,7 @@
 
     <div *ngIf="!ventaExitosa" class="row g-3">
 
-      <!-- ── Columna izquierda: buscador + productos ── -->
+      <!-- ── Izquierda: buscador + productos ── -->
       <div class="col-lg-7">
 
         <!-- Código de barras -->
@@ -67,11 +67,9 @@
           </div>
         </div>
 
-        <!-- Buscador por nombre + categorías -->
+        <!-- Buscador + categorías -->
         <div class="card border-0 shadow-sm mb-3" #contenedorBusqueda>
           <div class="card-body">
-
-            <!-- Barra de búsqueda -->
             <div class="input-group mb-3">
               <span class="input-group-text bg-warning border-warning">
                 <i class="bi bi-search text-dark"></i>
@@ -84,7 +82,6 @@
               </button>
             </div>
 
-            <!-- Filtros de categoría -->
             <div class="categorias-scroll mb-3">
               <button *ngFor="let cat of categorias" class="categoria-btn"
                 [class.activa]="categoriaActiva === cat"
@@ -93,9 +90,10 @@
               </button>
             </div>
 
-            <!-- Grid de productos -->
+            <!-- Grid productos -->
             <div *ngIf="yaBusco">
-              <div *ngIf="productosMostrados.length === 0" class="text-center text-muted py-4">
+              <div *ngIf="productosMostrados.length === 0"
+                   class="text-center text-muted py-4">
                 <i class="bi bi-box-seam" style="font-size:2rem"></i>
                 <p class="mt-2 mb-0 small">No se encontraron productos</p>
               </div>
@@ -106,13 +104,16 @@
                      [class.sin-stock]="p.stock <= 0"
                      (click)="p.stock > 0 && agregarAlCarrito(p)">
 
-                  <!-- Imagen placeholder -->
+                  <!-- Imagen real o placeholder -->
                   <div class="producto-img">
-                    <i class="bi bi-box-seam-fill"></i>
+                    <img *ngIf="p.imagen"
+                         [src]="getImagenUrl(p.imagen)"
+                         [alt]="p.nombre"
+                         style="width:100%;height:100%;object-fit:cover">
+                    <i *ngIf="!p.imagen" class="bi bi-box-seam-fill"></i>
                     <span *ngIf="p.stock <= 0" class="sin-stock-badge">Sin stock</span>
                   </div>
 
-                  <!-- Info -->
                   <div class="producto-info">
                     <div class="producto-nombre" [title]="p.nombre">{{ p.nombre }}</div>
                     <div class="producto-codigo text-muted">{{ p.codigo || '—' }}</div>
@@ -130,42 +131,42 @@
                     <div class="producto-precio">S/ {{ p.precio_venta | number:'1.2-2' }}</div>
                   </div>
 
-                  <!-- Botón agregar -->
-                  <button *ngIf="p.stock > 0" class="btn-agregar" (click)="$event.stopPropagation(); agregarAlCarrito(p)">
+                  <button *ngIf="p.stock > 0" class="btn-agregar"
+                          (click)="$event.stopPropagation(); agregarAlCarrito(p)">
                     <i class="bi bi-plus-lg"></i>
                   </button>
                 </div>
               </div>
 
-              <div *ngIf="productosMostrados.length === 20" class="text-center text-muted small mt-2">
-                Mostrando los primeros 20 resultados. Refina tu búsqueda para ver más.
+              <div *ngIf="productosMostrados.length === 20"
+                   class="text-center text-muted small mt-2">
+                Mostrando los primeros 20 resultados.
               </div>
             </div>
 
-            <!-- Estado inicial -->
             <div *ngIf="!yaBusco" class="text-center text-muted py-4">
               <i class="bi bi-search" style="font-size:2rem; opacity:0.3"></i>
-              <p class="mt-2 mb-0 small">Escribe para buscar productos o escanea un código</p>
+              <p class="mt-2 mb-0 small">Escribe para buscar o escanea un código</p>
             </div>
-
           </div>
         </div>
-
       </div>
 
-      <!-- ── Columna derecha: carrito + cliente + pago ── -->
+      <!-- ── Derecha: carrito + cliente + pago ── -->
       <div class="col-lg-5">
         <div class="sticky-top" style="top:1rem">
 
           <!-- Carrito -->
           <div class="card border-0 shadow-sm mb-3">
-            <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center pt-3 pb-0">
+            <div class="card-header bg-white border-0 d-flex justify-content-between
+                        align-items-center pt-3 pb-0">
               <h6 class="fw-bold mb-0">
-                <i class="bi bi-cart me-1 text-warning"></i>
-                Carrito
-                <span *ngIf="carrito.length > 0" class="badge bg-warning text-dark ms-1">{{ totalItems }}</span>
+                <i class="bi bi-cart me-1 text-warning"></i>Carrito
+                <span *ngIf="carrito.length > 0"
+                      class="badge bg-warning text-dark ms-1">{{ totalItems }}</span>
               </h6>
-              <button *ngIf="carrito.length > 0" class="btn btn-sm btn-outline-danger py-0"
+              <button *ngIf="carrito.length > 0"
+                      class="btn btn-sm btn-outline-danger py-0"
                       (click)="limpiarCarrito()">
                 <i class="bi bi-trash me-1"></i>Limpiar
               </button>
@@ -181,8 +182,19 @@
                 <div *ngFor="let item of carrito; let i = index"
                      class="carrito-item"
                      [class.item-critico]="stockCritico(item)">
-                  <div class="d-flex justify-content-between align-items-start">
-                    <div class="flex-grow-1 me-2" style="min-width:0">
+
+                  <!-- Fila principal -->
+                  <div class="d-flex align-items-start gap-2">
+
+                    <!-- Miniatura imagen -->
+                    <div class="carrito-thumb">
+                      <img *ngIf="item.imagen"
+                           [src]="getImagenUrl(item.imagen)"
+                           [alt]="item.nombre">
+                      <i *ngIf="!item.imagen" class="bi bi-box-seam text-muted"></i>
+                    </div>
+
+                    <div class="flex-grow-1" style="min-width:0">
                       <div class="fw-semibold small text-truncate" [title]="item.nombre">
                         {{ item.nombre }}
                       </div>
@@ -192,52 +204,114 @@
                           <i class="bi bi-exclamation-triangle-fill"></i> Poco stock
                         </span>
                       </div>
+
+                      <!-- Info costo — solo admin ve esto -->
+                      <div *ngIf="rol.isAdmin()" class="text-muted"
+                           style="font-size:0.68rem">
+                        Costo: S/ {{ item.precio_compra | number:'1.2-2' }}
+                      </div>
                     </div>
-                    <button class="btn btn-sm btn-outline-danger py-0 px-1 ms-1" (click)="quitarItem(i)">
-                      <i class="bi bi-x"></i>
-                    </button>
+
+                    <div class="d-flex flex-column align-items-end gap-1">
+                      <button class="btn btn-sm btn-outline-danger py-0 px-1"
+                              (click)="quitarItem(i)">
+                        <i class="bi bi-x"></i>
+                      </button>
+                      <!-- Botón descuento — solo admin -->
+                      <button *ngIf="rol.isAdmin()"
+                              class="btn btn-sm py-0 px-1"
+                              [class.btn-outline-warning]="!item.mostrarDescuento"
+                              [class.btn-warning]="item.mostrarDescuento"
+                              (click)="toggleDescuento(item)"
+                              title="Aplicar descuento">
+                        <i class="bi bi-percent"></i>
+                      </button>
+                    </div>
                   </div>
-                  <div class="d-flex justify-content-between align-items-center mt-1">
+
+                  <!-- Fila descuento — solo admin -->
+                  <div *ngIf="rol.isAdmin() && item.mostrarDescuento"
+                       class="descuento-row mt-1">
+                    <div class="d-flex align-items-center gap-2">
+                      <i class="bi bi-percent text-warning small"></i>
+                      <span class="small text-muted">Descuento S/:</span>
+                      <input type="number" class="form-control form-control-sm descuento-input"
+                             [(ngModel)]="item.descuento"
+                             (ngModelChange)="cdr.detectChanges()"
+                             min="0"
+                             [max]="item.precio_unitario - item.precio_compra"
+                             step="0.10"
+                             placeholder="0.00">
+                      <span class="small text-success fw-bold">
+                        → S/ {{ precioConDescuento(item) | number:'1.2-2' }}
+                      </span>
+                    </div>
+                    <div *ngIf="item.descuento > 0" class="text-warning small mt-1">
+                      <i class="bi bi-info-circle me-1"></i>
+                      Máx. S/ {{ (item.precio_unitario - item.precio_compra) | number:'1.2-2' }}
+                      (margen)
+                    </div>
+                  </div>
+
+                  <!-- Cantidad + subtotal -->
+                  <div class="d-flex justify-content-between align-items-center mt-2">
                     <div class="cantidad-control">
                       <button (click)="cambiarCantidad(item, -1)">−</button>
                       <span>{{ item.cantidad }}</span>
                       <button (click)="cambiarCantidad(item, 1)">+</button>
                     </div>
-                    <span class="text-success fw-bold small">
-                      S/ {{ item.precio_unitario * item.cantidad | number:'1.2-2' }}
-                    </span>
+                    <div class="text-end">
+                      <span *ngIf="item.descuento > 0"
+                            class="text-muted small text-decoration-line-through me-1">
+                        S/ {{ item.precio_unitario * item.cantidad | number:'1.2-2' }}
+                      </span>
+                      <span class="text-success fw-bold small">
+                        S/ {{ totalItem(item) | number:'1.2-2' }}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
 
               <!-- Totales -->
               <div *ngIf="carrito.length > 0" class="px-3 py-2 border-top">
-                <div class="d-flex justify-content-between small text-muted mb-1">
-                  <span>Subtotal:</span><span>S/ {{ subtotal | number:'1.2-2' }}</span>
+                <div *ngIf="hayDescuentos"
+                     class="d-flex justify-content-between small text-danger mb-1">
+                  <span><i class="bi bi-percent me-1"></i>Descuentos:</span>
+                  <span>-S/ {{ totalDescuentos | number:'1.2-2' }}</span>
                 </div>
                 <div class="d-flex justify-content-between small text-muted mb-1">
-                  <span>IGV (18%):</span><span>S/ {{ igv | number:'1.2-2' }}</span>
+                  <span>Subtotal:</span>
+                  <span>S/ {{ subtotal | number:'1.2-2' }}</span>
+                </div>
+                <div class="d-flex justify-content-between small text-muted mb-1">
+                  <span>IGV (18%):</span>
+                  <span>S/ {{ igv | number:'1.2-2' }}</span>
                 </div>
                 <div class="d-flex justify-content-between fw-bold">
                   <span>TOTAL:</span>
-                  <span class="text-success" style="font-size:1.1rem">S/ {{ total | number:'1.2-2' }}</span>
+                  <span class="text-success" style="font-size:1.1rem">
+                    S/ {{ total | number:'1.2-2' }}
+                  </span>
                 </div>
               </div>
-
             </div>
           </div>
 
           <!-- Cliente + Pago + Confirmar -->
           <div class="card border-0 shadow-sm">
             <div class="card-body">
-
-              <h6 class="fw-bold mb-2"><i class="bi bi-person me-1 text-warning"></i>Cliente</h6>
+              <h6 class="fw-bold mb-2">
+                <i class="bi bi-person me-1 text-warning"></i>Cliente
+              </h6>
               <input class="form-control form-control-sm mb-2"
                      placeholder="Nombre (opcional)" [(ngModel)]="clienteNombre">
               <input class="form-control form-control-sm mb-3"
                      placeholder="DNI (opcional)" [(ngModel)]="clienteDni">
 
-              <h6 class="fw-bold mb-2"><i class="bi bi-cash me-1 text-warning"></i>Método de pago</h6>
+              <h6 class="fw-bold mb-2">
+                <i class="bi bi-cash me-1 text-warning"></i>Método de pago
+              </h6>
               <div class="d-flex flex-wrap gap-1 mb-3">
                 <button *ngFor="let m of metodos" class="btn btn-sm"
                   [class.btn-warning]="metodoPago===m"
@@ -255,26 +329,26 @@
               <button class="btn btn-warning w-100 fw-bold py-2"
                       (click)="procesarVenta()"
                       [disabled]="carrito.length === 0 || procesando">
-                <span *ngIf="procesando" class="spinner-border spinner-border-sm me-2"></span>
+                <span *ngIf="procesando"
+                      class="spinner-border spinner-border-sm me-2"></span>
                 <i *ngIf="!procesando" class="bi bi-check-lg me-1"></i>
-                {{ procesando ? 'Procesando...' : 'Confirmar venta — S/ ' + (total | number:'1.2-2') }}
+                {{ procesando ? 'Procesando...' :
+                   'Confirmar venta — S/ ' + (total | number:'1.2-2') }}
               </button>
-
             </div>
           </div>
 
         </div>
       </div>
-
     </div>
   </div>
 
-  <!-- ═══════════════ HISTORIAL ═══════════════ -->
+  <!-- ═══ HISTORIAL ═══ -->
   <div *ngIf="vista === 'historial'">
-
     <div class="input-group mb-3" style="max-width:400px">
       <span class="input-group-text"><i class="bi bi-search"></i></span>
-      <input class="form-control" placeholder="Buscar por boleta, cliente o vendedor..."
+      <input class="form-control"
+             placeholder="Buscar por boleta, cliente o vendedor..."
              [(ngModel)]="busquedaHistorial" (input)="filtrarHistorial()">
     </div>
 
@@ -283,13 +357,8 @@
         <table class="table table-hover mb-0">
           <thead class="table-dark">
             <tr>
-              <th>Boleta</th>
-              <th>Cliente</th>
-              <th>Método</th>
-              <th>Total</th>
-              <th>Vendedor</th>
-              <th>Fecha</th>
-              <th></th>
+              <th>Boleta</th><th>Cliente</th><th>Método</th>
+              <th>Total</th><th>Vendedor</th><th>Fecha</th><th></th>
             </tr>
           </thead>
           <tbody>
@@ -301,31 +370,40 @@
             <tr *ngFor="let v of ventasFiltradas">
               <td><strong>{{ v.numero }}</strong></td>
               <td>{{ v.cliente_nombre }}</td>
-              <td><span class="badge bg-light text-dark border">{{ v.metodo_pago | titlecase }}</span></td>
+              <td>
+                <span class="badge bg-light text-dark border">
+                  {{ v.metodo_pago | titlecase }}
+                </span>
+              </td>
               <td class="text-success fw-bold">S/ {{ v.total | number:'1.2-2' }}</td>
               <td>{{ v.vendedor }}</td>
-              <td class="small text-muted">{{ v.created_at | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td class="small text-muted">
+                {{ v.created_at | date:'dd/MM/yyyy HH:mm' }}
+              </td>
               <td>
-                <button class="btn btn-sm btn-outline-secondary" (click)="verDetalle(v)">
+                <button class="btn btn-sm btn-outline-secondary"
+                        (click)="verDetalle(v)">
                   <i class="bi bi-eye"></i>
                 </button>
               </td>
             </tr>
             <tr *ngIf="!cargandoHistorial && ventasFiltradas.length === 0">
-              <td colspan="7" class="text-center text-muted py-4">No hay ventas registradas</td>
+              <td colspan="7" class="text-center text-muted py-4">
+                No hay ventas registradas
+              </td>
             </tr>
           </tbody>
         </table>
       </div>
     </div>
   </div>
-
 </div>
 
 <!-- Modal detalle -->
-<div class="modal-backdrop-custom" *ngIf="mostrarDetalle" (click)="mostrarDetalle=false"></div>
+<div class="modal-backdrop-custom" *ngIf="mostrarDetalle"
+     (click)="mostrarDetalle=false"></div>
 <div class="modal-custom" *ngIf="mostrarDetalle && ventaDetalle">
-  <div class="modal-dialog-custom">
+  <div class="modal-dialog-custom" (click)="$event.stopPropagation()">
     <div class="modal-header">
       <h5 class="modal-title fw-bold">
         <i class="bi bi-receipt me-2"></i>{{ ventaDetalle.numero }}
@@ -334,30 +412,60 @@
     </div>
     <div class="modal-body">
       <div class="row g-2 mb-3 small text-muted">
-        <div class="col-6">Cliente: <strong class="text-dark">{{ ventaDetalle.cliente_nombre }}</strong></div>
-        <div class="col-6" *ngIf="ventaDetalle.cliente_dni">DNI: <strong class="text-dark">{{ ventaDetalle.cliente_dni }}</strong></div>
-        <div class="col-6">Pago: <strong class="text-dark">{{ ventaDetalle.metodo_pago | titlecase }}</strong></div>
-        <div class="col-6">Fecha: <strong class="text-dark">{{ ventaDetalle.created_at | date:'dd/MM/yyyy HH:mm' }}</strong></div>
+        <div class="col-6">
+          Cliente: <strong class="text-dark">{{ ventaDetalle.cliente_nombre }}</strong>
+        </div>
+        <div class="col-6" *ngIf="ventaDetalle.cliente_dni">
+          DNI: <strong class="text-dark">{{ ventaDetalle.cliente_dni }}</strong>
+        </div>
+        <div class="col-6">
+          Pago: <strong class="text-dark">{{ ventaDetalle.metodo_pago | titlecase }}</strong>
+        </div>
+        <div class="col-6">
+          Fecha: <strong class="text-dark">
+            {{ ventaDetalle.created_at | date:'dd/MM/yyyy HH:mm' }}
+          </strong>
+        </div>
       </div>
       <table class="table table-sm">
         <thead class="table-light">
-          <tr><th>Producto</th><th>Cant</th><th>P.Unit</th><th>Total</th></tr>
+          <tr>
+            <th>Producto</th><th>Cant</th><th>P.Unit</th>
+            <th>Desc.</th><th>Total</th>
+          </tr>
         </thead>
         <tbody>
           <tr *ngFor="let d of ventaDetalle.detalle">
             <td class="small">{{ d.producto }}</td>
             <td>{{ d.cantidad }}</td>
             <td>S/ {{ d.precio_unitario | number:'1.2-2' }}</td>
+            <td>
+              <span *ngIf="d.descuento > 0" class="text-danger small">
+                -S/ {{ d.descuento | number:'1.2-2' }}
+              </span>
+              <span *ngIf="!d.descuento || d.descuento === 0"
+                    class="text-muted small">—</span>
+            </td>
             <td>S/ {{ d.subtotal | number:'1.2-2' }}</td>
           </tr>
         </tbody>
       </table>
-      <div class="d-flex justify-content-between small"><span>Subtotal:</span><span>S/ {{ ventaDetalle.subtotal | number:'1.2-2' }}</span></div>
-      <div class="d-flex justify-content-between small"><span>IGV:</span><span>S/ {{ ventaDetalle.igv | number:'1.2-2' }}</span></div>
-      <div class="d-flex justify-content-between fw-bold"><span>Total:</span><span class="text-success">S/ {{ ventaDetalle.total | number:'1.2-2' }}</span></div>
+      <div class="d-flex justify-content-between small">
+        <span>Subtotal:</span>
+        <span>S/ {{ ventaDetalle.subtotal | number:'1.2-2' }}</span>
+      </div>
+      <div class="d-flex justify-content-between small">
+        <span>IGV:</span>
+        <span>S/ {{ ventaDetalle.igv | number:'1.2-2' }}</span>
+      </div>
+      <div class="d-flex justify-content-between fw-bold">
+        <span>Total:</span>
+        <span class="text-success">S/ {{ ventaDetalle.total | number:'1.2-2' }}</span>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" (click)="mostrarDetalle=false">Cerrar</button>
     </div>
   </div>
 </div>
+

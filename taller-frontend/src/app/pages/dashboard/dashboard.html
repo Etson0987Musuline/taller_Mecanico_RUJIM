@@ -12,7 +12,7 @@
 
     <nav class="sidebar-nav mt-3">
       <a *ngFor="let item of menuItems"
-         [routerLink]="item.path"
+         [routerLink]="'/dashboard/' + item.path"
          routerLinkActive="activo"
          class="nav-item">
         <i class="bi {{ item.icono }}"></i>

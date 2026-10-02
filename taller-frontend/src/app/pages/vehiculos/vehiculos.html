@@ -1,36 +1,47 @@
 <div>
-  <!-- Encabezado -->
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
       <h4 class="fw-bold mb-0">
         <i class="bi bi-car-front-fill text-warning me-2"></i>Vehículos
       </h4>
-      <small class="text-muted">{{ vehiculos.length }} registrados</small>
+      <small class="text-muted">
+        {{ vehiculos.length }} registrados
+        <span *ngIf="seleccionados.size > 0" class="text-warning fw-semibold">
+          · {{ seleccionados.size }} seleccionado(s)
+        </span>
+      </small>
     </div>
-    <button class="btn btn-warning fw-semibold" (click)="nuevo()">
-      <i class="bi bi-plus-lg me-1"></i>Nuevo vehículo
-    </button>
+    <div class="d-flex gap-2">
+      <button *ngIf="seleccionados.size > 0"
+              class="btn btn-danger btn-sm fw-semibold"
+              (click)="eliminarSeleccionados()">
+        <i class="bi bi-trash me-1"></i>Eliminar ({{ seleccionados.size }})
+      </button>
+      <button class="btn btn-warning fw-semibold" (click)="nuevo()">
+        <i class="bi bi-plus-lg me-1"></i>Nuevo vehículo
+      </button>
+    </div>
   </div>
 
-  <!-- Buscador -->
-  <div class="input-group mb-4" style="max-width:400px">
+  <div class="input-group mb-4" style="max-width:420px">
     <span class="input-group-text"><i class="bi bi-search"></i></span>
-    <input class="form-control" placeholder="Buscar por placa, marca, modelo o cliente..."
+    <input class="form-control"
+           placeholder="Buscar por placa, marca, modelo o cliente..."
            [(ngModel)]="busqueda" (input)="filtrar()">
   </div>
 
-  <!-- Tabla -->
   <div class="card border-0 shadow-sm">
     <div class="table-responsive">
       <table class="table table-hover mb-0">
         <thead class="table-dark">
           <tr>
+            <th><input type="checkbox" class="form-check-input"
+                       [checked]="todosSeleccionados" (change)="toggleTodos()"></th>
             <th>Placa</th>
             <th>Vehículo</th>
             <th>Año</th>
             <th>Color</th>
             <th>Tipo</th>
-            <th>Km ingreso</th>
             <th>Cliente</th>
             <th></th>
           </tr>
@@ -41,14 +52,20 @@
               <div class="spinner-border text-warning"></div>
             </td>
           </tr>
-          <tr *ngFor="let v of filtrados">
+          <tr *ngFor="let v of filtrados"
+              [class.fila-seleccionada]="seleccionados.has(v.id)">
+            <td><input type="checkbox" class="form-check-input"
+                       [checked]="seleccionados.has(v.id)"
+                       (change)="toggleSeleccion(v.id)"></td>
             <td>
-              <span class="badge bg-dark px-3 py-2" style="font-size:0.85rem;letter-spacing:1px">
+              <span class="badge bg-dark px-3 py-2"
+                    style="font-size:0.85rem;letter-spacing:1px">
                 {{ v.placa }}
               </span>
             </td>
             <td>
               <div class="fw-semibold">{{ v.marca }} {{ v.modelo }}</div>
+              <small class="text-muted">{{ v.tipo || '' }}</small>
             </td>
             <td>{{ v.anio || '—' }}</td>
             <td>
@@ -59,16 +76,22 @@
               <span *ngIf="!v.color">—</span>
             </td>
             <td>{{ v.tipo || '—' }}</td>
-            <td>{{ v.km_ingreso | number }} km</td>
             <td>
               <span class="badge bg-light text-dark border">
                 <i class="bi bi-person me-1"></i>{{ v.cliente }}
               </span>
             </td>
             <td>
-              <button class="btn btn-sm btn-outline-secondary" (click)="editar(v)">
-                <i class="bi bi-pencil"></i>
-              </button>
+              <div class="d-flex gap-1">
+                <button class="btn btn-sm btn-outline-secondary"
+                        (click)="editar(v)" title="Editar">
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger"
+                        (click)="abrirEliminar(v)" title="Eliminar">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
             </td>
           </tr>
           <tr *ngIf="!cargando && filtrados.length === 0">
@@ -83,41 +106,133 @@
   </div>
 </div>
 
-<!-- Modal -->
-<div class="modal-backdrop-custom" *ngIf="mostrarModal" (click)="mostrarModal=false"></div>
+<!-- ══ BACKDROP ══ -->
+<div class="modal-backdrop-custom" *ngIf="mostrarModal"
+     (click)="mostrarModal=false; panelCatalogo=null"></div>
+
+<!-- ══ MODAL VEHÍCULO ══ -->
 <div class="modal-custom" *ngIf="mostrarModal">
-  <div class="modal-dialog-custom">
+  <div class="modal-dialog-vehiculo" (click)="$event.stopPropagation()">
+
     <div class="modal-header">
       <h5 class="modal-title fw-bold">
-        <i class="bi bi-car-front me-2"></i>{{ modoEdicion ? 'Editar' : 'Nuevo' }} vehículo
+        <i class="bi bi-car-front me-2"></i>
+        {{ modoEdicion ? 'Editar' : 'Nuevo' }} vehículo
       </h5>
-      <button class="btn-close" (click)="mostrarModal=false"></button>
+      <button class="btn-close"
+              (click)="mostrarModal=false; panelCatalogo=null"></button>
     </div>
+
+    <!-- Barra catálogos -->
+    <div class="catalogo-bar">
+      <span class="catalogo-bar-label">
+        <i class="bi bi-gear-fill me-1 text-warning"></i>Catálogos:
+      </span>
+      <button class="catalogo-btn" [class.activo]="panelCatalogo==='marca'"
+              (click)="togglePanel('marca')">
+        <i class="bi bi-plus-circle me-1"></i>Marca
+      </button>
+      <button class="catalogo-btn" [class.activo]="panelCatalogo==='modelo'"
+              (click)="togglePanel('modelo')">
+        <i class="bi bi-plus-circle me-1"></i>Modelo
+      </button>
+      <button class="catalogo-btn" [class.activo]="panelCatalogo==='tipo_vehiculo'"
+              (click)="togglePanel('tipo_vehiculo')">
+        <i class="bi bi-plus-circle me-1"></i>Tipo
+      </button>
+    </div>
+
+    <!-- Panel catálogo -->
+    <div *ngIf="panelCatalogo" class="catalogo-panel">
+      <div class="catalogo-panel-titulo">{{ labelPanel(panelCatalogo) }}</div>
+      <div class="d-flex gap-2 mb-2">
+        <input class="form-control form-control-sm"
+               [placeholder]="'Nuevo valor para ' + labelPanel(panelCatalogo)"
+               [(ngModel)]="nuevoCatalogoValor"
+               (keydown.enter)="agregarCatalogo()">
+        <button class="btn btn-success btn-sm px-3"
+                (click)="agregarCatalogo()"
+                [disabled]="guardandoCatalogo || !nuevoCatalogoValor.trim()">
+          <span *ngIf="guardandoCatalogo" class="spinner-border spinner-border-sm"></span>
+          <i *ngIf="!guardandoCatalogo" class="bi bi-plus-lg"></i>
+        </button>
+      </div>
+      <div class="catalogo-lista">
+        <span *ngFor="let item of itemsDe(panelCatalogo)" class="catalogo-tag">
+          {{ item.valor }}
+          <button class="catalogo-tag-x" (click)="eliminarCatalogo(item)">×</button>
+        </span>
+        <span *ngIf="itemsDe(panelCatalogo).length === 0"
+              class="text-muted small">Sin elementos aún</span>
+      </div>
+    </div>
+
     <div class="modal-body">
       <div class="row g-3">
 
+        <!-- Banner consulta SUNARP -->
+        <div class="col-12">
+          <div class="sunarp-banner">
+            <div class="sunarp-info">
+              <i class="bi bi-info-circle-fill text-primary me-2"></i>
+              <span class="small">
+                Consulta los datos del vehículo en SUNARP, luego completa el formulario manualmente.
+              </span>
+            </div>
+            <button class="btn btn-outline-primary btn-sm fw-semibold"
+                    (click)="abrirSunarp()">
+              <i class="bi bi-box-arrow-up-right me-1"></i>Ir a SUNARP
+            </button>
+          </div>
+        </div>
+
         <!-- Cliente -->
         <div class="col-12">
-          <label class="form-label small fw-semibold">Cliente *</label>
-          <select class="form-select" [(ngModel)]="vehiculoForm.cliente_id">
-            <option value="">— Selecciona un cliente —</option>
-            <option *ngFor="let c of clientes" [value]="c.id">
-              {{ c.nombre }} {{ c.apellido }} — DNI: {{ c.dni }}
-            </option>
-          </select>
+          <label class="form-label small fw-semibold">
+            <i class="bi bi-person me-1 text-warning"></i>Cliente *
+          </label>
+          <div class="position-relative">
+            <input class="form-control"
+                   placeholder="Escribe nombre o DNI del cliente..."
+                   [(ngModel)]="busquedaCliente"
+                   (input)="buscarCliente()"
+                   autocomplete="off">
+            <div *ngIf="mostrarSugClientes" class="sugerencias-dropdown">
+              <div *ngFor="let c of clientesFiltrados" class="sugerencia-item"
+                   (click)="seleccionarCliente(c)">
+                <div class="fw-semibold small">{{ c.nombre }} {{ c.apellido }}</div>
+                <div class="text-muted" style="font-size:0.75rem">
+                  <span *ngIf="c.dni">
+                    {{ (c.tipo_documento || 'DNI') | uppercase }}: {{ c.dni }}
+                  </span>
+                  <span *ngIf="c.telefono"> · {{ c.telefono }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div *ngIf="clienteSeleccionado"
+               class="alert alert-success py-1 px-2 mt-1 small mb-0">
+            <i class="bi bi-check-circle me-1"></i>
+            <strong>{{ clienteSeleccionado.nombre }}
+              {{ clienteSeleccionado.apellido }}</strong>
+          </div>
         </div>
 
         <!-- Placa -->
         <div class="col-6">
           <label class="form-label small fw-semibold">Placa *</label>
-          <input class="form-control text-uppercase" [(ngModel)]="vehiculoForm.placa"
-                 placeholder="Ej: ABC-123" [disabled]="modoEdicion">
-          <small class="text-muted" *ngIf="modoEdicion">La placa no se puede modificar</small>
+          <input class="form-control text-uppercase"
+                 [(ngModel)]="vehiculoForm.placa"
+                 placeholder="Ej: ABC-123"
+                 [disabled]="modoEdicion">
+          <small class="text-muted" *ngIf="modoEdicion">
+            La placa no se puede modificar
+          </small>
         </div>
 
         <!-- Tipo -->
         <div class="col-6">
-          <label class="form-label small fw-semibold">Tipo</label>
+          <label class="form-label small fw-semibold">Tipo de vehículo</label>
           <select class="form-select" [(ngModel)]="vehiculoForm.tipo">
             <option value="">— Selecciona —</option>
             <option *ngFor="let t of tipos" [value]="t">{{ t }}</option>
@@ -136,45 +251,133 @@
         <!-- Modelo -->
         <div class="col-6">
           <label class="form-label small fw-semibold">Modelo *</label>
-          <input class="form-control" [(ngModel)]="vehiculoForm.modelo"
-                 placeholder="Ej: Corolla, Tucson, Hilux">
+          <input class="form-control"
+                 [(ngModel)]="vehiculoForm.modelo"
+                 placeholder="Ej: Corolla, Tucson, Hilux"
+                 list="lista-modelos">
+          <datalist id="lista-modelos">
+            <option *ngFor="let m of modelos" [value]="m"></option>
+          </datalist>
         </div>
 
-        <!-- Año -->
-        <div class="col-4">
-          <label class="form-label small fw-semibold">Año</label>
-          <input class="form-control" type="number" [(ngModel)]="vehiculoForm.anio"
-                 placeholder="Ej: 2020" min="1990" [max]="2026">
+        <!-- Año fabricación -->
+        <div class="col-6">
+          <label class="form-label small fw-semibold">Año de fabricación</label>
+          <input class="form-control" type="number"
+                 [(ngModel)]="vehiculoForm.anio"
+                 placeholder="Ej: 2020" min="1960" [max]="2026">
+        </div>
+
+        <!-- Año modelo -->
+        <div class="col-6">
+          <label class="form-label small fw-semibold">Año de modelo</label>
+          <input class="form-control" type="number"
+                 [(ngModel)]="vehiculoForm.anio_modelo"
+                 placeholder="Ej: 2021" min="1960" [max]="2026">
         </div>
 
         <!-- Color -->
-        <div class="col-4">
+        <div class="col-6">
           <label class="form-label small fw-semibold">Color</label>
-          <input class="form-control" [(ngModel)]="vehiculoForm.color"
+          <input class="form-control"
+                 [(ngModel)]="vehiculoForm.color"
                  placeholder="Ej: Blanco">
         </div>
 
-        <!-- Km -->
-        <div class="col-4">
-          <label class="form-label small fw-semibold">Kilometraje</label>
-          <input class="form-control" type="number" [(ngModel)]="vehiculoForm.km_ingreso"
-                 placeholder="0">
+        <!-- Estado -->
+        <div class="col-6">
+          <label class="form-label small fw-semibold">Estado del vehículo</label>
+          <input class="form-control"
+                 [(ngModel)]="vehiculoForm.estado_vehiculo"
+                 placeholder="Ej: ACTIVO, DE BAJA">
+        </div>
+
+        <!-- N° Motor -->
+        <div class="col-6">
+          <label class="form-label small fw-semibold">N° de motor</label>
+          <input class="form-control"
+                 [(ngModel)]="vehiculoForm.n_motor"
+                 placeholder="Número de motor">
+        </div>
+
+        <!-- N° Serie -->
+        <div class="col-6">
+          <label class="form-label small fw-semibold">N° de serie</label>
+          <input class="form-control"
+                 [(ngModel)]="vehiculoForm.n_serie"
+                 placeholder="Número de serie">
         </div>
 
         <!-- VIN -->
         <div class="col-12">
-          <label class="form-label small fw-semibold">VIN <span class="text-muted fw-normal">(opcional)</span></label>
-          <input class="form-control" [(ngModel)]="vehiculoForm.vin"
+          <label class="form-label small fw-semibold">
+            VIN
+            <span class="text-muted fw-normal">(número de chasis, opcional)</span>
+          </label>
+          <input class="form-control"
+                 [(ngModel)]="vehiculoForm.vin"
                  placeholder="Número de chasis">
+        </div>
+
+        <!-- Propietario registral -->
+        <div class="col-12">
+          <label class="form-label small fw-semibold">
+            Propietario registral
+            <span class="text-muted fw-normal">(según registro SUNARP)</span>
+          </label>
+          <input class="form-control"
+                 [(ngModel)]="vehiculoForm.propietario_registral"
+                 placeholder="Nombre del propietario en SUNARP">
         </div>
 
       </div>
     </div>
+
     <div class="modal-footer">
-      <button class="btn btn-secondary" (click)="mostrarModal=false">Cancelar</button>
-      <button class="btn btn-warning fw-semibold" (click)="guardar()" [disabled]="guardando">
+      <button class="btn btn-secondary"
+              (click)="mostrarModal=false; panelCatalogo=null">
+        Cancelar
+      </button>
+      <button class="btn btn-warning fw-semibold"
+              (click)="guardar()" [disabled]="guardando">
         <span *ngIf="guardando" class="spinner-border spinner-border-sm me-1"></span>
         {{ guardando ? 'Guardando...' : 'Guardar' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ BACKDROP ELIMINAR ══ -->
+<div class="modal-backdrop-custom" *ngIf="mostrarModalEliminar"
+     (click)="mostrarModalEliminar=false"></div>
+
+<!-- ══ MODAL ELIMINAR ══ -->
+<div class="modal-custom" *ngIf="mostrarModalEliminar">
+  <div class="modal-dialog-sm" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h5 class="modal-title fw-bold text-danger">
+        <i class="bi bi-exclamation-triangle me-2"></i>Eliminar vehículo
+      </h5>
+      <button class="btn-close" (click)="mostrarModalEliminar=false"></button>
+    </div>
+    <div class="modal-body">
+      <p class="mb-1">¿Estás seguro de eliminar el vehículo:</p>
+      <p class="fw-bold fs-6">
+        {{ vehiculoAEliminar?.marca }} {{ vehiculoAEliminar?.modelo }}
+        — <span class="badge bg-dark">{{ vehiculoAEliminar?.placa }}</span>
+      </p>
+      <div class="alert alert-warning py-2 small mb-0">
+        <i class="bi bi-info-circle me-1"></i>
+        Solo se puede eliminar si el vehículo no tiene órdenes de trabajo.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary"
+              (click)="mostrarModalEliminar=false">Cancelar</button>
+      <button class="btn btn-danger fw-semibold"
+              (click)="confirmarEliminar()" [disabled]="eliminando">
+        <span *ngIf="eliminando" class="spinner-border spinner-border-sm me-1"></span>
+        {{ eliminando ? 'Eliminando...' : 'Sí, eliminar' }}
       </button>
     </div>
   </div>

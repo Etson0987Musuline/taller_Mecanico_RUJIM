@@ -220,3 +220,37 @@
   justify-content: flex-end;
   gap: 8px;
 }
+
+/* ── Miniatura en carrito ── */
+.carrito-thumb {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 6px;
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font-size: 1rem;
+  color: #adb5bd;
+}
+.carrito-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ── Fila descuento ── */
+.descuento-row {
+  background: #fffbeb;
+  border-radius: 6px;
+  padding: 4px 8px;
+  border: 1px solid #fde68a;
+}
+.descuento-input {
+  max-width: 80px;
+  font-size: 0.8rem;
+  padding: 2px 6px;
+}

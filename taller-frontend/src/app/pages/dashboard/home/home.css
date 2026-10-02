@@ -1,39 +1,119 @@
-.stat-card {
-  background: #fff;
+.home-container {
+  padding: 0.25rem 0;
+}
+
+/* Barra de Acciones Rápidas */
+.quick-actions-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.quick-action-btn {
+  background: #ffffff;
   border-radius: 12px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  text-decoration: none;
+  color: #212529;
+  border: 1px solid #edf2f7;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease-in-out;
+}
+
+.quick-action-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+  border-color: #cbd5e0;
+}
+
+.action-icon {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+}
+
+.action-orden .action-icon   { background: #fff8e1; color: #f59e0b; }
+.action-venta .action-icon   { background: #eff6ff; color: #3b82f6; }
+.action-cliente .action-icon { background: #f0fdf4; color: #10b981; }
+.action-factura .action-icon { background: #faf5ff; color: #8b5cf6; }
+
+.action-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.action-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+.action-desc {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+/* Tarjetas de estadísticas */
+.stat-card {
+  background: #ffffff;
+  border-radius: 14px;
   padding: 1.25rem;
   display: flex;
   align-items: center;
   gap: 1rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  transition: transform 0.15s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid #f1f5f9;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.stat-card:hover { transform: translateY(-2px); }
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.07);
+}
 
-.stat-card-danger {
-  border: 1px solid #f5c2c7;
+.stat-card-success {
+  border-left: 4px solid #10b981;
+}
+
+.stat-card-ingresos {
+  border-left: 4px solid #f59e0b;
 }
 
 .stat-icon {
-  width: 48px;
-  height: 48px;
-  min-width: 48px;
+  width: 50px;
+  height: 50px;
+  min-width: 50px;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.4rem;
+  font-size: 1.5rem;
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
 }
 
 .stat-value {
-  font-size: 1.6rem;
-  font-weight: 700;
-  line-height: 1;
+  font-size: 1.65rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: #0f172a;
 }
 
 .stat-label {
   font-size: 0.78rem;
-  color: #6c757d;
+  color: #64748b;
+  font-weight: 500;
   margin-top: 4px;
 }

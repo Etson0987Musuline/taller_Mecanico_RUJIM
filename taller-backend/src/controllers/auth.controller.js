@@ -1,6 +1,6 @@
-const pool    = require('../config/db');
-const bcrypt  = require('bcryptjs');
-const jwt     = require('jsonwebtoken');
+const supabase = require('../config/supabase');
+const bcrypt   = require('bcryptjs');
+const jwt      = require('jsonwebtoken');
 
 const login = async (req, res) => {
   const { email, password } = req.body;
@@ -10,12 +10,18 @@ const login = async (req, res) => {
   }
 
   try {
-    const [rows] = await pool.query(
-      'SELECT * FROM usuarios WHERE email = ? AND activo = 1',
-      [email]
-    );
+    const { data: rows, error } = await supabase
+      .from('usuarios')
+      .select('*')
+      .eq('email', email)
+      .eq('activo', true);
 
-    if (rows.length === 0) {
+    if (error) {
+      console.error(error);
+      return res.status(500).json({ mensaje: 'Error en el servidor' });
+    }
+
+    if (!rows || rows.length === 0) {
       return res.status(401).json({ mensaje: 'Credenciales incorrectas' });
     }
 

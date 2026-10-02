@@ -1,22 +1,24 @@
-<div class="login-wrapper d-flex align-items-center justify-content-center vh-100">
-  <div class="card shadow-sm p-4" style="width: 100%; max-width: 420px;">
+<div class="login-wrapper d-flex align-items-center justify-content-center min-vh-100 p-3">
+  <div class="login-card shadow-lg p-4 p-md-5">
 
-    <!-- Logo / título -->
     <div class="text-center mb-4">
-      <i class="bi bi-wrench-adjustable-circle-fill text-warning" style="font-size: 3rem;"></i>
-      <h4 class="mt-2 fw-bold">Taller Mecánico</h4>
-      <p class="text-muted small">Sistema de Gestión</p>
+      <div class="brand-avatar-box mx-auto mb-3">
+        <i class="bi bi-wrench-adjustable-circle-fill text-warning"></i>
+      </div>
+      <h3 class="fw-bold text-white mb-1">Taller Automotriz <span class="text-warning">RUJIM</span></h3>
+      <p class="text-secondary-custom small mb-0">Sistema de Gestión y Control de Taller</p>
     </div>
 
-    <!-- Alerta de error -->
-    <div *ngIf="error" class="alert alert-danger py-2 small">
-      <i class="bi bi-exclamation-circle me-1"></i>{{ error }}
-    </div>
+    @if (error) {
+      <div class="alert custom-alert-danger py-2 px-3 small d-flex align-items-center mb-4">
+        <i class="bi bi-exclamation-circle-fill text-danger me-2"></i>
+        <span>{{ error }}</span>
+      </div>
+    }
 
-    <!-- Formulario -->
     <div class="mb-3">
-      <label class="form-label small fw-semibold">Correo electrónico</label>
-      <div class="input-group">
+      <label class="form-label small fw-semibold text-light">Correo electrónico</label>
+      <div class="input-group login-input-group">
         <span class="input-group-text"><i class="bi bi-envelope"></i></span>
         <input type="email" class="form-control" placeholder="admin@taller.com"
                [(ngModel)]="email" (keyup.enter)="login()">
@@ -24,24 +26,27 @@
     </div>
 
     <div class="mb-4">
-      <label class="form-label small fw-semibold">Contraseña</label>
-      <div class="input-group">
+      <label class="form-label small fw-semibold text-light">Contraseña</label>
+      <div class="input-group login-input-group">
         <span class="input-group-text"><i class="bi bi-lock"></i></span>
         <input type="password" class="form-control" placeholder="••••••••"
                [(ngModel)]="password" (keyup.enter)="login()">
       </div>
     </div>
 
-    <button class="btn btn-warning w-100 fw-semibold" (click)="login()" [disabled]="cargando">
-      <span *ngIf="cargando" class="spinner-border spinner-border-sm me-2"></span>
-      <i *ngIf="!cargando" class="bi bi-box-arrow-in-right me-2"></i>
-      {{ cargando ? 'Ingresando...' : 'Ingresar' }}
+    <button class="btn btn-login-submit w-100 fw-bold py-2 mb-3" (click)="login()" [disabled]="cargando">
+      @if (cargando) {
+        <span class="spinner-border spinner-border-sm me-2"></span>
+        <span>Ingresando...</span>
+      } @else {
+        <i class="bi bi-box-arrow-in-right me-2"></i>
+        <span>Iniciar Sesión</span>
+      }
     </button>
 
-    <!-- Enlace consulta pública -->
-    <div class="text-center mt-3">
-      <a routerLink="/consulta" class="text-muted small">
-        <i class="bi bi-search me-1"></i>Consultar estado de mi vehículo
+    <div class="text-center">
+      <a routerLink="/consulta" class="back-link small">
+        <i class="bi bi-arrow-left me-1"></i>Volver a Consulta Pública y Seguimiento
       </a>
     </div>
 

@@ -1,311 +1,540 @@
 <div class="mecanico-wrapper">
 
-  <!-- ══ PANTALLA INICIAL ══ -->
-  <div *ngIf="flujo === null" class="pantalla-inicio">
-    <div class="text-center mb-5">
-      <i class="bi bi-wrench-adjustable-circle-fill text-warning" style="font-size:4rem"></i>
-      <h3 class="fw-bold mt-3">Bienvenido, {{ usuario?.nombre }}</h3>
-      <p class="text-muted">¿Qué tipo de atención vas a registrar?</p>
-    </div>
-    <div class="row g-4 justify-content-center">
-      <div class="col-md-5">
-        <div class="opcion-card" (click)="iniciarFlujoNuevo()">
-          <i class="bi bi-person-plus-fill opcion-icono text-primary"></i>
-          <h5 class="fw-bold mt-3">Orden a cliente nuevo</h5>
-          <p class="text-muted small">Registra el cliente, su vehículo y crea la orden paso a paso</p>
-          <span class="btn btn-primary px-4 mt-2">Iniciar <i class="bi bi-arrow-right ms-1"></i></span>
-        </div>
-      </div>
-      <div class="col-md-5">
-        <div class="opcion-card" (click)="iniciarFlujoHabitual()">
-          <i class="bi bi-person-check-fill opcion-icono text-success"></i>
-          <h5 class="fw-bold mt-3">Orden a cliente habitual</h5>
-          <p class="text-muted small">El cliente ya está registrado, ve directo a crear la orden</p>
-          <span class="btn btn-success px-4 mt-2">Iniciar <i class="bi bi-arrow-right ms-1"></i></span>
-        </div>
-      </div>
-    </div>
+  <!-- Navegación por pestañas del mecánico -->
+  <div class="nav-mecanico-tabs">
+    <button class="tab-mecanico-btn" [class.activo]="vistaMecanico === 'trabajos'" (click)="vistaMecanico = 'trabajos'">
+      <i class="bi bi-tools"></i>
+      <span>Trabajos en Taller</span>
+      <span class="badge" [class.bg-dark]="vistaMecanico === 'trabajos'" [class.bg-secondary]="vistaMecanico !== 'trabajos'">
+        {{ misTrabajos.length }}
+      </span>
+    </button>
+    <button class="tab-mecanico-btn" [class.activo]="vistaMecanico === 'nueva_orden'" (click)="vistaMecanico = 'nueva_orden'">
+      <i class="bi bi-clipboard2-plus-fill"></i>
+      <span>Registrar Orden</span>
+    </button>
+    <button class="tab-mecanico-btn" [class.activo]="vistaMecanico === 'historial'" (click)="vistaMecanico = 'historial'">
+      <i class="bi bi-clock-history"></i>
+      <span>Hoja de Vida / Placa</span>
+    </button>
   </div>
 
-  <!-- ══ FLUJO PASO A PASO ══ -->
-  <div *ngIf="flujo !== null">
-
-    <!-- Header del flujo -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+  <!-- ═════════════════════════════════════════════════════════════════
+       PESTAÑA 1: TRABAJOS ACTIVOS EN TALLER
+  ═════════════════════════════════════════════════════════════════ -->
+  <div *ngIf="vistaMecanico === 'trabajos'">
+    <!-- Encabezado de la estación -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
       <div>
-        <h4 class="fw-bold mb-0">
-          <i class="bi bi-clipboard2-plus text-warning me-2"></i>
-          {{ flujo === 'nuevo' ? 'Cliente nuevo' : 'Cliente habitual' }}
-        </h4>
-        <small class="text-muted">
-          {{ paso === 1 ? 'Paso 1: Datos del cliente' :
-             paso === 2 ? 'Paso 2: Vehículo del cliente' :
-             paso === 3 ? 'Paso 3: Crear orden de trabajo' :
-             'Orden completada' }}
-        </small>
+        <h5 class="fw-bold mb-0">
+          <i class="bi bi-wrench-adjustable text-warning me-2"></i>Vehículos en Atención Activa
+        </h5>
+        <small class="text-muted">Actualiza estados y agrega repuestos o labores con 1 clic</small>
       </div>
-      <button class="btn btn-outline-secondary btn-sm" (click)="resetear()">
-        <i class="bi bi-x-lg me-1"></i>Cancelar
+      <button class="btn btn-sm btn-outline-secondary" (click)="cargarMisTrabajos()" [disabled]="cargandoTrabajos">
+        <i class="bi bi-arrow-clockwise me-1" [class.spin]="cargandoTrabajos"></i>Actualizar
       </button>
     </div>
 
-    <!-- Indicador de pasos (solo cliente nuevo) -->
-    <div *ngIf="flujo === 'nuevo'" class="pasos-indicador mb-4">
-      <div class="paso-item" [class.activo]="paso >= 1" [class.completado]="paso > 1">
-        <div class="paso-circulo">1</div>
-        <div class="paso-label">Cliente</div>
-      </div>
-      <div class="paso-linea"></div>
-      <div class="paso-item" [class.activo]="paso >= 2" [class.completado]="paso > 2">
-        <div class="paso-circulo">2</div>
-        <div class="paso-label">Vehículo</div>
-      </div>
-      <div class="paso-linea"></div>
-      <div class="paso-item" [class.activo]="paso >= 3" [class.completado]="paso > 3">
-        <div class="paso-circulo">3</div>
-        <div class="paso-label">Orden</div>
-      </div>
-      <div class="paso-linea"></div>
-      <div class="paso-item" [class.activo]="paso >= 4">
-        <div class="paso-circulo"><i class="bi bi-check-lg"></i></div>
-        <div class="paso-label">Listo</div>
-      </div>
+    <!-- Spinner -->
+    <div *ngIf="cargandoTrabajos" class="text-center py-5">
+      <div class="spinner-border text-warning"></div>
+      <p class="mt-2 text-muted small">Cargando unidades del taller...</p>
     </div>
 
-    <!-- ══ PASO 1: CLIENTE ══ -->
-    <div *ngIf="paso === 1" class="flujo-card">
-      <h6 class="fw-bold mb-3"><i class="bi bi-person-plus me-2 text-warning"></i>Datos del nuevo cliente</h6>
-      <div class="row g-3">
-        <div class="col-6">
-          <label class="form-label small fw-semibold">Nombre *</label>
-          <input class="form-control" [(ngModel)]="clienteForm.nombre" placeholder="Nombre del cliente">
-        </div>
-        <div class="col-6">
-          <label class="form-label small fw-semibold">Apellido *</label>
-          <input class="form-control" [(ngModel)]="clienteForm.apellido" placeholder="Apellido">
-        </div>
-        <div class="col-6">
-          <label class="form-label small fw-semibold">DNI</label>
-          <input class="form-control" [(ngModel)]="clienteForm.dni" placeholder="12345678">
-        </div>
-        <div class="col-6">
-          <label class="form-label small fw-semibold">Teléfono</label>
-          <input class="form-control" [(ngModel)]="clienteForm.telefono" placeholder="987654321">
-        </div>
-        <div class="col-12">
-          <label class="form-label small fw-semibold">Dirección</label>
-          <input class="form-control" [(ngModel)]="clienteForm.direccion" placeholder="Dirección (opcional)">
-        </div>
-      </div>
-      <div class="d-flex justify-content-end mt-3">
-        <button class="btn btn-warning fw-semibold px-4" (click)="guardarCliente()" [disabled]="guardandoCliente">
-          <span *ngIf="guardandoCliente" class="spinner-border spinner-border-sm me-1"></span>
-          Guardar y continuar <i class="bi bi-arrow-right ms-1"></i>
-        </button>
-      </div>
-    </div>
+    <!-- Listado de tarjetas de taller -->
+    <div *ngIf="!cargandoTrabajos" class="row g-3">
+      <div *ngFor="let t of misTrabajos" class="col-md-6 col-lg-6">
+        <div class="trabajo-taller-card h-100 d-flex flex-column justify-content-between">
+          <div>
+            <!-- Header de tarjeta -->
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div>
+                <span class="placa-badge-taller">{{ t.placa }}</span>
+                <span class="badge bg-light text-dark border ms-2">#{{ t.codigo }}</span>
+              </div>
+              <span [class]="getBadge(t.estado).clase">
+                <i class="bi {{ getBadge(t.estado).icon }} me-1"></i>{{ getBadge(t.estado).label }}
+              </span>
+            </div>
 
-    <!-- ══ PASO 2: VEHÍCULO ══ -->
-    <div *ngIf="paso === 2" class="flujo-card">
-      <div class="alert alert-success py-2 mb-3 small">
-        <i class="bi bi-check-circle me-1"></i>
-        Cliente <strong>{{ clienteCreado?.nombre }} {{ clienteCreado?.apellido }}</strong> creado. Ahora registra su vehículo.
-      </div>
-      <h6 class="fw-bold mb-3"><i class="bi bi-car-front me-2 text-warning"></i>Datos del vehículo</h6>
-      <div class="row g-3">
-        <div class="col-6">
-          <label class="form-label small fw-semibold">Placa *</label>
-          <input class="form-control text-uppercase" [(ngModel)]="vehiculoForm.placa" placeholder="ABC-123">
-        </div>
-        <div class="col-6">
-          <label class="form-label small fw-semibold">Tipo</label>
-          <select class="form-select" [(ngModel)]="vehiculoForm.tipo">
-            <option value="">— Selecciona —</option>
-            <option *ngFor="let t of tipos" [value]="t">{{ t }}</option>
-          </select>
-        </div>
-        <div class="col-6">
-          <label class="form-label small fw-semibold">Marca *</label>
-          <select class="form-select" [(ngModel)]="vehiculoForm.marca">
-            <option value="">— Selecciona —</option>
-            <option *ngFor="let m of marcas" [value]="m">{{ m }}</option>
-          </select>
-        </div>
-        <div class="col-6">
-          <label class="form-label small fw-semibold">Modelo *</label>
-          <input class="form-control" [(ngModel)]="vehiculoForm.modelo" placeholder="Ej: Corolla, Tucson">
-        </div>
-        <div class="col-4">
-          <label class="form-label small fw-semibold">Año</label>
-          <input class="form-control" type="number" [(ngModel)]="vehiculoForm.anio" placeholder="2020">
-        </div>
-        <div class="col-4">
-          <label class="form-label small fw-semibold">Color</label>
-          <input class="form-control" [(ngModel)]="vehiculoForm.color" placeholder="Blanco">
-        </div>
-        <div class="col-4">
-          <label class="form-label small fw-semibold">Kilometraje</label>
-          <input class="form-control" type="number" [(ngModel)]="vehiculoForm.km_ingreso">
-        </div>
-      </div>
-      <div class="d-flex justify-content-end mt-3">
-        <button class="btn btn-warning fw-semibold px-4" (click)="guardarVehiculo()" [disabled]="guardandoVehiculo">
-          <span *ngIf="guardandoVehiculo" class="spinner-border spinner-border-sm me-1"></span>
-          Guardar y continuar <i class="bi bi-arrow-right ms-1"></i>
-        </button>
-      </div>
-    </div>
+            <!-- Datos del auto y cliente -->
+            <h6 class="fw-bold mb-1 text-dark">{{ t.vehiculo }}</h6>
+            <div class="small text-muted mb-2">
+              <i class="bi bi-person me-1"></i>Cliente: <strong>{{ t.cliente }}</strong>
+              <span *ngIf="t.telefono" class="ms-2"><i class="bi bi-telephone me-1"></i>{{ t.telefono }}</span>
+            </div>
 
-    <!-- ══ PASO 3: ORDEN ══ -->
-    <div *ngIf="paso === 3" class="flujo-card">
+            <!-- Problema reportado -->
+            <div class="p-2 rounded bg-light border small mb-2">
+              <span class="fw-semibold text-secondary">Falla reportada:</span>
+              <p class="mb-0 text-dark">{{ t.descripcion_problema || t.problema || 'Mantenimiento preventivo / revisión' }}</p>
+            </div>
 
-      <!-- Info vehículo preseleccionado -->
-      <div *ngIf="vehiculoSeleccionado" class="alert alert-success py-2 mb-3 small">
-        <i class="bi bi-car-front me-1"></i>
-        Vehículo: <strong>{{ busquedaVehiculo }}</strong>
-      </div>
-
-      <div class="row g-3">
-        <div class="col-md-6">
-          <h6 class="fw-bold mb-3"><i class="bi bi-clipboard2-plus me-2 text-warning"></i>Datos de la orden</h6>
-
-          <!-- Buscar vehículo (solo cliente habitual) -->
-          <div *ngIf="flujo === 'habitual'" class="mb-2">
-            <label class="form-label small fw-semibold">Vehículo *</label>
-            <div class="position-relative">
-              <input class="form-control" placeholder="Nombre del cliente o placa..."
-                     [(ngModel)]="busquedaVehiculo" (input)="buscarVehiculo()">
-              <div *ngIf="mostrarVehiculos" class="sugerencias-dropdown">
-                <div *ngFor="let v of vehiculosFiltrados" class="sugerencia-item" (click)="seleccionarVehiculo(v)">
-                  <div class="fw-semibold small">{{ v.cliente }}</div>
-                  <div class="text-muted" style="font-size:0.75rem">{{ v.marca }} {{ v.modelo }} — <span class="badge bg-dark">{{ v.placa }}</span></div>
-                </div>
+            <!-- Barra de avance de estado rápido con 1 toque -->
+            <div class="mb-2">
+              <label class="form-label small fw-semibold text-muted mb-1">
+                <i class="bi bi-arrow-right-circle me-1"></i>Avanzar estado del vehículo:
+              </label>
+              <div class="status-pills-bar">
+                <button type="button" class="status-pill-btn"
+                        [class.current]="t.estado === 'diagnostico'"
+                        (click)="cambiarEstadoRapido(t, 'diagnostico')">
+                  <i class="bi bi-search"></i> Diagnóstico
+                </button>
+                <button type="button" class="status-pill-btn"
+                        [class.current]="t.estado === 'en_reparacion'"
+                        (click)="cambiarEstadoRapido(t, 'en_reparacion')">
+                  <i class="bi bi-tools"></i> Reparando
+                </button>
+                <button type="button" class="status-pill-btn"
+                        [class.current]="t.estado === 'espera_repuestos'"
+                        (click)="cambiarEstadoRapido(t, 'espera_repuestos')">
+                  <i class="bi bi-hourglass-split"></i> Espera Rep.
+                </button>
+                <button type="button" class="status-pill-btn"
+                        [class.listo-current]="t.estado === 'listo'"
+                        (click)="cambiarEstadoRapido(t, 'listo')">
+                  <i class="bi bi-check-circle-fill"></i> ¡Listo!
+                </button>
               </div>
             </div>
           </div>
 
-          <div class="row g-2">
-            <div class="col-6">
-              <label class="form-label small fw-semibold">Kilometraje</label>
-              <input class="form-control" type="number" [(ngModel)]="ordenForm.km_actual">
-            </div>
-            <div class="col-6">
-              <label class="form-label small fw-semibold">Fecha estimada</label>
-              <input class="form-control" type="date" [(ngModel)]="ordenForm.fecha_estimada">
-            </div>
-            <div class="col-6">
-              <label class="form-label small fw-semibold">Mano de obra (S/)</label>
-              <input class="form-control" type="number" step="0.01" [(ngModel)]="ordenForm.mano_obra">
-            </div>
-          </div>
-
-          <div class="mt-2">
-            <label class="form-label small fw-semibold">Descripción del problema *</label>
-            <textarea class="form-control" rows="3" [(ngModel)]="ordenForm.descripcion_problema"
-                      placeholder="Describe el problema reportado..."></textarea>
-          </div>
-        </div>
-
-        <div class="col-md-6">
-          <h6 class="fw-bold mb-3"><i class="bi bi-tools me-2 text-warning"></i>Servicios y Repuestos</h6>
-
-          <!-- Servicios -->
-          <div class="detalle-seccion mb-3">
-            <div class="small fw-semibold mb-2">Servicios</div>
-            <div class="position-relative mb-2">
-              <input class="form-control form-control-sm" placeholder="Buscar servicio..."
-                     [(ngModel)]="busquedaServicio" (input)="buscarServicio()">
-              <div *ngIf="mostrarSugServicio" class="sugerencias-dropdown">
-                <div *ngFor="let s of serviciosFiltrados" class="sugerencia-item" (click)="seleccionarServicio(s)">
-                  <div class="fw-semibold small">{{ s.nombre }}</div>
-                  <div class="text-muted" style="font-size:0.75rem">S/ {{ s.precio_base | number:'1.2-2' }}</div>
-                </div>
-              </div>
-            </div>
-            <div *ngIf="servicioForm.servicio_id" class="d-flex gap-1 mb-2">
-              <input class="form-control form-control-sm" type="number" step="0.01"
-                     [(ngModel)]="servicioForm.precio" placeholder="Precio" style="max-width:90px">
-              <input class="form-control form-control-sm" [(ngModel)]="servicioForm.observacion" placeholder="Obs.">
-              <button class="btn btn-sm btn-success" (click)="agregarServicio()"><i class="bi bi-plus-lg"></i></button>
-            </div>
-            <div *ngFor="let s of serviciosOrden; let i=index"
-                 class="d-flex justify-content-between align-items-center py-1 border-bottom small">
-              <span>{{ s.nombre }}</span>
-              <div class="d-flex gap-1 align-items-center">
-                <span class="text-success fw-bold">S/ {{ s.precio | number:'1.2-2' }}</span>
-                <button class="btn btn-sm btn-outline-danger py-0 px-1" (click)="quitarServicio(i)"><i class="bi bi-x"></i></button>
-              </div>
-            </div>
-            <div *ngIf="!serviciosOrden.length" class="text-muted small text-center py-1">Sin servicios</div>
-          </div>
-
-          <!-- Repuestos -->
-          <div class="detalle-seccion mb-3">
-            <div class="small fw-semibold mb-2">Repuestos</div>
-            <div class="position-relative mb-2">
-              <input class="form-control form-control-sm" placeholder="Buscar repuesto..."
-                     [(ngModel)]="busquedaRepuesto" (input)="buscarRepuesto()">
-              <div *ngIf="mostrarSugRepuesto" class="sugerencias-dropdown">
-                <div *ngFor="let r of repuestosFiltrados" class="sugerencia-item" (click)="seleccionarRepuesto(r)">
-                  <div class="fw-semibold small">{{ r.nombre }}</div>
-                  <div class="d-flex justify-content-between" style="font-size:0.75rem">
-                    <span class="text-muted">Stock: {{ r.stock }}</span>
-                    <span class="text-success">S/ {{ r.precio_venta | number:'1.2-2' }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div *ngIf="repuestoForm.repuesto_id" class="d-flex gap-1 mb-2">
-              <input class="form-control form-control-sm" type="number"
-                     [(ngModel)]="repuestoForm.cantidad" placeholder="Cant." style="max-width:70px">
-              <input class="form-control form-control-sm" type="number" step="0.01"
-                     [(ngModel)]="repuestoForm.precio_unitario" placeholder="Precio">
-              <button class="btn btn-sm btn-success" (click)="agregarRepuesto()"><i class="bi bi-plus-lg"></i></button>
-            </div>
-            <div *ngFor="let r of repuestosOrden; let i=index"
-                 class="d-flex justify-content-between align-items-center py-1 border-bottom small">
-              <span>{{ r.nombre }} x{{ r.cantidad }}</span>
-              <div class="d-flex gap-1 align-items-center">
-                <span class="text-success fw-bold">S/ {{ r.precio_unitario * r.cantidad | number:'1.2-2' }}</span>
-                <button class="btn btn-sm btn-outline-danger py-0 px-1" (click)="quitarRepuesto(i)"><i class="bi bi-x"></i></button>
-              </div>
-            </div>
-            <div *ngIf="!repuestosOrden.length" class="text-muted small text-center py-1">Sin repuestos</div>
-          </div>
-
-          <!-- Total -->
-          <div class="bg-warning-subtle rounded p-2 text-end">
-            <span class="small text-muted">Total estimado: </span>
-            <strong class="text-warning">S/ {{ totalEstimado | number:'1.2-2' }}</strong>
+          <!-- Acciones operativas de taller -->
+          <div class="d-flex gap-2 pt-2 border-top">
+            <button class="btn btn-sm btn-outline-success flex-fill" (click)="abrirAgregarRepuestoRapido(t)">
+              <i class="bi bi-box-seam me-1"></i>+ Repuesto
+            </button>
+            <button class="btn btn-sm btn-outline-primary flex-fill" (click)="abrirAgregarServicioRapido(t)">
+              <i class="bi bi-wrench me-1"></i>+ Labor
+            </button>
+            <button class="btn btn-sm btn-outline-secondary" (click)="verDetalleTrabajo(t)" title="Ver detalle completo">
+              <i class="bi bi-eye"></i>
+            </button>
           </div>
         </div>
       </div>
 
-      <div class="d-flex justify-content-end mt-3">
-        <button class="btn btn-warning fw-semibold px-4" (click)="guardarOrden()" [disabled]="guardandoOrden">
-          <span *ngIf="guardandoOrden" class="spinner-border spinner-border-sm me-1"></span>
-          <i *ngIf="!guardandoOrden" class="bi bi-check-lg me-1"></i>
-          {{ guardandoOrden ? 'Creando orden...' : 'Crear orden' }}
+      <div *ngIf="misTrabajos.length === 0" class="col-12 text-center py-5">
+        <i class="bi bi-clipboard2-check text-success display-4 d-block mb-3"></i>
+        <h5>No hay vehículos en proceso activo en este momento</h5>
+        <p class="text-muted small">Puedes registrar una nueva recepción o consultar el historial de algún vehículo.</p>
+        <button class="btn btn-warning fw-semibold mt-2" (click)="iniciarFlujoNuevo()">
+          <i class="bi bi-plus-lg me-1"></i>Registrar Ingreso de Vehículo
         </button>
       </div>
     </div>
+  </div>
 
-    <!-- ══ PASO 4: ÉXITO ══ -->
-    <div *ngIf="paso === 4" class="flujo-card text-center py-5">
-      <i class="bi bi-check-circle-fill text-success" style="font-size:4rem"></i>
-      <h4 class="fw-bold mt-3 text-success">¡Orden creada exitosamente!</h4>
-      <p class="text-muted mb-1">Código de orden:</p>
-      <h3 class="fw-bold text-warning">{{ ordenCreada?.codigo }}</h3>
-      <div class="d-flex justify-content-center gap-3 mt-4">
-        <button class="btn btn-outline-secondary" (click)="resetear()">
-          <i class="bi bi-house me-1"></i>Volver al inicio
-        </button>
-        <button class="btn btn-warning fw-semibold" (click)="irAOrdenes()">
-          <i class="bi bi-clipboard2-check me-1"></i>Ver órdenes
-        </button>
+  <!-- ═════════════════════════════════════════════════════════════════
+       PESTAÑA 2: ASISTENTE PASO A PASO (NUEVA ORDEN)
+  ═════════════════════════════════════════════════════════════════ -->
+  <div *ngIf="vistaMecanico === 'nueva_orden'">
+    <!-- ══ PANTALLA INICIAL DEL WIZARD ══ -->
+    <div *ngIf="flujo === null" class="pantalla-inicio">
+      <div class="text-center mb-4">
+        <i class="bi bi-car-front-fill text-warning" style="font-size:3.5rem"></i>
+        <h4 class="fw-bold mt-2">Recepción de Vehículo</h4>
+        <p class="text-muted small">Selecciona el tipo de ingreso para iniciar el registro guiado</p>
+      </div>
+      <div class="row g-3 justify-content-center">
+        <div class="col-md-5">
+          <div class="opcion-card" (click)="iniciarFlujoNuevo()">
+            <i class="bi bi-person-plus-fill opcion-icono text-primary"></i>
+            <h5 class="fw-bold mt-2">Cliente Nuevo</h5>
+            <p class="text-muted small">Registra los datos del cliente, su vehículo y genera la orden</p>
+            <span class="btn btn-primary btn-sm px-3 mt-1">Comenzar <i class="bi bi-arrow-right ms-1"></i></span>
+          </div>
+        </div>
+        <div class="col-md-5">
+          <div class="opcion-card" (click)="iniciarFlujoHabitual()">
+            <i class="bi bi-person-check-fill opcion-icono text-success"></i>
+            <h5 class="fw-bold mt-2">Cliente Habitual</h5>
+            <p class="text-muted small">El cliente ya tiene auto en el sistema, busca la placa directamente</p>
+            <span class="btn btn-success btn-sm px-3 mt-1">Comenzar <i class="bi bi-arrow-right ms-1"></i></span>
+          </div>
+        </div>
       </div>
     </div>
 
+    <!-- ══ FLUJO PASO A PASO ACTIVO ══ -->
+    <div *ngIf="flujo !== null">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <h5 class="fw-bold mb-0">
+            <i class="bi bi-clipboard2-plus text-warning me-2"></i>
+            {{ flujo === 'nuevo' ? 'Ingreso: Cliente Nuevo' : 'Ingreso: Cliente Habitual' }}
+          </h5>
+          <small class="text-muted">
+            {{ paso === 1 ? 'Paso 1: Datos de Contacto' :
+               paso === 2 ? 'Paso 2: Registro del Vehículo' :
+               paso === 3 ? 'Paso 3: Diagnóstico y Creación de Orden' :
+               '¡Orden Creada Exitosamente!' }}
+          </small>
+        </div>
+        <button class="btn btn-outline-secondary btn-sm" (click)="resetear()">
+          <i class="bi bi-x-lg me-1"></i>Cancelar
+        </button>
+      </div>
+
+      <!-- Indicador de pasos -->
+      <div *ngIf="flujo === 'nuevo'" class="pasos-indicador mb-4">
+        <div class="paso-item" [class.activo]="paso >= 1" [class.completado]="paso > 1">
+          <div class="paso-circulo">1</div>
+          <div class="paso-label">Cliente</div>
+        </div>
+        <div class="paso-linea"></div>
+        <div class="paso-item" [class.activo]="paso >= 2" [class.completado]="paso > 2">
+          <div class="paso-circulo">2</div>
+          <div class="paso-label">Vehículo</div>
+        </div>
+        <div class="paso-linea"></div>
+        <div class="paso-item" [class.activo]="paso >= 3" [class.completado]="paso > 3">
+          <div class="paso-circulo">3</div>
+          <div class="paso-label">Orden</div>
+        </div>
+        <div class="paso-linea"></div>
+        <div class="paso-item" [class.activo]="paso >= 4">
+          <div class="paso-circulo"><i class="bi bi-check-lg"></i></div>
+          <div class="paso-label">Listo</div>
+        </div>
+      </div>
+
+      <!-- PASO 1: CLIENTE -->
+      <div *ngIf="paso === 1" class="flujo-card">
+        <h6 class="fw-bold mb-3"><i class="bi bi-person-plus me-2 text-warning"></i>Datos del nuevo cliente</h6>
+        <div class="row g-3">
+          <div class="col-6">
+            <label class="form-label small fw-semibold">Nombre *</label>
+            <input class="form-control" [(ngModel)]="clienteForm.nombre" placeholder="Nombre">
+          </div>
+          <div class="col-6">
+            <label class="form-label small fw-semibold">Apellido *</label>
+            <input class="form-control" [(ngModel)]="clienteForm.apellido" placeholder="Apellido">
+          </div>
+          <div class="col-6">
+            <label class="form-label small fw-semibold">DNI / RUC</label>
+            <input class="form-control" [(ngModel)]="clienteForm.dni" placeholder="Número de documento">
+          </div>
+          <div class="col-6">
+            <label class="form-label small fw-semibold">Teléfono / WhatsApp *</label>
+            <input class="form-control" [(ngModel)]="clienteForm.telefono" placeholder="Ej: 987654321">
+          </div>
+          <div class="col-12">
+            <label class="form-label small fw-semibold">Dirección</label>
+            <input class="form-control" [(ngModel)]="clienteForm.direccion" placeholder="Dirección (opcional)">
+          </div>
+        </div>
+        <div class="d-flex justify-content-end mt-3">
+          <button class="btn btn-warning fw-semibold px-4" (click)="guardarCliente()" [disabled]="guardandoCliente">
+            <span *ngIf="guardandoCliente" class="spinner-border spinner-border-sm me-1"></span>
+            Continuar a Vehículo <i class="bi bi-arrow-right ms-1"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- PASO 2: VEHÍCULO -->
+      <div *ngIf="paso === 2" class="flujo-card">
+        <h6 class="fw-bold mb-3"><i class="bi bi-car-front me-2 text-warning"></i>Datos del vehículo</h6>
+        <div class="row g-3">
+          <div class="col-6">
+            <label class="form-label small fw-semibold">Placa *</label>
+            <input class="form-control text-uppercase fw-bold" [(ngModel)]="vehiculoForm.placa" placeholder="ABC-123">
+          </div>
+          <div class="col-6">
+            <label class="form-label small fw-semibold">Marca *</label>
+            <input class="form-control" [(ngModel)]="vehiculoForm.marca" placeholder="Toyota, Hyundai...">
+          </div>
+          <div class="col-6">
+            <label class="form-label small fw-semibold">Modelo *</label>
+            <input class="form-control" [(ngModel)]="vehiculoForm.modelo" placeholder="Yaris, Accent...">
+          </div>
+          <div class="col-6">
+            <label class="form-label small fw-semibold">Año</label>
+            <input class="form-control" type="number" [(ngModel)]="vehiculoForm.anio" placeholder="2020">
+          </div>
+          <div class="col-6">
+            <label class="form-label small fw-semibold">Color</label>
+            <input class="form-control" [(ngModel)]="vehiculoForm.color" placeholder="Rojo, Blanco...">
+          </div>
+          <div class="col-6">
+            <label class="form-label small fw-semibold">Kilometraje al ingresar</label>
+            <input class="form-control" type="number" [(ngModel)]="vehiculoForm.km_ingreso" placeholder="0">
+          </div>
+        </div>
+        <div class="d-flex justify-content-end mt-3">
+          <button class="btn btn-warning fw-semibold px-4" (click)="guardarVehiculo()" [disabled]="guardandoVehiculo">
+            <span *ngIf="guardandoVehiculo" class="spinner-border spinner-border-sm me-1"></span>
+            Continuar a la Orden <i class="bi bi-arrow-right ms-1"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- PASO 3: ORDEN DE TRABAJO -->
+      <div *ngIf="paso === 3" class="flujo-card">
+        <h6 class="fw-bold mb-3"><i class="bi bi-clipboard2-check me-2 text-warning"></i>Detalles de la Orden</h6>
+
+        <!-- Si es habitual, buscador de vehículo -->
+        <div *ngIf="flujo === 'habitual'" class="mb-3">
+          <label class="form-label small fw-semibold">Buscar Vehículo Registrado (Placa o Cliente) *</label>
+          <div class="position-relative">
+            <input class="form-control" [(ngModel)]="busquedaVehiculo" (input)="buscarVehiculo()" placeholder="Escribe la placa o cliente...">
+            <div *ngIf="mostrarVehiculos" class="sugerencias-dropdown">
+              <div *ngFor="let v of vehiculosFiltrados" class="sugerencia-item" (click)="seleccionarVehiculo(v)">
+                <div class="fw-bold">{{ v.placa }} — {{ v.marca }} {{ v.modelo }}</div>
+                <small class="text-muted">{{ v.cliente }}</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label small fw-semibold">Problema Reportado / Motivo de Ingreso *</label>
+          <textarea class="form-control" rows="3" [(ngModel)]="ordenForm.descripcion_problema" placeholder="Describe lo que manifiesta el cliente..."></textarea>
+        </div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-6">
+            <label class="form-label small fw-semibold">Kilometraje Actual</label>
+            <input class="form-control" type="number" [(ngModel)]="ordenForm.km_actual" placeholder="Km">
+          </div>
+          <div class="col-6">
+            <label class="form-label small fw-semibold">Mano de Obra Estimada (S/)</label>
+            <input class="form-control" type="number" step="0.01" [(ngModel)]="ordenForm.mano_obra" placeholder="0.00">
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-4">
+          <span class="fw-bold">Total Estimado: <span class="text-success">S/ {{ totalEstimado | number:'1.2-2' }}</span></span>
+          <button class="btn btn-warning fw-semibold px-4" (click)="guardarOrden()" [disabled]="guardandoOrden">
+            <span *ngIf="guardandoOrden" class="spinner-border spinner-border-sm me-1"></span>
+            Crear Orden en Taller <i class="bi bi-check-lg ms-1"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- PASO 4: COMPLETADO -->
+      <div *ngIf="paso === 4" class="flujo-card text-center py-4">
+        <i class="bi bi-check-circle-fill text-success display-3 d-block mb-3"></i>
+        <h4 class="fw-bold">¡Orden Creada Correctamente!</h4>
+        <p class="text-muted">Se generó la orden de trabajo <strong>#{{ ordenCreada?.codigo }}</strong>.</p>
+        <div class="d-flex justify-content-center gap-2 mt-3">
+          <button class="btn btn-warning fw-semibold" (click)="resetear()">
+            <i class="bi bi-tools me-1"></i>Ir a Trabajos en Taller
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════════════════════════════════════════════════════════════════
+       PESTAÑA 3: HOJA DE VIDA POR PLACA
+  ═════════════════════════════════════════════════════════════════ -->
+  <div *ngIf="vistaMecanico === 'historial'">
+    <div class="card border-0 shadow-sm p-4 mb-4">
+      <h5 class="fw-bold mb-3"><i class="bi bi-clock-history text-warning me-2"></i>Consultar Hoja de Vida por Placa</h5>
+      <p class="text-muted small">Ingresa la placa para ver qué repuestos se cambiaron y qué trabajos se le hicieron antes a este auto.</p>
+      
+      <div class="input-group" style="max-width: 400px;">
+        <span class="input-group-text bg-dark text-white fw-bold">Placa</span>
+        <input type="text" class="form-control text-uppercase fw-bold" placeholder="Ej: ABC123, 5AD..."
+               [(ngModel)]="placaBusquedaHistorial" (keyup.enter)="consultarHistorialPlaca()">
+        <button class="btn btn-warning fw-semibold" (click)="consultarHistorialPlaca()" [disabled]="cargandoHistorial">
+          <span *ngIf="cargandoHistorial" class="spinner-border spinner-border-sm me-1"></span>
+          <i *ngIf="!cargandoHistorial" class="bi bi-search me-1"></i>Buscar
+        </button>
+      </div>
+
+      <div *ngIf="errorHistorial" class="alert alert-warning mt-3 py-2">
+        <i class="bi bi-exclamation-triangle me-1"></i>{{ errorHistorial }}
+      </div>
+    </div>
+
+    <!-- Resultados del Historial -->
+    <div *ngIf="historialPlacaDatos">
+      <div class="card bg-light border-0 p-3 mb-3 shadow-sm">
+        <div class="row align-items-center">
+          <div class="col-md-3 text-center">
+            <span class="placa-badge-taller display-6">{{ historialPlacaDatos.vehiculo.placa }}</span>
+          </div>
+          <div class="col-md-5">
+            <h5 class="fw-bold mb-1">{{ historialPlacaDatos.vehiculo.marca }} {{ historialPlacaDatos.vehiculo.modelo }}</h5>
+            <small class="text-muted">Color: {{ historialPlacaDatos.vehiculo.color || '—' }} · Año: {{ historialPlacaDatos.vehiculo.anio || '—' }}</small>
+          </div>
+          <div class="col-md-4">
+            <small class="text-muted d-block">Cliente / Propietario:</small>
+            <strong class="text-dark">{{ historialPlacaDatos.vehiculo.cliente }}</strong>
+          </div>
+        </div>
+      </div>
+
+      <h6 class="fw-bold mb-3">Historial de Mantenimientos ({{ historialPlacaDatos.ordenes.length }})</h6>
+      <div *ngFor="let ord of historialPlacaDatos.ordenes" class="card border mb-3 shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between py-2">
+          <div>
+            <strong class="text-primary me-2">#{{ ord.codigo }}</strong>
+            <span class="small text-muted">{{ ord.fecha_ingreso | date:'dd/MM/yyyy' }}</span>
+          </div>
+          <span [class]="getBadge(ord.estado).clase">{{ getBadge(ord.estado).label }}</span>
+        </div>
+        <div class="card-body py-2">
+          <p class="small mb-1"><strong>Diagnóstico:</strong> {{ ord.descripcion_problema }}</p>
+          <div *ngIf="ord.repuestos?.length > 0">
+            <small class="text-muted fw-semibold">Repuestos reemplazados:</small>
+            <ul class="list-unstyled mb-0" style="font-size:0.75rem">
+              <li *ngFor="let rep of ord.repuestos">• {{ rep.repuesto_nombre }} (x{{ rep.cantidad }})</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═════════════════════════════════════════════════════════════════
+     MODAL RÁPIDO: AGREGAR REPUESTO DESDE EL TALLER
+═════════════════════════════════════════════════════════════════ -->
+<div class="modal-backdrop-custom" *ngIf="mostrarModalRepuestoRapido" (click)="mostrarModalRepuestoRapido=false"></div>
+<div class="modal-custom" *ngIf="mostrarModalRepuestoRapido">
+  <div class="modal-dialog-custom">
+    <div class="modal-header bg-success text-white">
+      <h6 class="modal-title fw-bold">
+        <i class="bi bi-box-seam me-2"></i>Agregar Repuesto a Orden #{{ trabajoSeleccionado?.codigo }}
+      </h6>
+      <button class="btn-close btn-close-white" (click)="mostrarModalRepuestoRapido=false"></button>
+    </div>
+    <div class="modal-body">
+      <div class="mb-3 position-relative">
+        <label class="form-label small fw-semibold">Buscar Repuesto en Inventario (713 disponibles)</label>
+        <input class="form-control" placeholder="Escribe el nombre o código de pieza..."
+               [(ngModel)]="busquedaRepuestoRapido" (input)="buscarRepuestoRapido()">
+        <div *ngIf="repuestosFiltradosRapido.length > 0" class="sugerencias-dropdown">
+          <div *ngFor="let r of repuestosFiltradosRapido" class="sugerencia-item" (click)="seleccionarRepuestoRapido(r)">
+            <div class="fw-bold small">{{ r.nombre }}</div>
+            <div class="d-flex justify-content-between" style="font-size:0.75rem">
+              <span class="text-muted">Stock disponible: <strong>{{ r.stock }}</strong></span>
+              <span class="text-success fw-bold">S/ {{ r.precio_venta | number:'1.2-2' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="repuestoSeleccionadoRapido" class="alert alert-success py-2 mb-3 small">
+        <i class="bi bi-check-circle me-1"></i>Seleccionado: <strong>{{ repuestoSeleccionadoRapido.nombre }}</strong>
+        (Stock: {{ repuestoSeleccionadoRapido.stock }})
+      </div>
+
+      <div class="row g-2 mb-3">
+        <div class="col-6">
+          <label class="form-label small fw-semibold">Cantidad a Utilizar</label>
+          <input type="number" class="form-control" [(ngModel)]="repuestoRapido.cantidad" min="1">
+        </div>
+        <div class="col-6">
+          <label class="form-label small fw-semibold">Precio Unitario (S/)</label>
+          <input type="number" step="0.01" class="form-control" [(ngModel)]="repuestoRapido.precio_unitario">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-sm" (click)="mostrarModalRepuestoRapido=false">Cancelar</button>
+      <button class="btn btn-success btn-sm fw-bold px-3" (click)="guardarRepuestoRapido()" [disabled]="guardandoRepuestoRapido">
+        <span *ngIf="guardandoRepuestoRapido" class="spinner-border spinner-border-sm me-1"></span>
+        Confirmar e Imputar a la Orden
+      </button>
+    </div>
   </div>
 </div>
 
+<!-- ═════════════════════════════════════════════════════════════════
+     MODAL RÁPIDO: AGREGAR SERVICIO / LABOR TÉCNICA
+═════════════════════════════════════════════════════════════════ -->
+<div class="modal-backdrop-custom" *ngIf="mostrarModalServicioRapido" (click)="mostrarModalServicioRapido=false"></div>
+<div class="modal-custom" *ngIf="mostrarModalServicioRapido">
+  <div class="modal-dialog-custom">
+    <div class="modal-header bg-primary text-white">
+      <h6 class="modal-title fw-bold">
+        <i class="bi bi-wrench me-2"></i>Agregar Labor a Orden #{{ trabajoSeleccionado?.codigo }}
+      </h6>
+      <button class="btn-close btn-close-white" (click)="mostrarModalServicioRapido=false"></button>
+    </div>
+    <div class="modal-body">
+      <div class="mb-3 position-relative">
+        <label class="form-label small fw-semibold">Seleccionar Servicio</label>
+        <input class="form-control" placeholder="Buscar servicio de catálogo..."
+               [(ngModel)]="busquedaServicioRapido" (input)="buscarServicioRapido()">
+        <div *ngIf="serviciosFiltradosRapido.length > 0" class="sugerencias-dropdown">
+          <div *ngFor="let s of serviciosFiltradosRapido" class="sugerencia-item" (click)="seleccionarServicioRapido(s)">
+            <div class="fw-bold small">{{ s.nombre }}</div>
+            <div class="text-primary small">Precio base: S/ {{ s.precio_base | number:'1.2-2' }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label small fw-semibold">Costo de Mano de Obra (S/)</label>
+        <input type="number" step="0.01" class="form-control" [(ngModel)]="servicioRapido.precio">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label small fw-semibold">Observación Técnica (Opcional)</label>
+        <input class="form-control" [(ngModel)]="servicioRapido.observacion" placeholder="Detalle técnico de la labor...">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-sm" (click)="mostrarModalServicioRapido=false">Cancelar</button>
+      <button class="btn btn-primary btn-sm fw-bold px-3" (click)="guardarServicioRapido()" [disabled]="guardandoServicioRapido">
+        <span *ngIf="guardandoServicioRapido" class="spinner-border spinner-border-sm me-1"></span>
+        Registrar Labor
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═════════════════════════════════════════════════════════════════
+     MODAL DETALLE COMPLETO DE ORDEN
+═════════════════════════════════════════════════════════════════ -->
+<div class="modal-backdrop-custom" *ngIf="mostrarModalDetalleTrabajo" (click)="mostrarModalDetalleTrabajo=false"></div>
+<div class="modal-custom" *ngIf="mostrarModalDetalleTrabajo">
+  <div class="modal-dialog-custom" *ngIf="ordenDetalleCompleta">
+    <div class="modal-header bg-dark text-white">
+      <h6 class="modal-title fw-bold">
+        <i class="bi bi-clipboard2-check text-warning me-2"></i>Detalle de Orden #{{ ordenDetalleCompleta.codigo }}
+      </h6>
+      <button class="btn-close btn-close-white" (click)="mostrarModalDetalleTrabajo=false"></button>
+    </div>
+    <div class="modal-body">
+      <div class="p-2 bg-light rounded mb-3">
+        <div class="fw-bold">{{ ordenDetalleCompleta.vehiculo }} (<span class="badge bg-dark">{{ ordenDetalleCompleta.placa }}</span>)</div>
+        <div class="small text-muted">Cliente: {{ ordenDetalleCompleta.cliente }} · Tel: {{ ordenDetalleCompleta.telefono }}</div>
+      </div>
+
+      <h6 class="fw-bold small text-muted">SERVICIOS:</h6>
+      <ul class="list-group list-group-flush mb-3" *ngIf="ordenDetalleCompleta.servicios?.length > 0">
+        <li *ngFor="let s of ordenDetalleCompleta.servicios" class="list-group-item d-flex justify-content-between py-1 small">
+          <span>{{ s.servicio_nombre }}</span>
+          <strong>S/ {{ s.precio | number:'1.2-2' }}</strong>
+        </li>
+      </ul>
+      <div *ngIf="!ordenDetalleCompleta.servicios?.length" class="small text-muted mb-3">Sin servicios aún</div>
+
+      <h6 class="fw-bold small text-muted">REPUESTOS:</h6>
+      <ul class="list-group list-group-flush mb-3" *ngIf="ordenDetalleCompleta.repuestos?.length > 0">
+        <li *ngFor="let r of ordenDetalleCompleta.repuestos" class="list-group-item d-flex justify-content-between py-1 small">
+          <span>{{ r.repuesto_nombre }} x{{ r.cantidad }}</span>
+          <strong>S/ {{ (r.precio_unitario * r.cantidad) | number:'1.2-2' }}</strong>
+        </li>
+      </ul>
+      <div *ngIf="!ordenDetalleCompleta.repuestos?.length" class="small text-muted mb-3">Sin repuestos aún</div>
+
+      <div class="d-flex justify-content-between fw-bold pt-2 border-top">
+        <span>TOTAL ACUMULADO:</span>
+        <span class="text-success">S/ {{ ordenDetalleCompleta.total | number:'1.2-2' }}</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-sm" (click)="mostrarModalDetalleTrabajo=false">Cerrar</button>
+    </div>
+  </div>
+</div>

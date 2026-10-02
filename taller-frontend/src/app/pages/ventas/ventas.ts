@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { VentasService } from '../../core/services/ventas.service';
 import { HttpClient } from '@angular/common/http';
+import { RolService } from '../../core/services/rol.service';
 
 @Component({
   selector: 'app-ventas',
@@ -14,30 +15,29 @@ import { HttpClient } from '@angular/common/http';
 export class VentasComponent implements OnInit {
   @ViewChild('inputBusqueda') inputBusqueda!: ElementRef;
   @ViewChild('contenedorBusqueda') contenedorBusqueda!: ElementRef;
+  @ViewChild('inputCodigo') inputCodigo!: ElementRef;
 
   vista: 'carrito' | 'historial' = 'carrito';
 
   // Catálogo
-  todosProductos:   any[] = [];
-  productosMostrados: any[] = [];
-  busqueda          = '';
-  categoriaActiva   = 'Todas';
-  categorias:       string[] = [];
-  buscandoProducto  = false;
-  yaBusco           = false;
+  todosProductos:    any[] = [];
+  productosMostrados:any[] = [];
+  busqueda           = '';
+  categoriaActiva    = 'Todas';
+  categorias:        string[] = [];
+  yaBusco            = false;
 
   // Carrito
-  carrito:       any[] = [];
-  clienteNombre  = '';
-  clienteDni     = '';
-  metodoPago     = 'efectivo';
-  metodos        = ['efectivo','tarjeta','transferencia','yape','plin'];
-  procesando     = false;
-  productoError  = '';
+  carrito:      any[] = [];
+  clienteNombre = '';
+  clienteDni    = '';
+  metodoPago    = 'efectivo';
+  metodos       = ['efectivo','tarjeta','transferencia','yape','plin'];
+  procesando    = false;
+  productoError = '';
 
   // Código de barras
-  codigoBarra    = '';
-  @ViewChild('inputCodigo') inputCodigo!: ElementRef;
+  codigoBarra = '';
 
   // Resultado venta
   ventaExitosa: any = null;
@@ -47,35 +47,44 @@ export class VentasComponent implements OnInit {
   ventasFiltradas:  any[] = [];
   busquedaHistorial = '';
   cargandoHistorial = false;
-  ventaDetalle:     any  = null;
+  ventaDetalle:     any   = null;
   mostrarDetalle    = false;
 
-  private urlRep = 'http://localhost:3000/api/repuestos';
+  private urlBase = 'http://localhost:3000';
+  private urlRep  = `${this.urlBase}/api/repuestos`;
 
   constructor(
     private ventasService: VentasService,
     private http: HttpClient,
-    private cdr: ChangeDetectorRef
+    public cdr: ChangeDetectorRef,
+    public rol: RolService
   ) {}
 
-  ngOnInit() {
-    this.cargarProductos();
-  }
+  ngOnInit() { this.cargarProductos(); }
 
-  // ── Cerrar sugerencias al hacer clic fuera ──
   @HostListener('document:click', ['$event'])
   onClickFuera(event: MouseEvent) {
-    if (this.contenedorBusqueda && !this.contenedorBusqueda.nativeElement.contains(event.target)) {
+    if (this.contenedorBusqueda &&
+        !this.contenedorBusqueda.nativeElement.contains(event.target)) {
       this.yaBusco = false;
       this.cdr.detectChanges();
     }
   }
 
+  // ── Imagen ──
+  getImagenUrl(imagen: string | null) {
+    if (!imagen) return null;
+    return `${this.urlBase}${imagen}`;
+  }
+
+  // ── Catálogo ──
   cargarProductos() {
     this.http.get<any[]>(this.urlRep).subscribe({
       next: (data) => {
         this.todosProductos = data;
-        this.categorias     = ['Todas', ...new Set(data.map(p => p.categoria).filter(Boolean))];
+        this.categorias     = ['Todas', ...new Set(
+          data.map(p => p.categoria).filter(Boolean)
+        )];
         this.cdr.detectChanges();
       }
     });
@@ -83,20 +92,17 @@ export class VentasComponent implements OnInit {
 
   buscar() {
     const q = this.busqueda.trim().toLowerCase();
-    this.yaBusco = true;
+    this.yaBusco  = true;
     let resultado = this.todosProductos;
-
-    if (this.categoriaActiva !== 'Todas') {
+    if (this.categoriaActiva !== 'Todas')
       resultado = resultado.filter(p => p.categoria === this.categoriaActiva);
-    }
-    if (q) {
+    if (q)
       resultado = resultado.filter(p =>
         p.nombre?.toLowerCase().includes(q) ||
         p.codigo?.toLowerCase().includes(q) ||
         p.codigo_barra?.includes(q) ||
         p.categoria?.toLowerCase().includes(q)
       );
-    }
     this.productosMostrados = resultado.slice(0, 20);
     this.cdr.detectChanges();
   }
@@ -107,8 +113,8 @@ export class VentasComponent implements OnInit {
   }
 
   limpiarBusqueda() {
-    this.busqueda         = '';
-    this.yaBusco          = false;
+    this.busqueda          = '';
+    this.yaBusco           = false;
     this.productosMostrados = [];
     this.cdr.detectChanges();
   }
@@ -140,14 +146,12 @@ export class VentasComponent implements OnInit {
   // ── Carrito ──
   agregarAlCarrito(producto: any) {
     if (producto.stock <= 0) {
-      this.productoError = `Sin stock: ${producto.nombre}`;
-      return;
+      this.productoError = `Sin stock: ${producto.nombre}`; return;
     }
     const existente = this.carrito.find(i => i.repuesto_id === producto.id);
     if (existente) {
       if (existente.cantidad >= producto.stock) {
-        this.productoError = `Stock máximo alcanzado (${producto.stock})`;
-        return;
+        this.productoError = `Stock máximo alcanzado (${producto.stock})`; return;
       }
       existente.cantidad++;
     } else {
@@ -156,9 +160,13 @@ export class VentasComponent implements OnInit {
         nombre:          producto.nombre,
         codigo:          producto.codigo || producto.codigo_barra,
         categoria:       producto.categoria,
+        imagen:          producto.imagen || null,
         precio_unitario: producto.precio_venta,
+        precio_compra:   producto.precio_compra, // solo para referencia interna
         cantidad:        1,
-        stock_max:       producto.stock
+        stock_max:       producto.stock,
+        descuento:       0,
+        mostrarDescuento:false
       });
     }
     this.productoError = '';
@@ -172,19 +180,40 @@ export class VentasComponent implements OnInit {
 
   cambiarCantidad(item: any, delta: number) {
     item.cantidad += delta;
-    if (item.cantidad < 1)           item.cantidad = 1;
+    if (item.cantidad < 1)              item.cantidad = 1;
     if (item.cantidad > item.stock_max) item.cantidad = item.stock_max;
     this.cdr.detectChanges();
+  }
+
+  toggleDescuento(item: any) {
+    item.mostrarDescuento = !item.mostrarDescuento;
+    if (!item.mostrarDescuento) item.descuento = 0;
+    this.cdr.detectChanges();
+  }
+
+  precioConDescuento(item: any) {
+    const d = parseFloat(item.descuento) || 0;
+    return Math.max(0, parseFloat(item.precio_unitario) - d);
+  }
+
+  totalItem(item: any) {
+    return this.precioConDescuento(item) * item.cantidad;
   }
 
   stockCritico(item: any) {
     return item.cantidad >= item.stock_max * 0.8;
   }
 
-  get subtotal() { return this.carrito.reduce((a, i) => a + i.precio_unitario * i.cantidad, 0); }
-  get igv()      { return this.subtotal * 0.18; }
-  get total()    { return this.subtotal + this.igv; }
+  get subtotal()   { return this.carrito.reduce((a, i) => a + this.totalItem(i), 0); }
+  get igv()        { return this.subtotal * 0.18; }
+  get total()      { return this.subtotal + this.igv; }
   get totalItems() { return this.carrito.reduce((a, i) => a + i.cantidad, 0); }
+  get hayDescuentos() {
+    return this.carrito.some(i => (parseFloat(i.descuento) || 0) > 0);
+  }
+  get totalDescuentos() {
+    return this.carrito.reduce((a, i) => a + ((parseFloat(i.descuento) || 0) * i.cantidad), 0);
+  }
 
   limpiarCarrito() {
     this.carrito       = [];
@@ -206,21 +235,25 @@ export class VentasComponent implements OnInit {
       items: this.carrito.map(i => ({
         repuesto_id:     i.repuesto_id,
         cantidad:        i.cantidad,
-        precio_unitario: i.precio_unitario
+        precio_unitario: i.precio_unitario,
+        descuento:       parseFloat(i.descuento) || 0,
+        nombre:          i.nombre,
+        codigo:          i.codigo
       }))
     };
     this.ventasService.create(payload).subscribe({
       next: (res) => {
         this.ventaExitosa = {
           ...res,
-          cliente:  this.clienteNombre || 'Cliente general',
-          dni:      this.clienteDni,
-          metodo:   this.metodoPago,
-          items:    [...this.carrito],
-          subtotal: this.subtotal,
-          igv:      this.igv,
-          total:    this.total,
-          fecha:    new Date()
+          cliente:         this.clienteNombre || 'Cliente general',
+          dni:             this.clienteDni,
+          metodo:          this.metodoPago,
+          items:           [...this.carrito],
+          subtotal:        this.subtotal,
+          igv:             this.igv,
+          total:           this.total,
+          totalDescuentos: this.totalDescuentos,
+          fecha:           new Date()
         };
         this.procesando = false;
         this.carrito    = [];
@@ -236,15 +269,20 @@ export class VentasComponent implements OnInit {
   }
 
   imprimirBoleta() {
-    const v     = this.ventaExitosa;
+    const v    = this.ventaExitosa;
     const fecha = new Date(v.fecha).toLocaleString('es-PE');
-    const filas = v.items.map((i: any) => `
-      <tr>
-        <td>${i.nombre}</td>
-        <td style="text-align:center">${i.cantidad}</td>
-        <td style="text-align:right">S/ ${(+i.precio_unitario).toFixed(2)}</td>
-        <td style="text-align:right">S/ ${(i.precio_unitario * i.cantidad).toFixed(2)}</td>
-      </tr>`).join('');
+    const filas = v.items.map((i: any) => {
+      const desc      = parseFloat(i.descuento) || 0;
+      const precioFin = parseFloat(i.precio_unitario) - desc;
+      const subtot    = precioFin * i.cantidad;
+      return `
+        <tr>
+          <td>${i.nombre}${desc > 0 ? `<br><small style="color:#666">Desc: -S/${desc.toFixed(2)}</small>` : ''}</td>
+          <td style="text-align:center">${i.cantidad}</td>
+          <td style="text-align:right">S/ ${precioFin.toFixed(2)}</td>
+          <td style="text-align:right">S/ ${subtot.toFixed(2)}</td>
+        </tr>`;
+    }).join('');
 
     const html = `
       <html><head><title>Boleta ${v.numero}</title>
@@ -256,8 +294,7 @@ export class VentasComponent implements OnInit {
         th   { border-bottom:1px solid #000; padding:2px; font-size:11px; }
         td   { padding:2px; font-size:11px; }
         .total-row { border-top:1px solid #000; font-weight:bold; }
-        .center { text-align:center; }
-        .right  { text-align:right; }
+        .center { text-align:center; } .right { text-align:right; }
         hr { border:none; border-top:1px dashed #000; }
       </style></head><body>
       <h2>TALLER MECÁNICO</h2>
@@ -272,6 +309,11 @@ export class VentasComponent implements OnInit {
       <table>
         <tr><th>Producto</th><th>Cant</th><th>P.Unit</th><th>Total</th></tr>
         ${filas}
+        ${v.totalDescuentos > 0 ? `
+        <tr>
+          <td colspan="3" style="color:#e53e3e">Descuento total</td>
+          <td class="right" style="color:#e53e3e">-S/ ${v.totalDescuentos.toFixed(2)}</td>
+        </tr>` : ''}
         <tr class="total-row">
           <td colspan="3">Subtotal</td>
           <td class="right">S/ ${v.subtotal.toFixed(2)}</td>
@@ -302,8 +344,8 @@ export class VentasComponent implements OnInit {
     this.cargandoHistorial = true;
     this.ventasService.getAll().subscribe({
       next: (data) => {
-        this.ventas         = data;
-        this.ventasFiltradas = data;
+        this.ventas            = data;
+        this.ventasFiltradas   = data;
         this.cargandoHistorial = false;
         this.cdr.detectChanges();
       },
@@ -335,3 +377,4 @@ export class VentasComponent implements OnInit {
     });
   }
 }
+

@@ -1,111 +1,546 @@
-<div class="consulta-wrapper min-vh-100">
+<div class="consulta-wrapper min-vh-100 d-flex flex-column">
 
-  <!-- Header -->
-  <nav class="navbar navbar-dark px-4 py-3" style="background: rgba(0,0,0,0.3);">
-    <span class="navbar-brand fw-bold">
-      <i class="bi bi-wrench-adjustable-circle-fill text-warning me-2"></i>Taller Mecánico
-    </span>
-    <a routerLink="/login" class="btn btn-outline-light btn-sm">
-      <i class="bi bi-box-arrow-in-right me-1"></i>Acceso personal
-    </a>
-  </nav>
-
-  <!-- Hero -->
-  <div class="container py-5">
-    <div class="text-center text-white mb-5">
-      <h1 class="fw-bold display-6">Consulta el estado de tu vehículo</h1>
-      <p class="text-white-50">Ingresa tu nombre o DNI para ver el avance del servicio</p>
-    </div>
-
-    <!-- Buscador -->
-    <div class="row justify-content-center mb-5">
-      <div class="col-md-7">
-        <div class="card border-0 shadow p-4" style="border-radius: 16px;">
-
-          <!-- Selector tipo búsqueda -->
-          <div class="btn-group w-100 mb-3">
-            <button class="btn btn-sm"
-              [class.btn-warning]="tipoBusqueda === 'nombre'"
-              [class.btn-outline-secondary]="tipoBusqueda !== 'nombre'"
-              (click)="tipoBusqueda = 'nombre'">
-              <i class="bi bi-person me-1"></i>Por nombre
-            </button>
-            <button class="btn btn-sm"
-              [class.btn-warning]="tipoBusqueda === 'dni'"
-              [class.btn-outline-secondary]="tipoBusqueda !== 'dni'"
-              (click)="tipoBusqueda = 'dni'">
-              <i class="bi bi-card-text me-1"></i>Por DNI
-            </button>
-          </div>
-
-          <div class="input-group">
-            <input type="text" class="form-control form-control-lg"
-              [placeholder]="tipoBusqueda === 'dni' ? 'Ej: 45678901' : 'Ej: Carlos Mamani'"
-              [(ngModel)]="busqueda" (keyup.enter)="consultar()">
-            <button class="btn btn-warning btn-lg px-4 fw-semibold" (click)="consultar()" [disabled]="buscando">
-              <span *ngIf="buscando" class="spinner-border spinner-border-sm"></span>
-              <i *ngIf="!buscando" class="bi bi-search"></i>
-            </button>
-          </div>
-
-        </div>
+  <!-- ==========================================
+       BARRA SUPERIOR DE CONTACTO RÁPIDO
+       ========================================== -->
+  <div class="top-info-bar py-2 px-3 d-none d-md-block">
+    <div class="container d-flex justify-content-between align-items-center small">
+      <div class="d-flex align-items-center gap-3 text-secondary-custom">
+        <span><i class="bi bi-geo-alt-fill text-warning me-1"></i>Huamanga, Ayacucho - Perú</span>
+        <span class="divider-dot">•</span>
+        <span><i class="bi bi-clock-fill text-warning me-1"></i>Lun - Sáb: 8:00 AM – 6:00 PM</span>
       </div>
-    </div>
-
-    <!-- Resultados -->
-    <div class="row justify-content-center">
-      <div class="col-md-8">
-
-        <!-- Error -->
-        <div *ngIf="error" class="alert alert-warning text-center">
-          <i class="bi bi-emoji-frown me-2"></i>{{ error }}
-        </div>
-
-        <!-- Tarjetas de resultado -->
-        <div *ngFor="let r of resultados" class="card border-0 shadow-sm mb-3" style="border-radius: 12px;">
-          <div class="card-body p-4">
-
-            <div class="d-flex justify-content-between align-items-start mb-3">
-              <div>
-                <h5 class="fw-bold mb-0">{{ r.vehiculo }}</h5>
-                <span class="text-muted small">Placa: <strong>{{ r.placa }}</strong></span>
-              </div>
-              <span class="badge {{ getEstado(r.estado).clase }} px-3 py-2">
-                <i class="bi {{ getEstado(r.estado).icono }} me-1"></i>
-                {{ getEstado(r.estado).label }}
-              </span>
-            </div>
-
-            <div class="row g-2 small text-muted mb-3">
-              <div class="col-6">
-                <i class="bi bi-hash me-1"></i>Orden: <strong class="text-dark">{{ r.orden }}</strong>
-              </div>
-              <div class="col-6">
-                <i class="bi bi-person me-1"></i>{{ r.cliente }}
-              </div>
-              <div class="col-6">
-                <i class="bi bi-calendar me-1"></i>Ingreso: {{ r.fecha_ingreso | date:'dd/MM/yyyy' }}
-              </div>
-              <div class="col-6" *ngIf="r.fecha_estimada">
-                <i class="bi bi-calendar-check me-1"></i>Estimado: {{ r.fecha_estimada | date:'dd/MM/yyyy' }}
-              </div>
-            </div>
-
-            <div class="bg-light rounded p-3 small">
-              <strong><i class="bi bi-chat-left-text me-1"></i>Último comentario:</strong><br>
-              {{ r.ultimo_comentario || 'Sin comentarios aún' }}
-            </div>
-
-          </div>
-        </div>
-
-        <!-- Sin resultados -->
-        <div *ngIf="buscado && resultados.length === 0 && !error" class="text-center text-white-50 py-4">
-          <i class="bi bi-car-front" style="font-size: 3rem;"></i>
-          <p class="mt-2">No se encontraron vehículos</p>
-        </div>
-
+      <div class="d-flex align-items-center gap-3">
+        <a [href]="'https://wa.me/' + whatsappNumber" target="_blank" class="top-contact-link">
+          <i class="bi bi-whatsapp text-success me-1"></i>WhatsApp: <strong>{{ whatsappDisplay }}</strong>
+        </a>
       </div>
     </div>
   </div>
+
+  <!-- ==========================================
+       NAVBAR PRINCIPAL
+       ========================================== -->
+  <nav class="navbar navbar-expand-lg navbar-dark site-nav sticky-top">
+    <div class="container">
+      
+      <!-- Brand Logo -->
+      <a class="navbar-brand d-flex align-items-center gap-2 brand-logo" routerLink="/">
+        <div class="brand-icon-box">
+          <i class="bi bi-wrench-adjustable-circle-fill text-warning"></i>
+        </div>
+        <div>
+          <span class="brand-name">RUJIM</span>
+          <span class="brand-sub">SERVICIO AUTOMOTRIZ</span>
+        </div>
+      </a>
+
+      <!-- Acciones de cabecera -->
+      <div class="d-flex align-items-center gap-2 ms-auto">
+        <a [href]="'https://wa.me/' + whatsappNumber" target="_blank" 
+           class="btn btn-outline-success btn-sm d-none d-sm-inline-flex align-items-center gap-1 nav-whatsapp-btn">
+          <i class="bi bi-whatsapp"></i>
+          <span>Atención WhatsApp</span>
+        </a>
+
+        <a routerLink="/login" class="btn btn-outline-light btn-sm d-inline-flex align-items-center gap-1 nav-login-btn">
+          <i class="bi bi-box-arrow-in-right"></i>
+          <span>Acceso Personal</span>
+        </a>
+      </div>
+
+    </div>
+  </nav>
+
+  <!-- ==========================================
+       HERO SECTION CON BUSCADOR
+       ========================================== -->
+  <header class="hero-section">
+    <div class="hero-overlay"></div>
+    <div class="hero-glow"></div>
+
+    <div class="container hero-content py-5">
+      <div class="row justify-content-center text-center">
+        <div class="col-lg-9 col-xl-8">
+          
+          <!-- Badges de confianza -->
+          <div class="d-inline-flex align-items-center gap-2 hero-pill-badge mb-3">
+            <span class="pulse-indicator green"></span>
+            <span>Seguimiento Digital en Tiempo Real</span>
+          </div>
+
+          <h1 class="hero-title display-5 fw-bold mb-3">
+            Consulta el Estado de tu <span class="gradient-text">Vehículo</span>
+          </h1>
+          
+          <p class="hero-subtitle mb-4">
+            Ingresa tu placa, DNI o nombre para conocer en vivo diagnósticos, estado de reparaciones y fecha estimada de entrega.
+          </p>
+
+          <!-- Tarjeta de Búsqueda Interactiva -->
+          <div class="search-card-wrapper mx-auto">
+            
+            <!-- Selector de Tipo de Búsqueda (Pestañas) -->
+            <div class="search-tabs-container mb-3">
+              <button 
+                type="button"
+                class="search-tab-btn" 
+                [class.active]="tipoBusqueda === 'placa'"
+                (click)="setTipoBusqueda('placa')">
+                <i class="bi bi-card-heading me-1"></i>Por Placa
+              </button>
+              <button 
+                type="button"
+                class="search-tab-btn" 
+                [class.active]="tipoBusqueda === 'dni'"
+                (click)="setTipoBusqueda('dni')">
+                <i class="bi bi-person-vcard me-1"></i>Por DNI
+              </button>
+              <button 
+                type="button"
+                class="search-tab-btn" 
+                [class.active]="tipoBusqueda === 'nombre'"
+                (click)="setTipoBusqueda('nombre')">
+                <i class="bi bi-person me-1"></i>Por Nombre
+              </button>
+            </div>
+
+            <!-- Campo de Búsqueda y Botón -->
+            <div class="input-group search-input-group">
+              <span class="input-group-text search-icon-addon">
+                @if (tipoBusqueda === 'placa') {
+                  <i class="bi bi-car-front-fill text-warning"></i>
+                } @else if (tipoBusqueda === 'dni') {
+                  <i class="bi bi-credit-card-2-front-fill text-warning"></i>
+                } @else {
+                  <i class="bi bi-person-fill text-warning"></i>
+                }
+              </span>
+
+              <input 
+                type="text" 
+                class="form-control form-control-lg search-input"
+                [placeholder]="tipoBusqueda === 'placa' ? 'Ej: ABC-123 o X1Y-456' : (tipoBusqueda === 'dni' ? 'Ej: 45678901' : 'Ej: Juan Carlos Pérez')"
+                [(ngModel)]="busqueda" 
+                (keyup.enter)="consultar()">
+
+              <button 
+                type="button" 
+                class="btn btn-warning search-submit-btn px-4" 
+                (click)="consultar()" 
+                [disabled]="buscando">
+                @if (buscando) {
+                  <span class="spinner-border spinner-border-sm me-2"></span>
+                  <span>Buscando...</span>
+                } @else {
+                  <i class="bi bi-search me-1"></i>
+                  <span>Consultar</span>
+                }
+              </button>
+            </div>
+
+            <!-- Pista o nota de ayuda -->
+            <div class="search-tip mt-3">
+              <i class="bi bi-info-circle text-info me-1"></i>
+              <span>¿Tienes dudas? Escríbenos directamente por </span>
+              <a href="javascript:void(0)" (click)="contactarWhatsAppGeneral('Consulta de orden')" class="whatsapp-link-inline">
+                <i class="bi bi-whatsapp"></i> WhatsApp
+              </a>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================================
+       SECCIÓN DE RESULTADOS DE CONSULTA
+       ========================================== -->
+  <main class="container flex-grow-1 py-5">
+    
+    <!-- Mensaje de Error si no se encuentra -->
+    @if (error) {
+      <div class="row justify-content-center mb-4">
+        <div class="col-lg-8">
+          <div class="alert custom-alert-danger shadow-sm d-flex align-items-center justify-content-between p-3">
+            <div class="d-flex align-items-center">
+              <i class="bi bi-exclamation-triangle-fill fs-4 text-warning me-3"></i>
+              <div>
+                <strong class="d-block text-white">No se encontraron resultados</strong>
+                <span class="text-secondary-custom small">{{ error }}</span>
+              </div>
+            </div>
+            <button class="btn btn-sm btn-outline-success ms-3" (click)="contactarWhatsAppGeneral('No encontré mi orden')">
+              <i class="bi bi-whatsapp me-1"></i>Consultar por WhatsApp
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Tarjetas de Órdenes Encontradas -->
+    @if (resultados && resultados.length > 0) {
+      <div class="row justify-content-center mb-5">
+        <div class="col-lg-9">
+          
+          <div class="results-header mb-3 d-flex justify-content-between align-items-center">
+            <h3 class="fs-5 fw-bold text-white mb-0">
+              <i class="bi bi-speedometer2 text-warning me-2"></i>Órdenes Registradas ({{ resultados.length }})
+            </h3>
+            <span class="badge bg-dark-subtle text-secondary-custom border border-secondary-subtle px-3 py-2">
+              Actualizado hoy
+            </span>
+          </div>
+
+          @for (r of resultados; track r.orden) {
+            <article class="card vehicle-order-card shadow-lg mb-4">
+              
+              <!-- Cabecera de la tarjeta -->
+              <div class="card-header border-0 bg-transparent p-4 pb-2">
+                <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+                  
+                  <div class="d-flex align-items-center gap-3">
+                    <!-- Placa Estilo Perú -->
+                    <div class="peru-license-plate" title="Placa de Rodaje">
+                      <span class="peru-flag"></span>
+                      <span>{{ r.placa || 'EN TRÁMITE' }}</span>
+                    </div>
+
+                    <div>
+                      <h4 class="vehicle-title mb-0">{{ r.vehiculo }}</h4>
+                      <div class="text-secondary-custom small">
+                        <i class="bi bi-person me-1"></i>Titular: <strong>{{ r.cliente }}</strong>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Badge de Estado -->
+                  <div class="status-badge-wrap">
+                    <span class="status-badge {{ getEstado(r.estado).badgeClass }}">
+                      <i class="bi {{ getEstado(r.estado).icon }} me-1"></i>
+                      {{ getEstado(r.estado).label }}
+                    </span>
+                  </div>
+
+                </div>
+              </div>
+
+              <!-- Cuerpo de la tarjeta -->
+              <div class="card-body p-4 pt-2">
+                
+                <!-- Barra de Progreso Visual por Etapas -->
+                <div class="timeline-stepper my-3">
+                  <div class="progress progress-track">
+                    <div 
+                      class="progress-bar progress-bar-glow" 
+                      role="progressbar" 
+                      [style.width.%]="getProgressPercentage(r.estado)">
+                    </div>
+                  </div>
+
+                  <!-- Nodos del Stepper -->
+                  <div class="stepper-nodes">
+                    @for (s of stepsList; track s.num) {
+                      <div 
+                        class="stepper-node" 
+                        [class.completed]="getStepStatus(r.estado, s.num) === 'completed'"
+                        [class.current]="getStepStatus(r.estado, s.num) === 'current'"
+                        [class.pending]="getStepStatus(r.estado, s.num) === 'pending'">
+                        <div class="node-circle">
+                          @if (getStepStatus(r.estado, s.num) === 'completed') {
+                            <i class="bi bi-check-lg"></i>
+                          } @else {
+                            <span>{{ s.num }}</span>
+                          }
+                        </div>
+                        <span class="node-label">{{ s.label }}</span>
+                      </div>
+                    }
+                  </div>
+                </div>
+
+                <!-- Resumen de Datos Clave -->
+                <div class="row g-3 order-info-grid mb-3">
+                  <div class="col-6 col-md-3">
+                    <div class="info-metric-card">
+                      <span class="metric-label"><i class="bi bi-hash me-1"></i>N° Orden</span>
+                      <span class="metric-value text-warning">#{{ r.orden }}</span>
+                    </div>
+                  </div>
+
+                  <div class="col-6 col-md-3">
+                    <div class="info-metric-card">
+                      <span class="metric-label"><i class="bi bi-calendar-event me-1"></i>Ingreso</span>
+                      <span class="metric-value">{{ r.fecha_ingreso | date:'dd/MM/yyyy' }}</span>
+                    </div>
+                  </div>
+
+                  <div class="col-6 col-md-3">
+                    <div class="info-metric-card">
+                      <span class="metric-label"><i class="bi bi-calendar-check me-1"></i>Entrega Estimada</span>
+                      <span class="metric-value text-info">
+                        {{ r.fecha_estimada ? (r.fecha_estimada | date:'dd/MM/yyyy') : 'Por definir' }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="col-6 col-md-3">
+                    <div class="info-metric-card">
+                      <span class="metric-label"><i class="bi bi-activity me-1"></i>Fase</span>
+                      <span class="metric-value text-capitalize">{{ getEstado(r.estado).label }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Observaciones / Comentario del mecánico -->
+                <div class="mechanic-notes-box p-3 mb-3">
+                  <div class="d-flex align-items-center gap-2 mb-1">
+                    <i class="bi bi-chat-left-dots-fill text-warning"></i>
+                    <strong class="text-white small">Último reporte técnico:</strong>
+                  </div>
+                  <p class="notes-text mb-0">
+                    {{ r.ultimo_comentario || 'El vehículo se encuentra bajo supervisión y protocolo técnico en las instalaciones de Taller RUJIM.' }}
+                  </p>
+                </div>
+
+                <!-- Botones de Acción Directa -->
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 pt-2 border-top border-secondary-subtle">
+                  <div class="small text-secondary-custom">
+                    <i class="bi bi-shield-check text-success me-1"></i>Garantía oficial RUJIM en mano de obra
+                  </div>
+                  
+                  <button 
+                    type="button" 
+                    class="btn btn-whatsapp-action" 
+                    (click)="consultarOrdenPorWhatsApp(r)">
+                    <i class="bi bi-whatsapp"></i>
+                    <span>Consultar por este vehículo en WhatsApp</span>
+                  </button>
+                </div>
+
+              </div>
+            </article>
+          }
+
+        </div>
+      </div>
+    }
+
+    <!-- Estado Vacío cuando se buscó y no hay nada -->
+    @if (buscado && (!resultados || resultados.length === 0) && !error) {
+      <div class="text-center py-5 empty-search-state">
+        <div class="empty-icon-circle mx-auto mb-3">
+          <i class="bi bi-car-front text-secondary"></i>
+        </div>
+        <h4 class="text-white">No encontramos vehículos con esos datos</h4>
+        <p class="text-secondary-custom max-w-500 mx-auto">
+          Verifica que la placa o DNI estén escritos correctamente. Si recién ingresaste tu auto, es posible que el registro se esté completando en breve.
+        </p>
+        <button class="btn btn-outline-warning mt-2" (click)="contactarWhatsAppGeneral('Ayuda con búsqueda de orden')">
+          <i class="bi bi-whatsapp me-2"></i>Contactar a Asesor por WhatsApp
+        </button>
+      </div>
+    }
+
+    <!-- ==========================================
+         SECCIÓN DE SERVICIOS DESTACADOS
+         ========================================== -->
+    <section class="services-section mt-5 pt-3">
+      <div class="text-center mb-5">
+        <span class="badge hero-pill-badge mb-2">Servicios Técnicos Especializados</span>
+        <h2 class="display-6 fw-bold text-white">Excelencia en Cada Reparación</h2>
+        <p class="text-secondary-custom max-w-600 mx-auto">
+          Contamos con infraestructura moderna, herramientas de diagnóstico computarizado y repuestos de alta durabilidad en Huamanga, Ayacucho.
+        </p>
+      </div>
+
+      <div class="row g-4">
+        @for (srv of serviciosDestacados; track srv.titulo) {
+          <div class="col-md-6 col-lg-4">
+            <div class="service-feature-card h-100 p-4">
+              <div class="d-flex justify-content-between align-items-start mb-3">
+                <div class="service-icon-wrap">
+                  <i class="bi {{ srv.icono }}"></i>
+                </div>
+                <span class="service-tag">{{ srv.tag }}</span>
+              </div>
+              <h4 class="service-card-title text-white mb-2">{{ srv.titulo }}</h4>
+              <p class="service-card-desc text-secondary-custom mb-3">{{ srv.desc }}</p>
+              <button 
+                type="button" 
+                class="btn-service-action" 
+                (click)="contactarWhatsAppGeneral('Cotizar servicio de ' + srv.titulo)">
+                <span>Cotizar por WhatsApp</span>
+                <i class="bi bi-arrow-right ms-1"></i>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+
+    <!-- ==========================================
+         PASOS: CÓMO FUNCIONA EL SEGUIMIENTO
+         ========================================== -->
+    <section class="workflow-section my-5 py-5">
+      <div class="card workflow-card border-0 p-4 p-md-5">
+        <div class="row align-items-center gy-4">
+          
+          <div class="col-lg-5">
+            <span class="text-warning text-uppercase fw-semibold small letter-spacing-1">Transparencia Total</span>
+            <h2 class="display-6 fw-bold text-white mt-1 mb-3">¿Cómo funciona la consulta en línea?</h2>
+            <p class="text-secondary-custom mb-4">
+              Nuestro taller actualiza cada orden de trabajo inmediatamente después de cada fase: desde la recepción y escaneo OBD-II hasta el control final de calidad.
+            </p>
+            <button class="btn btn-warning fw-semibold px-4 py-2" (click)="contactarWhatsAppGeneral('Deseo información de servicios')">
+              <i class="bi bi-headset me-2"></i>Atención Inmediata
+            </button>
+          </div>
+
+          <div class="col-lg-7">
+            <div class="steps-flow-container">
+              
+              <div class="step-flow-item">
+                <div class="step-flow-badge">1</div>
+                <div>
+                  <h5 class="text-white fw-bold mb-1">Ingresa tus Datos</h5>
+                  <p class="text-secondary-custom small mb-0">Escribe el número de placa o tu DNI en el buscador de la página.</p>
+                </div>
+              </div>
+
+              <div class="step-flow-item">
+                <div class="step-flow-badge">2</div>
+                <div>
+                  <h5 class="text-white fw-bold mb-1">Monitorea los Avances</h5>
+                  <p class="text-secondary-custom small mb-0">Visualiza diagnósticos, repuestos requeridos y la fecha estimada de retiro.</p>
+                </div>
+              </div>
+
+              <div class="step-flow-item">
+                <div class="step-flow-badge">3</div>
+                <div>
+                  <h5 class="text-white fw-bold mb-1">Soporte por WhatsApp</h5>
+                  <p class="text-secondary-custom small mb-0">Si tienes preguntas o deseas autorizar un repuesto, chatea con nosotros al instante.</p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         PREGUNTAS FRECUENTES (FAQ)
+         ========================================== -->
+    <section class="faq-section my-5">
+      <div class="text-center mb-4">
+        <h3 class="fw-bold text-white">Preguntas Frecuentes</h3>
+        <p class="text-secondary-custom small">Respuestas rápidas sobre atención y consulta en el taller</p>
+      </div>
+
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div class="faq-accordion-group">
+            @for (item of faqList; track item.pregunta) {
+              <div class="faq-item mb-3" [class.open]="item.abierta" (click)="toggleFaq(item)">
+                <div class="faq-question d-flex justify-content-between align-items-center">
+                  <span class="fw-semibold text-white">{{ item.pregunta }}</span>
+                  <i class="bi {{ item.abierta ? 'bi-chevron-up' : 'bi-chevron-down' }} text-warning"></i>
+                </div>
+                @if (item.abierta) {
+                  <div class="faq-answer mt-2 pt-2 border-top border-secondary-subtle">
+                    <p class="text-secondary-custom small mb-0">{{ item.respuesta }}</p>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==========================================
+       FOOTER PREMIUM
+       ========================================== -->
+  <footer class="site-footer">
+    <div class="container py-5">
+      <div class="row gy-4">
+        
+        <div class="col-md-5">
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <div class="brand-icon-box">
+              <i class="bi bi-wrench-adjustable-circle-fill text-warning"></i>
+            </div>
+            <div>
+              <span class="brand-name fs-5">RUJIM</span>
+              <span class="brand-sub">SERVICIO AUTOMOTRIZ</span>
+            </div>
+          </div>
+          <p class="text-secondary-custom small mb-3">
+            Taller mecánico multimarca especializado en mantenimiento preventivo, afinamiento electrónico, rectificación y diagnóstico de fallas complejas.
+          </p>
+          <div class="d-flex align-items-center gap-2">
+            <a [href]="'https://wa.me/' + whatsappNumber" target="_blank" class="footer-social-btn" title="WhatsApp RUJIM">
+              <i class="bi bi-whatsapp"></i>
+            </a>
+            <a href="javascript:void(0)" class="footer-social-btn" title="Ubicación en Google Maps">
+              <i class="bi bi-geo-alt-fill"></i>
+            </a>
+            <a routerLink="/login" class="footer-social-btn" title="Acceso al Sistema">
+              <i class="bi bi-shield-lock-fill"></i>
+            </a>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <h6 class="text-white fw-bold mb-3">Contacto Directo</h6>
+          <ul class="list-unstyled text-secondary-custom small mb-0 footer-contact-list">
+            <li><i class="bi bi-geo-alt text-warning me-2"></i>Huamanga, Ayacucho</li>
+            <li><i class="bi bi-telephone text-warning me-2"></i>{{ whatsappDisplay }}</li>
+            <li><i class="bi bi-whatsapp text-success me-2"></i>WhatsApp 24/7 para consultas</li>
+            <li><i class="bi bi-clock text-warning me-2"></i>Lun - Sáb: 8:00 AM - 6:00 PM</li>
+          </ul>
+        </div>
+
+        <div class="col-md-4">
+          <h6 class="text-white fw-bold mb-3">Atención al Cliente</h6>
+          <p class="text-secondary-custom small mb-3">
+            ¿Requieres asistencia inmediata para tu vehículo o una cotización formal?
+          </p>
+          <button class="btn btn-whatsapp-action w-100 justify-content-center" (click)="contactarWhatsAppGeneral()">
+            <i class="bi bi-whatsapp"></i>
+            <span>Hablar con un Asesor Técnico</span>
+          </button>
+        </div>
+
+      </div>
+
+      <div class="footer-bottom mt-4 pt-4 border-top border-secondary-subtle d-flex flex-wrap justify-content-between align-items-center small text-secondary-custom">
+        <div>
+          © {{ anioActual }} <strong>Taller Automotriz RUJIM</strong>. Todos los derechos reservados.
+        </div>
+        <div>
+          <a routerLink="/login" class="text-secondary-custom text-decoration-none hover-white">
+            <i class="bi bi-box-arrow-in-right me-1"></i>Acceso para Mecánicos y Administradores
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==========================================
+       COMPONENTE FLOTANTE DE ATENCIÓN VÍA WHATSAPP
+       ========================================== -->
+  <app-whatsapp-widget 
+    [phoneNumber]="whatsappNumber" 
+    [displayPhone]="whatsappDisplay" 
+    [workshopName]="tallerNombre">
+  </app-whatsapp-widget>
+
 </div>

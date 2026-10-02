@@ -12,4 +12,7 @@ export class SeguimientoService {
   consultarPorDni(dni: string) {
     return this.http.get<any[]>(`${this.url}/dni/${dni}`);
   }
+  consultarPorPlaca(placa: string) {
+    return this.http.get<any[]>(`${this.url}/placa/${placa}`);
+  }
 }

@@ -1,0 +1,125 @@
+<!-- Contenedor flotante del widget de WhatsApp -->
+<div class="whatsapp-widget-container">
+
+  <!-- Ventana emergente de chat (Chat popup) -->
+  <div class="whatsapp-chat-box shadow-lg" [class.active]="isOpen">
+    
+    <!-- Encabezado del chat estilo WhatsApp -->
+    <div class="whatsapp-header">
+      <div class="header-avatar-wrap">
+        <div class="header-avatar">
+          <i class="bi bi-wrench-adjustable-circle-fill text-warning"></i>
+        </div>
+        <span class="online-indicator" title="En línea"></span>
+      </div>
+
+      <div class="header-info">
+        <div class="header-title">
+          {{ workshopName }}
+          <i class="bi bi-patch-check-fill verified-badge" title="Taller Verificado"></i>
+        </div>
+        <div class="header-subtitle">
+          <span class="status-pulse-dot"></span>
+          Atención al Cliente · En línea
+        </div>
+      </div>
+
+      <button type="button" class="btn-close-chat" (click)="closeChat()" aria-label="Cerrar chat">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <!-- Cuerpo del chat con fondo texturizado -->
+    <div class="whatsapp-body">
+      
+      <!-- Mensaje de bienvenida del taller -->
+      <div class="chat-message-bubble incoming">
+        <div class="sender-name">Soporte Técnico RUJIM</div>
+        <div class="message-text">
+          ¡Hola! 👋 Bienvenido a nuestro canal de <strong>Atención al Cliente</strong>.
+          <br><br>
+          ¿Deseas consultar el estado de tu vehículo, agendar una cita o necesitas una cotización rápida? Elige una opción o escríbenos directamente.
+        </div>
+        <div class="message-meta">
+          <span class="message-time">{{ horaActual }}</span>
+        </div>
+      </div>
+
+      <!-- Opciones Rápidas -->
+      <div class="quick-options-label">
+        <i class="bi bi-lightning-charge-fill me-1 text-warning"></i> Opciones rápidas de atención:
+      </div>
+
+      <div class="quick-options-list">
+        @for (opt of quickOptions; track opt.label) {
+          <button type="button" class="quick-option-btn" (click)="enviarMensajeRapido(opt.text)">
+            <i class="bi {{ opt.icon }} me-2 text-success"></i>
+            <span>{{ opt.label }}</span>
+            <i class="bi bi-chevron-right ms-auto arrow-icon"></i>
+          </button>
+        }
+      </div>
+
+    </div>
+
+    <!-- Pie del chat con input para redactar y enviar -->
+    <div class="whatsapp-footer">
+      <div class="input-container">
+        <input 
+          type="text" 
+          class="chat-input" 
+          placeholder="Escribe tu consulta aquí..." 
+          [(ngModel)]="userMessage" 
+          (keyup.enter)="enviarMensajePersonalizado()">
+        <button 
+          type="button" 
+          class="btn-send-whatsapp" 
+          (click)="enviarMensajePersonalizado()" 
+          title="Enviar por WhatsApp">
+          <i class="bi bi-send-fill"></i>
+        </button>
+      </div>
+      <div class="footer-note">
+        <i class="bi bi-shield-check text-success me-1"></i> Respuesta directa al WhatsApp: <strong>{{ displayPhone }}</strong>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Botón flotante disparador de WhatsApp -->
+  <div class="whatsapp-trigger-wrap">
+    
+    <!-- Tooltip o globo de llamada a la acción inicial -->
+    @if (!isOpen) {
+      <div class="whatsapp-callout-bubble" (click)="toggleChat()">
+        <span class="badge-online"></span>
+        <div class="callout-text">
+          <strong>¿Atención rápida?</strong>
+          <span>Chatea con nosotros</span>
+        </div>
+        <button class="callout-close" (click)="$event.stopPropagation(); isOpen = false">
+          <i class="bi bi-x"></i>
+        </button>
+      </div>
+    }
+
+    <!-- Botón principal de WhatsApp -->
+    <button 
+      type="button" 
+      class="whatsapp-fab-button" 
+      [class.open]="isOpen"
+      (click)="toggleChat()" 
+      aria-label="Atención al cliente vía WhatsApp">
+      
+      <span class="fab-pulse-ring"></span>
+      <span class="fab-pulse-ring delay"></span>
+
+      @if (!isOpen) {
+        <i class="bi bi-whatsapp fab-icon"></i>
+      } @else {
+        <i class="bi bi-x-lg fab-icon-close"></i>
+      }
+    </button>
+  </div>
+
+</div>

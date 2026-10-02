@@ -1,163 +1,243 @@
-<div>
-  <!-- Encabezado -->
-  <div class="mb-4">
-    <h4 class="fw-bold mb-0"><i class="bi bi-speedometer2 text-warning me-2"></i>Panel de control</h4>
-    <small class="text-muted">Resumen general del taller</small>
+<div class="home-container">
+  <!-- Encabezado con bienvenida y acciones rápidas -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+      <h4 class="fw-bold mb-1">
+        <i class="bi bi-speedometer2 text-warning me-2"></i>Panel de Control del Taller
+      </h4>
+      <p class="text-muted small mb-0">Gestión operativa y financiera en tiempo real</p>
+    </div>
+
+    <!-- Barra de búsqueda rápida de placa -->
+    <div class="d-flex gap-2">
+      <div class="input-group input-group-sm" style="width: 260px;">
+        <span class="input-group-text bg-white border-end-0"><i class="bi bi-car-front text-warning"></i></span>
+        <input type="text" class="form-control border-start-0 text-uppercase fw-bold"
+               placeholder="Buscar placa..."
+               [(ngModel)]="placaBusqueda"
+               (keyup.enter)="consultarPlaca()">
+        <button class="btn btn-warning btn-sm fw-semibold" (click)="consultarPlaca()">
+          <i class="bi bi-search"></i>
+        </button>
+      </div>
+    </div>
   </div>
 
-  <!-- Spinner -->
+  <!-- Botones de Acción Rápida (Hub Operativo para Admin) -->
+  <div class="quick-actions-bar mb-4">
+    <a routerLink="/dashboard/ordenes" class="quick-action-btn action-orden">
+      <div class="action-icon"><i class="bi bi-clipboard2-plus-fill"></i></div>
+      <div class="action-text">
+        <span class="action-title">Nueva Orden</span>
+        <span class="action-desc">Recepción de vehículo</span>
+      </div>
+    </a>
+    <a routerLink="/dashboard/ventas" class="quick-action-btn action-venta">
+      <div class="action-icon"><i class="bi bi-cart-plus-fill"></i></div>
+      <div class="action-text">
+        <span class="action-title">Venta Mostrador</span>
+        <span class="action-desc">Vender refacciones</span>
+      </div>
+    </a>
+    <a routerLink="/dashboard/clientes" class="quick-action-btn action-cliente">
+      <div class="action-icon"><i class="bi bi-person-plus-fill"></i></div>
+      <div class="action-text">
+        <span class="action-title">Clientes</span>
+        <span class="action-desc">Consulta DNI / RUC</span>
+      </div>
+    </a>
+    <a routerLink="/dashboard/facturas" class="quick-action-btn action-factura">
+      <div class="action-icon"><i class="bi bi-receipt-cutoff"></i></div>
+      <div class="action-text">
+        <span class="action-title">Facturación</span>
+        <span class="action-desc">Boletas y cobros</span>
+      </div>
+    </a>
+  </div>
+
+  <!-- Spinner de carga -->
   <div *ngIf="cargando" class="text-center py-5">
-    <div class="spinner-border text-warning"></div>
-    <p class="mt-2 text-muted">Cargando estadísticas...</p>
+    <div class="spinner-border text-warning" role="status"></div>
+    <p class="mt-2 text-muted small">Cargando métricas del taller...</p>
   </div>
 
   <div *ngIf="!cargando && stats">
-
-    <!-- Tarjetas resumen -->
+    <!-- Tarjetas de Métricas Principales -->
     <div class="row g-3 mb-4">
-
       <div class="col-6 col-md-3">
         <div class="stat-card">
-          <div class="stat-icon bg-warning-subtle">
-            <i class="bi bi-clipboard2-check-fill text-warning"></i>
+          <div class="stat-icon bg-warning-subtle text-warning">
+            <i class="bi bi-clipboard2-check-fill"></i>
           </div>
           <div class="stat-info">
             <div class="stat-value">{{ stats.ordenes.total }}</div>
-            <div class="stat-label">Órdenes totales</div>
+            <div class="stat-label">Órdenes Totales</div>
           </div>
         </div>
       </div>
 
       <div class="col-6 col-md-3">
         <div class="stat-card">
-          <div class="stat-icon bg-primary-subtle">
-            <i class="bi bi-tools text-primary"></i>
+          <div class="stat-icon bg-primary-subtle text-primary">
+            <i class="bi bi-tools"></i>
           </div>
           <div class="stat-info">
-            <div class="stat-value">{{ stats.ordenes.en_reparacion }}</div>
-            <div class="stat-label">En reparación</div>
+            <div class="stat-value">{{ stats.ordenes.en_reparacion || 0 }}</div>
+            <div class="stat-label">En Reparación Activa</div>
           </div>
         </div>
       </div>
 
       <div class="col-6 col-md-3">
-        <div class="stat-card">
-          <div class="stat-icon bg-success-subtle">
-            <i class="bi bi-check-circle-fill text-success"></i>
+        <div class="stat-card stat-card-success">
+          <div class="stat-icon bg-success-subtle text-success">
+            <i class="bi bi-check-circle-fill"></i>
           </div>
           <div class="stat-info">
-            <div class="stat-value">{{ stats.ordenes.listo }}</div>
-            <div class="stat-label">Listos para retirar</div>
+            <div class="stat-value text-success">{{ ordenesListas.length }}</div>
+            <div class="stat-label">Listos para Retiro</div>
           </div>
         </div>
       </div>
 
       <div class="col-6 col-md-3">
-        <div class="stat-card" [class.stat-card-danger]="stats.stockBajo > 0">
-          <div class="stat-icon" [class.bg-danger-subtle]="stats.stockBajo > 0"
-               [class.bg-secondary-subtle]="stats.stockBajo === 0">
-            <i class="bi bi-box-seam-fill"
-               [class.text-danger]="stats.stockBajo > 0"
-               [class.text-secondary]="stats.stockBajo === 0"></i>
+        <div class="stat-card stat-card-ingresos">
+          <div class="stat-icon bg-dark-subtle text-dark">
+            <i class="bi bi-cash-stack"></i>
           </div>
           <div class="stat-info">
-            <div class="stat-value" [class.text-danger]="stats.stockBajo > 0">
-              {{ stats.stockBajo }}
-            </div>
-            <div class="stat-label">Repuestos stock bajo</div>
+            <div class="stat-value text-dark">S/ {{ stats.ingresosMes | number:'1.2-2' }}</div>
+            <div class="stat-label">Ingresos del Mes</div>
           </div>
         </div>
       </div>
-
     </div>
 
-    <!-- Segunda fila -->
-    <div class="row g-3 mb-4">
-
-      <div class="col-6 col-md-3">
-        <div class="stat-card">
-          <div class="stat-icon bg-info-subtle">
-            <i class="bi bi-people-fill text-info"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">{{ stats.clientes }}</div>
-            <div class="stat-label">Clientes registrados</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-6 col-md-3">
-        <div class="stat-card">
-          <div class="stat-icon bg-secondary-subtle">
-            <i class="bi bi-car-front-fill text-secondary"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">{{ stats.vehiculos }}</div>
-            <div class="stat-label">Vehículos registrados</div>
+    <!-- SECCIÓN CRÍTICA 1: VEHÍCULOS LISTOS PARA RETIRAR (Notificación WhatsApp con 1 clic) -->
+    <div *ngIf="ordenesListas.length > 0" class="card border-0 shadow-sm mb-4 border-start border-4 border-success">
+      <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge bg-success-subtle text-success p-2 rounded-circle">
+            <i class="bi bi-bell-fill"></i>
+          </span>
+          <div>
+            <h6 class="fw-bold mb-0 text-success">Vehículos Listos para Retiro ({{ ordenesListas.length }})</h6>
+            <small class="text-muted">Notifica al cliente por WhatsApp para que recoja su unidad</small>
           </div>
         </div>
-      </div>
-
-      <div class="col-6 col-md-3">
-        <div class="stat-card">
-          <div class="stat-icon bg-warning-subtle">
-            <i class="bi bi-currency-dollar text-warning"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">S/ {{ stats.ingresosMes | number:'1.0-0' }}</div>
-            <div class="stat-label">Ingresos este mes</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-6 col-md-3">
-        <div class="stat-card">
-          <div class="stat-icon bg-dark-subtle">
-            <i class="bi bi-check2-all text-dark"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">{{ stats.ordenes.entregado }}</div>
-            <div class="stat-label">Entregados</div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Últimas órdenes -->
-    <div class="card border-0 shadow-sm">
-      <div class="card-header bg-white border-0 pt-3 pb-0 d-flex justify-content-between align-items-center">
-        <h6 class="fw-bold mb-0">
-          <i class="bi bi-clock-history me-2 text-warning"></i>Últimas órdenes
-        </h6>
-        <a routerLink="/dashboard/ordenes" class="btn btn-sm btn-outline-warning">
-          Ver todas <i class="bi bi-arrow-right ms-1"></i>
-        </a>
+        <a routerLink="/dashboard/ordenes" class="btn btn-sm btn-outline-secondary">Ver todas las órdenes</a>
       </div>
       <div class="table-responsive">
-        <table class="table table-hover mb-0">
+        <table class="table table-hover align-middle mb-0">
           <thead class="table-light">
             <tr>
-              <th>Código</th>
+              <th>Orden</th>
+              <th>Vehículo / Placa</th>
               <th>Cliente</th>
-              <th>Vehículo</th>
-              <th>Estado</th>
-              <th>Ingreso</th>
+              <th>Total a Liquidar</th>
+              <th class="text-end">Aviso al Cliente</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let o of stats.ultimasOrdenes">
-              <td><strong>{{ o.codigo }}</strong></td>
-              <td>{{ o.cliente }}</td>
-              <td>{{ o.vehiculo }} <span class="badge bg-light text-dark border">{{ o.placa }}</span></td>
-              <td><span [class]="getBadge(o.estado).clase">{{ getBadge(o.estado).label }}</span></td>
-              <td class="small text-muted">{{ o.fecha_ingreso | date:'dd/MM/yyyy' }}</td>
-            </tr>
-            <tr *ngIf="stats.ultimasOrdenes.length === 0">
-              <td colspan="5" class="text-center text-muted py-3">No hay órdenes aún</td>
+            <tr *ngFor="let o of ordenesListas">
+              <td><strong>#{{ o.codigo }}</strong></td>
+              <td>
+                <span class="badge bg-dark me-1">{{ o.placa }}</span>
+                <span class="fw-semibold">{{ o.vehiculo }}</span>
+              </td>
+              <td>
+                <div class="fw-semibold">{{ o.cliente }}</div>
+                <small class="text-muted"><i class="bi bi-telephone me-1"></i>{{ o.telefono || 'Sin teléfono' }}</small>
+              </td>
+              <td>
+                <span class="fw-bold text-dark">S/ {{ o.total_factura | number:'1.2-2' }}</span>
+                <span class="badge ms-1" [class.bg-success]="o.estado_pago==='pagado'" [class.bg-warning]="o.estado_pago!=='pagado'">
+                  {{ o.estado_pago || 'Pendiente' }}
+                </span>
+              </td>
+              <td class="text-end">
+                <button class="btn btn-sm btn-success fw-semibold" (click)="notificarWhatsApp(o)">
+                  <i class="bi bi-whatsapp me-1"></i>Avisar por WhatsApp
+                </button>
+              </td>
             </tr>
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- SECCIÓN DOBLE: ÚLTIMAS ÓRDENES & ALERTAS DE STOCK BAJO -->
+    <div class="row g-4 mb-4">
+      <!-- Últimas Órdenes -->
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-white border-0 pt-3 pb-2 d-flex justify-content-between align-items-center">
+            <h6 class="fw-bold mb-0">
+              <i class="bi bi-clock-history me-2 text-warning"></i>Últimas Órdenes Registradas
+            </h6>
+            <a routerLink="/dashboard/ordenes" class="btn btn-sm btn-outline-warning">
+              Ver todas <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Código</th>
+                  <th>Cliente</th>
+                  <th>Vehículo</th>
+                  <th>Estado</th>
+                  <th>Fecha</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let o of stats.ultimasOrdenes">
+                  <td><strong>#{{ o.codigo }}</strong></td>
+                  <td>{{ o.cliente }}</td>
+                  <td>
+                    <span class="badge bg-light text-dark border me-1">{{ o.placa }}</span>
+                    <span class="small">{{ o.vehiculo }}</span>
+                  </td>
+                  <td><span [class]="getBadge(o.estado).clase">{{ getBadge(o.estado).label }}</span></td>
+                  <td class="small text-muted">{{ o.fecha_ingreso | date:'dd/MM/yyyy' }}</td>
+                </tr>
+                <tr *ngIf="!stats.ultimasOrdenes || stats.ultimasOrdenes.length === 0">
+                  <td colspan="5" class="text-center text-muted py-3">No hay órdenes registradas aún</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Alertas de Stock Bajo -->
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-white border-0 pt-3 pb-2 d-flex justify-content-between align-items-center">
+            <h6 class="fw-bold mb-0 text-danger">
+              <i class="bi bi-exclamation-triangle-fill me-2 text-danger"></i>Stock Bajo ({{ stats.stockBajo }})
+            </h6>
+            <a routerLink="/dashboard/repuestos" class="btn btn-sm btn-outline-danger">Inventario</a>
+          </div>
+          <div class="card-body p-0">
+            <ul class="list-group list-group-flush" *ngIf="repuestosCriticos.length > 0">
+              <li *ngFor="let rep of repuestosCriticos" class="list-group-item d-flex justify-content-between align-items-center py-2">
+                <div>
+                  <div class="fw-semibold small text-truncate" style="max-width: 180px;">{{ rep.nombre }}</div>
+                  <small class="text-muted">Cód: {{ rep.codigo || '—' }}</small>
+                </div>
+                <div class="text-end">
+                  <span class="badge bg-danger">Quedan {{ rep.stock }}</span>
+                  <div class="small text-muted" style="font-size:0.7rem">Mín: {{ rep.stock_minimo }}</div>
+                </div>
+              </li>
+            </ul>
+            <div *ngIf="repuestosCriticos.length === 0" class="text-center py-4 text-muted small">
+              <i class="bi bi-shield-check text-success display-6 d-block mb-2"></i>
+              Todos los repuestos tienen stock suficiente
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 

@@ -1,7 +1,119 @@
-.mecanico-wrapper { max-width: 900px; margin: 0 auto; }
+.mecanico-wrapper { max-width: 1080px; margin: 0 auto; }
 
-/* Pantalla inicial */
-.pantalla-inicio { padding: 2rem 0; }
+/* Navegación de pestañas para mecánico */
+.nav-mecanico-tabs {
+  display: flex;
+  gap: 8px;
+  background: #ffffff;
+  padding: 6px;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  margin-bottom: 1.5rem;
+}
+
+.tab-mecanico-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: #475569;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tab-mecanico-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.tab-mecanico-btn.activo {
+  background: #f59e0b;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.3);
+}
+
+/* Tarjetas de Trabajos en Taller */
+.trabajo-taller-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  padding: 1.25rem;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.trabajo-taller-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.placa-badge-taller {
+  background: #1e293b;
+  color: #ffffff;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-family: monospace;
+  font-weight: 700;
+  letter-spacing: 1px;
+  font-size: 1rem;
+  border: 1px solid #334155;
+}
+
+/* Píldoras de estado interactivo */
+.status-pills-bar {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 10px 0;
+  background: #f8fafc;
+  padding: 6px;
+  border-radius: 10px;
+}
+
+.status-pill-btn {
+  flex: 1;
+  min-width: 90px;
+  padding: 5px 8px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.status-pill-btn:hover {
+  border-color: #94a3b8;
+  background: #f1f5f9;
+}
+
+.status-pill-btn.current {
+  background: #0f172a;
+  color: #ffffff;
+  border-color: #0f172a;
+}
+
+.status-pill-btn.listo-current {
+  background: #10b981;
+  color: #ffffff;
+  border-color: #10b981;
+}
+
+/* Pantalla inicial del wizard */
+.pantalla-inicio { padding: 1.5rem 0; }
 
 .opcion-card {
   background: #fff;
@@ -80,13 +192,6 @@
   border-radius: 14px;
   padding: 1.5rem;
   box-shadow: 0 2px 12px rgba(0,0,0,0.07);
-}
-
-/* Secciones */
-.detalle-seccion {
-  background: #f8f9fa;
-  border-radius: 10px;
-  padding: 0.75rem;
 }
 
 /* Sugerencias */

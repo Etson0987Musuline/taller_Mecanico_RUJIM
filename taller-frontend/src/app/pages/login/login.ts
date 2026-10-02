@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -17,7 +17,11 @@ export class LoginComponent {
   error    = '';
   cargando = false;
 
-  constructor(private auth: AuthService, private router: Router) {}
+  constructor(
+    private auth: AuthService,
+    private router: Router,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   login() {
     if (!this.email || !this.password) {
@@ -29,7 +33,9 @@ export class LoginComponent {
 
     this.auth.login(this.email, this.password).subscribe({
       next: (res) => {
+        this.cargando = false;
         this.auth.guardarSesion(res.token, res.usuario);
+        this.cdr.detectChanges();
         // Redirigir según rol
         if (res.usuario.rol === 'admin') {
           this.router.navigate(['/dashboard/home']);
@@ -40,6 +46,7 @@ export class LoginComponent {
       error: () => {
         this.error    = 'Credenciales incorrectas';
         this.cargando = false;
+        this.cdr.detectChanges();
       }
     });
   }

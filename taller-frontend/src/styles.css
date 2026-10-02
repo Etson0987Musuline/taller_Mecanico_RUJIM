@@ -1,1 +1,215 @@
-/* You can add global styles to this file, and also import other style files */
+/* ============================================================
+   SISTEMA DE ESTILOS GLOBALES - TALLER AUTOMOTRIZ RUJIM
+   ============================================================ */
+
+:root {
+  /* Paleta cromática automotriz moderna */
+  --rujim-bg-darkest: #07090e;
+  --rujim-bg-dark: #0d1118;
+  --rujim-bg-card: #131924;
+  --rujim-bg-card-hover: #192231;
+  --rujim-bg-subtle: #1c2433;
+  
+  --rujim-primary: #f59e0b;
+  --rujim-primary-hover: #d97706;
+  --rujim-primary-glow: rgba(245, 158, 11, 0.25);
+  
+  --rujim-cyan: #06b6d4;
+  --rujim-cyan-glow: rgba(6, 182, 212, 0.25);
+  
+  --rujim-whatsapp: #25D366;
+  --rujim-whatsapp-glow: rgba(37, 211, 102, 0.3);
+
+  --rujim-border: rgba(255, 255, 255, 0.08);
+  --rujim-border-hover: rgba(245, 158, 11, 0.4);
+
+  --rujim-text-main: #f8fafc;
+  --rujim-text-muted: #94a3b8;
+  --rujim-text-dim: #64748b;
+
+  --rujim-font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  --rujim-font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --rujim-font-code: 'Space Grotesk', monospace;
+}
+
+html, body {
+  font-family: var(--rujim-font-body);
+  background-color: var(--rujim-bg-darkest);
+  color: var(--rujim-text-main);
+  margin: 0;
+  padding: 0;
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6, .brand-title {
+  font-family: var(--rujim-font-heading);
+  letter-spacing: -0.02em;
+}
+
+/* Scrollbar moderno */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--rujim-bg-darkest);
+}
+::-webkit-scrollbar-thumb {
+  background: #242d3d;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3b475e;
+}
+
+/* ============================================================
+   UTILIDADES PREMIUM & GLASSMORPHISM
+   ============================================================ */
+
+.glass-panel {
+  background: rgba(19, 25, 36, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--rujim-border);
+  border-radius: 16px;
+}
+
+.glow-amber {
+  box-shadow: 0 0 25px var(--rujim-primary-glow);
+}
+
+.glow-cyan {
+  box-shadow: 0 0 25px var(--rujim-cyan-glow);
+}
+
+/* Placa vehicular estilo Perú */
+.peru-license-plate {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  color: #0f172a;
+  border: 2px solid #334155;
+  border-radius: 6px;
+  padding: 2px 10px;
+  font-family: var(--rujim-font-code);
+  font-weight: 800;
+  font-size: 1.15rem;
+  letter-spacing: 2px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  position: relative;
+  text-transform: uppercase;
+}
+
+.peru-license-plate .peru-flag {
+  width: 14px;
+  height: 10px;
+  display: inline-block;
+  background: linear-gradient(to right, #d90429 33.3%, #ffffff 33.3%, #ffffff 66.6%, #d90429 66.6%);
+  border: 0.5px solid #cbd5e1;
+  border-radius: 1px;
+}
+
+/* Botón WhatsApp reutilizable */
+.btn-whatsapp-action {
+  background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+  color: #ffffff;
+  font-weight: 600;
+  border: none;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px var(--rujim-whatsapp-glow);
+  text-decoration: none;
+}
+
+.btn-whatsapp-action:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(37, 211, 102, 0.45);
+  color: #ffffff;
+}
+
+/* Indicador de pulso activo */
+.pulse-indicator {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+  position: relative;
+}
+
+.pulse-indicator.green {
+  background-color: #22c55e;
+}
+
+.pulse-indicator.green::after {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  border-radius: 50%;
+  border: 2px solid #22c55e;
+  animation: pulse-ring-anim 1.8s infinite;
+}
+
+@keyframes pulse-ring-anim {
+  0% { transform: scale(0.8); opacity: 1; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+/* Transiciones suaves */
+a, button {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Reglas globales de contraste para modales */
+.modal-dialog-custom,
+.modal-dialog-sm,
+.modal-dialog-xl,
+.modal-content {
+  color: #0f172a;
+}
+
+.modal-dialog-custom h1, .modal-dialog-custom h2, .modal-dialog-custom h3,
+.modal-dialog-custom h4, .modal-dialog-custom h5, .modal-dialog-custom h6,
+.modal-dialog-sm h1, .modal-dialog-sm h2, .modal-dialog-sm h3,
+.modal-dialog-sm h4, .modal-dialog-sm h5, .modal-dialog-sm h6,
+.modal-dialog-xl h1, .modal-dialog-xl h2, .modal-dialog-xl h3,
+.modal-dialog-xl h4, .modal-dialog-xl h5, .modal-dialog-xl h6 {
+  color: #0f172a;
+}
+
+.modal-dialog-custom .text-muted,
+.modal-dialog-sm .text-muted,
+.modal-dialog-xl .text-muted {
+  color: #64748b !important;
+}
+
+.modal-dialog-custom .form-control,
+.modal-dialog-custom .form-select,
+.modal-dialog-sm .form-control,
+.modal-dialog-sm .form-select,
+.modal-dialog-xl .form-control,
+.modal-dialog-xl .form-select {
+  color: #0f172a;
+  background-color: #ffffff;
+  border-color: #cbd5e1;
+}
+
+.modal-dialog-custom .form-control:focus,
+.modal-dialog-custom .form-select:focus,
+.modal-dialog-sm .form-control:focus,
+.modal-dialog-sm .form-select:focus,
+.modal-dialog-xl .form-control:focus,
+.modal-dialog-xl .form-select:focus {
+  color: #0f172a;
+  background-color: #ffffff;
+  border-color: #f59e0b;
+}
+

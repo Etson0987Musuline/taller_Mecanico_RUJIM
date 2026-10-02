@@ -19,3 +19,6 @@ Thumbs.db
 
 # Env
 .env
+
+# Temp
+taller-backend/schema_mysql.json

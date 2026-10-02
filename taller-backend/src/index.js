@@ -1,7 +1,7 @@
 const express = require('express');
 const cors    = require('cors');
+const path    = require('path');
 require('dotenv').config();
-
 
 const app = express();
 
@@ -9,21 +9,23 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Rutas
-app.use('/api/auth',      require('./routes/auth.routes'));
+// Rutas PÚBLICAS (sin token)
+app.use('/api/auth',         require('./routes/auth.routes'));
+app.use('/api/seguimiento',  require('./routes/seguimiento.routes'));
+app.use('/api/consulta-doc', require('./routes/consulta-doc.routes'));
+
+// Rutas PROTEGIDAS (con token)
 app.use('/api/clientes',  require('./routes/clientes.routes'));
 app.use('/api/vehiculos', require('./routes/vehiculos.routes'));
-app.use('/api/usuarios', require('./routes/usuarios.routes'));
 app.use('/api/ordenes',   require('./routes/ordenes.routes'));
 app.use('/api/repuestos', require('./routes/repuestos.routes'));
 app.use('/api/facturas',  require('./routes/facturas.routes'));
-app.use('/api/seguimiento', require('./routes/seguimiento.routes'));
+app.use('/api/ventas',    require('./routes/ventas.routes'));
+app.use('/api/usuarios',  require('./routes/usuarios.routes'));
 app.use('/api/servicios', require('./routes/servicios.routes'));
-app.use('/api/ventas', require('./routes/ventas.routes'));
+app.use('/api/catalogos', require('./routes/catalogos.routes'));
 
-const path = require('path');
-
-// Servir imágenes estáticas
+// Imágenes estáticas
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Ruta de prueba

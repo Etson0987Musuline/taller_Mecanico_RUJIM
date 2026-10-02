@@ -4,6 +4,7 @@
     <h4 class="fw-bold mb-0">
       <i class="bi bi-box-seam-fill text-warning me-2"></i>Repuestos
     </h4>
+
     <small class="text-muted">
       {{ repuestos.length }} productos · {{ seleccionados.size }} seleccionados
     </small>
@@ -11,31 +12,34 @@
 
   <div class="d-flex gap-2 flex-wrap">
 
+    <!-- Descargar formato vacío -->
+    <button class="btn btn-outline-secondary fw-semibold"
+            (click)="descargarFormato()" title="Descargar formato Excel para importar">
+      <i class="bi bi-file-earmark-arrow-down me-1"></i>Formato
+    </button>
+
+    <!-- Exportar inventario actual -->
+    <button class="btn btn-outline-success fw-semibold"
+            (click)="exportarExcel()" title="Exportar inventario a Excel"
+            [disabled]="repuestos.length === 0">
+      <i class="bi bi-file-earmark-excel me-1"></i>Exportar
+    </button>
+
     <!-- Importar Excel — solo admin -->
-    <button *ngIf="rol.puedeGestionarRepuestos()"
+    <button *ngIf="esAdmin"
             class="btn btn-success fw-semibold"
             (click)="abrirSelectorArchivo()"
             [disabled]="importando">
-
-      <span *ngIf="importando"
-            class="spinner-border spinner-border-sm me-1"></span>
-
-      <i *ngIf="!importando"
-         class="bi bi-file-earmark-excel me-1"></i>
-
+      <span *ngIf="importando" class="spinner-border spinner-border-sm me-1"></span>
+      <i *ngIf="!importando" class="bi bi-file-earmark-excel me-1"></i>
       {{ importando ? 'Importando...' : 'Importar Excel' }}
     </button>
 
-    <input type="file"
-           id="inputExcel"
-           accept=".xlsx,.xls"
-           style="display:none"
-           (change)="onArchivoSeleccionado($event)">
+    <input type="file" id="inputExcel" accept=".xlsx,.xls"
+           style="display:none" (change)="onArchivoSeleccionado($event)">
 
     <!-- Nuevo — solo admin -->
-    <button *ngIf="rol.puedeGestionarRepuestos()"
-            class="btn btn-warning fw-semibold"
-            (click)="nuevo()">
+    <button *ngIf="esAdmin" class="btn btn-warning fw-semibold" (click)="nuevo()">
       <i class="bi bi-plus-lg me-1"></i>Nuevo
     </button>
 
@@ -44,32 +48,38 @@
 
 <!-- Resultado importación -->
 <div *ngIf="resultadoImport"
-     class="alert alert-success alert-dismissible mb-3">
+     class="alert alert-dismissible mb-3"
+     [ngClass]="(resultadoImport.insertados === 0 && resultadoImport.actualizados === 0 && resultadoImport.errores > 0) ? 'alert-warning' : 'alert-success'">
 
   <button type="button"
           class="btn-close"
           (click)="resultadoImport=null"></button>
 
   <strong>
-    <i class="bi bi-check-circle me-1"></i>Importación completada
+    <i class="bi" [ngClass]="(resultadoImport.insertados === 0 && resultadoImport.actualizados === 0 && resultadoImport.errores > 0) ? 'bi-exclamation-triangle-fill text-warning me-1' : 'bi-check-circle me-1'"></i>
+    {{ resultadoImport.mensaje || 'Importación completada' }}
   </strong>
 
   <div class="mt-1 small">
     <span class="me-3">
-      ✅ Insertados:
-      <strong>{{ resultadoImport.insertados }}</strong>
+      ✅ Insertados: <strong>{{ resultadoImport.insertados }}</strong>
     </span>
-
     <span class="me-3">
-      🔄 Actualizados:
-      <strong>{{ resultadoImport.actualizados }}</strong>
+      🔄 Actualizados: <strong>{{ resultadoImport.actualizados }}</strong>
     </span>
+    <span *ngIf="resultadoImport.errores > 0" class="text-danger fw-semibold">
+      ⚠️ Errores: <strong>{{ resultadoImport.errores }}</strong>
+    </span>
+  </div>
 
-    <span *ngIf="resultadoImport.errores > 0"
-          class="text-danger">
-      ⚠️ Errores:
-      <strong>{{ resultadoImport.errores }}</strong>
-    </span>
+  <div *ngIf="resultadoImport.detalleErrores && resultadoImport.detalleErrores.length > 0" class="mt-2 pt-2 border-top small text-danger">
+    <span class="fw-semibold">Filas con observaciones:</span>
+    <ul class="mb-0 ps-3 mt-1">
+      <li *ngFor="let det of resultadoImport.detalleErrores.slice(0, 5)">{{ det }}</li>
+    </ul>
+    <div *ngIf="resultadoImport.detalleErrores.length > 5" class="fst-italic text-muted mt-1">
+      ... y {{ resultadoImport.detalleErrores.length - 5 }} filas más con errores.
+    </div>
   </div>
 </div>
 
@@ -78,6 +88,7 @@
 
   <!-- Buscador -->
   <div class="input-group" style="max-width:350px">
+
     <span class="input-group-text">
       <i class="bi bi-search"></i>
     </span>
@@ -120,6 +131,42 @@
     {{ verMas ? 'Ver menos' : 'Más columnas' }}
   </button>
 
+  <!-- Eliminar seleccionados — solo admin -->
+  <button *ngIf="esAdmin && seleccionados.size > 0"
+          class="btn btn-danger btn-sm"
+          (click)="abrirEliminarGrupal()">
+
+    <i class="bi bi-trash me-1"></i>
+    Eliminar seleccionados ({{ seleccionados.size }})
+  </button>
+
+  <!-- Eliminar por categoría — solo admin -->
+  <div *ngIf="esAdmin"
+       class="d-flex gap-1 align-items-center">
+
+    <select class="form-select form-select-sm"
+            style="max-width:160px"
+            [(ngModel)]="categoriaEliminar">
+
+      <option value="">Categoría...</option>
+
+      <option *ngFor="let c of categorias"
+              [value]="c">
+
+        {{ c }}
+      </option>
+
+    </select>
+
+    <button class="btn btn-outline-danger btn-sm"
+            (click)="abrirEliminarCategoria()"
+            [disabled]="!categoriaEliminar">
+
+      <i class="bi bi-trash"></i>
+    </button>
+
+  </div>
+
 </div>
 
 <!-- ══ VISTA TABLA ══ -->
@@ -131,7 +178,9 @@
     <table class="table table-hover table-sm mb-0">
 
       <thead class="table-dark">
+
         <tr>
+
           <th>
             <input type="checkbox"
                    class="form-check-input"
@@ -155,16 +204,15 @@
           <th *ngIf="verMas">Dist. 3</th>
 
           <th></th>
+
         </tr>
+
       </thead>
 
       <tbody>
 
-        <!-- Cargando -->
-        <tr *ngIf="cargando">
-          <td [colSpan]="verMas ? 15 : 9"
-              class="text-center py-4">
-
+        <tr [style.display]="cargando ? 'table-row' : 'none'">
+          <td [colSpan]="verMas ? 15 : 9" class="text-center py-4">
             <div class="spinner-border text-warning"></div>
           </td>
         </tr>
@@ -183,18 +231,24 @@
 
           <!-- Imagen -->
           <td>
-            <div class="img-tabla" (click)="editar(r)">
+
+            <div class="img-tabla"
+                 (click)="editar(r)">
+
               <img *ngIf="r.imagen"
                    [src]="getImagenUrl(r.imagen)"
                    [alt]="r.nombre">
 
               <i *ngIf="!r.imagen"
                  class="bi bi-image text-muted"></i>
+
             </div>
+
           </td>
 
           <!-- Nombre -->
           <td>
+
             <div class="fw-semibold small"
                  style="max-width:220px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis"
                  [title]="r.nombre">
@@ -213,13 +267,16 @@
 
               Stock bajo
             </span>
+
           </td>
 
           <td class="small">{{ r.categoria || '—' }}</td>
+
           <td class="small">{{ r.marca || '—' }}</td>
 
           <td>
             <strong>{{ r.stock }}</strong>
+
             <span class="text-muted small">
               /{{ r.stock_minimo }}
             </span>
@@ -235,31 +292,37 @@
 
           <td *ngIf="verMas"
               class="small">
+
             {{ r.codigo_barra || '—' }}
           </td>
 
           <td *ngIf="verMas"
               class="small">
+
             {{ r.codigo_original || '—' }}
           </td>
 
           <td *ngIf="verMas"
               class="small">
+
             S/ {{ r.precio_mayor | number:'1.2-2' }}
           </td>
 
           <td *ngIf="verMas"
               class="small">
+
             S/ {{ r.precio_dist1 | number:'1.2-2' }}
           </td>
 
           <td *ngIf="verMas"
               class="small">
+
             S/ {{ r.precio_dist2 | number:'1.2-2' }}
           </td>
 
           <td *ngIf="verMas"
               class="small">
+
             S/ {{ r.precio_dist3 | number:'1.2-2' }}
           </td>
 
@@ -267,7 +330,7 @@
           <td>
 
             <!-- Solo admin -->
-            <div *ngIf="rol.puedeGestionarRepuestos()"
+            <div *ngIf="esAdmin"
                  class="d-flex gap-1">
 
               <button class="btn btn-sm btn-outline-secondary"
@@ -292,11 +355,14 @@
 
         <!-- Vacío -->
         <tr *ngIf="!cargando && filtrados.length === 0">
+
           <td [colSpan]="verMas ? 15 : 9"
               class="text-center text-muted py-4">
 
             No hay repuestos registrados
+
           </td>
+
         </tr>
 
       </tbody>
@@ -310,9 +376,7 @@
 <div *ngIf="vista === 'cuadricula'">
 
   <!-- Cargando -->
-  <div *ngIf="cargando"
-       class="text-center py-5">
-
+  <div [style.display]="cargando ? 'block' : 'none'" class="text-center py-5">
     <div class="spinner-border text-warning"></div>
   </div>
 
@@ -326,10 +390,12 @@
 
       <!-- Checkbox -->
       <div class="cuadricula-check">
+
         <input type="checkbox"
                class="form-check-input"
                [checked]="seleccionados.has(r.id)"
                (change)="toggleSeleccion(r.id)">
+
       </div>
 
       <!-- Imagen -->
@@ -345,6 +411,7 @@
 
           <i class="bi bi-image"></i>
           <span>Sin imagen</span>
+
         </div>
 
         <span *ngIf="stockBajo(r)"
@@ -394,7 +461,7 @@
       </div>
 
       <!-- Acciones -->
-      <div *ngIf="rol.puedeGestionarRepuestos()"
+      <div *ngIf="esAdmin"
            class="cuadricula-acciones">
 
         <button class="btn btn-sm btn-outline-secondary flex-fill"
@@ -425,6 +492,185 @@
     <p class="mt-2">
       No hay repuestos registrados
     </p>
+
   </div>
 
+</div>
+<!-- ══ MODAL CREAR/EDITAR ══ -->
+<div class="modal-backdrop-custom"
+     [style.display]="mostrarModal ? 'block' : 'none'"
+     (click)="cerrarModal()"></div>
+
+<div class="modal-custom"
+     [style.display]="mostrarModal ? 'flex' : 'none'">
+  <div class="modal-dialog-custom">
+    <div class="modal-header">
+      <h5 class="modal-title fw-bold">
+        <i class="bi bi-box-seam me-2"></i>{{ modoEdicion ? 'Editar' : 'Nuevo' }} repuesto
+      </h5>
+      <button class="btn-close" (click)="cerrarModal()"></button>
+    </div>
+    <div class="modal-body">
+      <div class="imagen-upload mb-3" (click)="abrirSelectorImagen()">
+        <img *ngIf="imagenPreview" [src]="imagenPreview" alt="Preview">
+        <div *ngIf="!imagenPreview" class="imagen-placeholder">
+          <i class="bi bi-camera-fill"></i>
+          <span>Subir imagen</span>
+          <small>JPG, PNG o WEBP · Máx. 3MB</small>
+        </div>
+        <button *ngIf="imagenPreview" class="btn-quitar-img"
+                (click)="$event.stopPropagation(); quitarImagen()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <input type="file" id="inputImagen" accept="image/jpeg,image/png,image/webp"
+             style="display:none" (change)="onImagenSeleccionada($event)">
+
+      <div class="row g-3">
+        <div class="col-6">
+          <label class="form-label small fw-semibold">Código / Ubicación</label>
+          <input class="form-control" [(ngModel)]="repuestoForm.codigo">
+        </div>
+        <div class="col-6">
+          <label class="form-label small fw-semibold">Categoría</label>
+          <input class="form-control" [(ngModel)]="repuestoForm.categoria" list="listaCategorias">
+          <datalist id="listaCategorias">
+            <option *ngFor="let c of categorias" [value]="c"></option>
+          </datalist>
+        </div>
+        <div class="col-12">
+          <label class="form-label small fw-semibold">Nombre *</label>
+          <input class="form-control" [(ngModel)]="repuestoForm.nombre">
+        </div>
+        <div class="col-6">
+          <label class="form-label small fw-semibold">Marca</label>
+          <input class="form-control" [(ngModel)]="repuestoForm.marca">
+        </div>
+        <div class="col-6">
+          <label class="form-label small fw-semibold">Unidad de medida</label>
+          <input class="form-control" [(ngModel)]="repuestoForm.unidad_medida" placeholder="UND, PAR, KIT...">
+        </div>
+        <div class="col-4">
+          <label class="form-label small fw-semibold">Stock</label>
+          <input class="form-control" type="number" [(ngModel)]="repuestoForm.stock">
+        </div>
+        <div class="col-4">
+          <label class="form-label small fw-semibold">Stock mínimo</label>
+          <input class="form-control" type="number" [(ngModel)]="repuestoForm.stock_minimo">
+        </div>
+        <div class="col-4">
+          <label class="form-label small fw-semibold">Moneda</label>
+          <select class="form-select" [(ngModel)]="repuestoForm.moneda">
+            <option value="PEN">PEN (S/)</option>
+            <option value="USD">USD ($)</option>
+          </select>
+        </div>
+        <div class="col-6">
+          <label class="form-label small fw-semibold">Precio compra</label>
+          <input class="form-control" type="number" step="0.01" [(ngModel)]="repuestoForm.precio_compra">
+        </div>
+        <div class="col-6">
+          <label class="form-label small fw-semibold">Precio venta</label>
+          <input class="form-control" type="number" step="0.01" [(ngModel)]="repuestoForm.precio_venta">
+        </div>
+        <div class="col-6">
+          <label class="form-label small fw-semibold">Precio por mayor</label>
+          <input class="form-control" type="number" step="0.01" [(ngModel)]="repuestoForm.precio_mayor">
+        </div>
+        <div class="col-6">
+          <label class="form-label small fw-semibold">Cantidad por mayor</label>
+          <input class="form-control" type="number" [(ngModel)]="repuestoForm.cantidad_mayor">
+        </div>
+        <div class="col-12">
+          <label class="form-label small fw-semibold">Código de barras</label>
+          <input class="form-control" [(ngModel)]="repuestoForm.codigo_barra">
+        </div>
+        <div class="col-6">
+          <label class="form-label small fw-semibold">Código OEM</label>
+          <input class="form-control" [(ngModel)]="repuestoForm.codigo_oem">
+        </div>
+        <div class="col-6">
+          <label class="form-label small fw-semibold">Código original</label>
+          <input class="form-control" [(ngModel)]="repuestoForm.codigo_original">
+        </div>
+        <div class="col-6">
+          <label class="form-label small fw-semibold">Marca OEM</label>
+          <input class="form-control" [(ngModel)]="repuestoForm.marca_oem">
+        </div>
+        <div class="col-6">
+          <label class="form-label small fw-semibold">Proveedor OEM</label>
+          <input class="form-control" [(ngModel)]="repuestoForm.proveedor_oem">
+        </div>
+        <div class="col-4">
+          <label class="form-label small fw-semibold">Precio dist. 1</label>
+          <input class="form-control" type="number" step="0.01" [(ngModel)]="repuestoForm.precio_dist1">
+        </div>
+        <div class="col-4">
+          <label class="form-label small fw-semibold">Precio dist. 2</label>
+          <input class="form-control" type="number" step="0.01" [(ngModel)]="repuestoForm.precio_dist2">
+        </div>
+        <div class="col-4">
+          <label class="form-label small fw-semibold">Precio dist. 3</label>
+          <input class="form-control" type="number" step="0.01" [(ngModel)]="repuestoForm.precio_dist3">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="cerrarModal()">Cancelar</button>
+      <button class="btn btn-warning fw-semibold" (click)="guardar()" [disabled]="guardando">
+        <span *ngIf="guardando" class="spinner-border spinner-border-sm me-1"></span>
+        {{ guardando ? 'Guardando...' : 'Guardar' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL ELIMINAR ══ -->
+<div class="modal-backdrop-custom"
+     [style.display]="mostrarModalEliminar ? 'block' : 'none'"
+     (click)="cerrarModalEliminar()"></div>
+
+<div class="modal-custom"
+     [style.display]="mostrarModalEliminar ? 'flex' : 'none'">
+  <div class="modal-dialog-custom" style="max-width:480px">
+    <div class="modal-header">
+      <h5 class="modal-title fw-bold text-danger">
+        <i class="bi bi-trash me-2"></i>Confirmar eliminación
+      </h5>
+      <button class="btn-close" (click)="cerrarModalEliminar()"></button>
+    </div>
+    <div class="modal-body">
+      <div *ngIf="previewEliminar" class="alert alert-danger py-2 mb-3">
+        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+        Se eliminarán <strong>{{ previewEliminar.total }}</strong> producto(s) permanentemente.
+        Esta acción no se puede deshacer.
+      </div>
+      <div *ngIf="previewEliminar" class="lista-preview">
+        <div *ngFor="let p of previewEliminar.productos.slice(0, 8)"
+             class="d-flex justify-content-between py-1 border-bottom small">
+          <span>{{ p.nombre }}</span>
+          <span class="badge bg-light text-dark border">{{ p.categoria || 'Sin cat.' }}</span>
+        </div>
+        <div *ngIf="previewEliminar.total > 8" class="text-muted small text-center pt-2">
+          ... y {{ previewEliminar.total - 8 }} producto(s) más
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer flex-column align-items-stretch gap-2">
+      <div *ngIf="mensajeError" class="alert alert-warning py-2 small mb-0">
+        <i class="bi bi-exclamation-triangle me-1"></i>{{ mensajeError }}
+      </div>
+      <div class="d-flex justify-content-end gap-2">
+        <button class="btn btn-secondary"
+        (click)="cerrarModalEliminar()">
+            Cancelar
+        </button>
+        <button class="btn btn-danger fw-semibold"
+                (click)="confirmarEliminar()" [disabled]="eliminando">
+          <span *ngIf="eliminando" class="spinner-border spinner-border-sm me-1"></span>
+          {{ eliminando ? 'Eliminando...' : 'Sí, eliminar' }}
+        </button>
+      </div>
+    </div>
+  </div>
 </div>

@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
@@ -9,8 +9,7 @@ import { RolService } from '../../core/services/rol.service';
   standalone: true,
   imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
   templateUrl: './dashboard.html',
-  styleUrl: './dashboard.css',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrl: './dashboard.css'
 })
 export class DashboardComponent {
   menuAbierto = true;
