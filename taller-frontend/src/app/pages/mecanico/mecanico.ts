@@ -7,6 +7,7 @@ import { VehiculosService } from '../../core/services/vehiculos.service';
 import { OrdenesService } from '../../core/services/ordenes.service';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-mecanico',
@@ -95,9 +96,9 @@ export class MecanicoComponent implements OnInit {
     cancelado:        { label: 'Cancelado',          clase: 'badge bg-danger', icon: 'bi-x-circle' },
   };
 
-  private urlVehiculos = 'http://localhost:3000/api/vehiculos';
-  private urlServicios = 'http://localhost:3000/api/servicios';
-  private urlRepuestos = 'http://localhost:3000/api/repuestos';
+  private urlVehiculos = `${environment.apiUrl}/vehiculos`;
+  private urlServicios = `${environment.apiUrl}/servicios`;
+  private urlRepuestos = `${environment.apiUrl}/repuestos`;
 
   constructor(
     private router: Router,
@@ -284,7 +285,7 @@ export class MecanicoComponent implements OnInit {
     this.cargandoHistorial = true;
     this.errorHistorial = '';
     this.historialPlacaDatos = null;
-    this.http.get<any>(`http://localhost:3000/api/vehiculos/placa/${p}/historial`).subscribe({
+    this.http.get<any>(`${environment.apiUrl}/vehiculos/placa/${p}/historial`).subscribe({
       next: (res) => {
         this.historialPlacaDatos = res;
         this.cargandoHistorial = false;

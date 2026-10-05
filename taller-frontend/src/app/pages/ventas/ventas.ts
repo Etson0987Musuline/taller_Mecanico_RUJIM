@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { VentasService } from '../../core/services/ventas.service';
 import { HttpClient } from '@angular/common/http';
 import { RolService } from '../../core/services/rol.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-ventas',
@@ -50,8 +51,8 @@ export class VentasComponent implements OnInit {
   ventaDetalle:     any   = null;
   mostrarDetalle    = false;
 
-  private urlBase = 'http://localhost:3000';
-  private urlRep  = `${this.urlBase}/api/repuestos`;
+  private urlBase = environment.apiUrl.replace('/api', '');
+  private urlRep  = `${environment.apiUrl}/repuestos`;
 
   constructor(
     private ventasService: VentasService,

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { RolService } from '../../core/services/rol.service';
+import { environment } from '../../../environments/environment';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 
@@ -43,8 +44,8 @@ export class RepuestosComponent implements OnInit {
   mensajeError = '';
 
   categorias: string[] = [];
-  private url = 'http://localhost:3000/api/repuestos';
-  urlBase     = 'http://localhost:3000';
+  private url = `${environment.apiUrl}/repuestos`;
+  urlBase     = environment.apiUrl.replace('/api', '');
 
   constructor(
     private http: HttpClient,

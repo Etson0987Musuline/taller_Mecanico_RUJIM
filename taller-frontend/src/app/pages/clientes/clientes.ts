@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ClientesService } from '../../core/services/clientes.service';
 import { RolService } from '../../core/services/rol.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-clientes',
@@ -72,8 +73,8 @@ export class ClientesComponent implements OnInit {
     { value: 'extranjeria', label: 'Carné de Extranjería',digitos: 0  },
   ];
 
-  private urlBase  = 'http://localhost:3000/api';
-  private urlProxy = 'http://localhost:3000/api/consulta-doc';
+  private urlBase  = environment.apiUrl;
+  private urlProxy = `${environment.apiUrl}/consulta-doc`;
 
   constructor(
     private clientesService: ClientesService,

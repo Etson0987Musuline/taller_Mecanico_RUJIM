@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { OrdenesService } from '../../core/services/ordenes.service';
 import { HttpClient } from '@angular/common/http';
 import { RolService } from '../../core/services/rol.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-ordenes',
@@ -77,10 +78,10 @@ export class OrdenesComponent implements OnInit {
   };
   estados = Object.keys(this.estadoConfig);
 
-  private urlVehiculos = 'http://localhost:3000/api/vehiculos';
-  private urlUsuarios = 'http://localhost:3000/api/usuarios/mecanicos';
-  private urlServicios = 'http://localhost:3000/api/servicios';
-  private urlRepuestos = 'http://localhost:3000/api/repuestos';
+  private urlVehiculos = `${environment.apiUrl}/vehiculos`;
+  private urlUsuarios = `${environment.apiUrl}/usuarios/mecanicos`;
+  private urlServicios = `${environment.apiUrl}/servicios`;
+  private urlRepuestos = `${environment.apiUrl}/repuestos`;
 
   constructor(
     private ordenesService: OrdenesService,
@@ -575,7 +576,7 @@ export class OrdenesComponent implements OnInit {
     if (!p) return;
     this.cargandoHistorialPlaca = true;
     this.errorHistorialPlaca = '';
-    this.http.get<any>(`http://localhost:3000/api/vehiculos/placa/${p}/historial`).subscribe({
+    this.http.get<any>(`${environment.apiUrl}/vehiculos/placa/${p}/historial`).subscribe({
       next: (res) => {
         this.historialPlacaDatos = res;
         this.cargandoHistorialPlaca = false;

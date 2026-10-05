@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { VehiculosService } from '../../core/services/vehiculos.service';
 import { ClientesService } from '../../core/services/clientes.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-vehiculos',
@@ -37,7 +38,7 @@ export class VehiculosComponent implements OnInit {
   panelCatalogo: 'marca' | 'modelo' | 'tipo_vehiculo' | null = null;
   nuevoCatalogoValor = '';
   guardandoCatalogo = false;
-  private urlCatalogos = 'http://localhost:3000/api/catalogos';
+  private urlCatalogos = `${environment.apiUrl}/catalogos`;
 
   constructor(
     private vehiculosService: VehiculosService,
@@ -228,7 +229,7 @@ export class VehiculosComponent implements OnInit {
 
   confirmarEliminar() {
     this.eliminando = true;
-    this.http.delete(`http://localhost:3000/api/vehiculos/${this.vehiculoAEliminar.id}`).subscribe({
+    this.http.delete(`${environment.apiUrl}/vehiculos/${this.vehiculoAEliminar.id}`).subscribe({
       next: () => {
         this.eliminando = false;
         this.mostrarModalEliminar = false;
@@ -244,7 +245,7 @@ export class VehiculosComponent implements OnInit {
   eliminarSeleccionados() {
     if (!confirm(`¿Eliminar ${this.seleccionados.size} seleccionados?`)) return;
     Array.from(this.seleccionados).forEach(id => {
-      this.http.delete(`http://localhost:3000/api/vehiculos/${id}`).subscribe({
+      this.http.delete(`${environment.apiUrl}/vehiculos/${id}`).subscribe({
         next: () => this.cargar()
       });
     });

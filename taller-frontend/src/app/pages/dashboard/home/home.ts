@@ -4,6 +4,7 @@ import { RouterLink, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { OrdenesService } from '../../../core/services/ordenes.service';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-home',
@@ -65,7 +66,7 @@ export class HomeComponent implements OnInit {
   }
 
   cargarStockCritico() {
-    this.http.get<any[]>('http://localhost:3000/api/repuestos/stock-bajo').subscribe({
+    this.http.get<any[]>(`${environment.apiUrl}/repuestos/stock-bajo`).subscribe({
       next: (data) => {
         this.repuestosCriticos = (data || []).slice(0, 5);
         this.cdr.detectChanges();

@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class SeguimientoService {
-  private url = 'http://localhost:3000/api/seguimiento';
+  private url = `${environment.apiUrl}/seguimiento`;
   constructor(private http: HttpClient) {}
 
   consultarPorNombre(nombre: string) {
