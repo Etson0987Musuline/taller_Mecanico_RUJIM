@@ -20,7 +20,7 @@
         </div>
         <div class="header-subtitle">
           <span class="status-pulse-dot"></span>
-          Atención al Cliente · En línea
+          Atención Oficial · En línea
         </div>
       </div>
 
@@ -29,16 +29,41 @@
       </button>
     </div>
 
+    <!-- Selector de Línea de WhatsApp (Principal vs Secundaria) -->
+    <div class="line-selector-bar">
+      <span class="line-selector-title"><i class="bi bi-telephone-outbound me-1"></i>Selecciona canal:</span>
+      <div class="line-pill-buttons">
+        <button 
+          type="button" 
+          class="line-pill-btn" 
+          [class.active]="selectedLine === 'principal'"
+          (click)="selectLine('principal')">
+          <span class="line-tag principal">Principal</span>
+          <span class="line-number">{{ primaryDisplay }}</span>
+        </button>
+        <button 
+          type="button" 
+          class="line-pill-btn" 
+          [class.active]="selectedLine === 'secundaria'"
+          (click)="selectLine('secundaria')">
+          <span class="line-tag secundaria">Secundaria</span>
+          <span class="line-number">{{ secondaryDisplay }}</span>
+        </button>
+      </div>
+    </div>
+
     <!-- Cuerpo del chat con fondo texturizado -->
     <div class="whatsapp-body">
       
       <!-- Mensaje de bienvenida del taller -->
       <div class="chat-message-bubble incoming">
-        <div class="sender-name">Soporte Técnico RUJIM</div>
+        <div class="sender-name">
+          Soporte RUJIM <span class="badge-line-indicator" [class.sec]="selectedLine === 'secundaria'">{{ selectedLine === 'principal' ? 'Línea Principal' : 'Línea Secundaria' }}</span>
+        </div>
         <div class="message-text">
-          ¡Hola! 👋 Bienvenido a nuestro canal de <strong>Atención al Cliente</strong>.
+          ¡Hola! 👋 Te estás comunicando con nuestro canal oficial: <strong>{{ activeDisplay }}</strong>.
           <br><br>
-          ¿Deseas consultar el estado de tu vehículo, agendar una cita o necesitas una cotización rápida? Elige una opción o escríbenos directamente.
+          ¿Deseas consultar el estado de tu auto, agendar mantenimiento o pedir cotización? Selecciona una opción o escribe tu mensaje:
         </div>
         <div class="message-meta">
           <span class="message-time">{{ horaActual }}</span>
@@ -47,7 +72,7 @@
 
       <!-- Opciones Rápidas -->
       <div class="quick-options-label">
-        <i class="bi bi-lightning-charge-fill me-1 text-warning"></i> Opciones rápidas de atención:
+        <i class="bi bi-lightning-charge-fill me-1 text-warning"></i> Opciones de consulta rápida:
       </div>
 
       <div class="quick-options-list">
@@ -58,6 +83,29 @@
             <i class="bi bi-chevron-right ms-auto arrow-icon"></i>
           </button>
         }
+      </div>
+
+      <!-- Accesos directos a ambas líneas -->
+      <div class="direct-lines-box mt-3 p-2 rounded">
+        <div class="direct-lines-title text-muted small mb-2">
+          <i class="bi bi-whatsapp text-success me-1"></i><strong>Nuestros Números Oficiales:</strong>
+        </div>
+        <div class="d-flex flex-column gap-1">
+          <a [href]="'https://wa.me/' + primaryPhone" target="_blank" class="direct-line-link principal">
+            <span class="d-flex align-items-center gap-1">
+              <i class="bi bi-check-circle-fill text-success"></i>
+              <strong>Principal:</strong> {{ primaryDisplay }}
+            </span>
+            <span class="badge bg-success-subtle text-success">Chat</span>
+          </a>
+          <a [href]="'https://wa.me/' + secondaryPhone" target="_blank" class="direct-line-link secundaria">
+            <span class="d-flex align-items-center gap-1">
+              <i class="bi bi-check-circle-fill text-info"></i>
+              <strong>Secundaria:</strong> {{ secondaryDisplay }}
+            </span>
+            <span class="badge bg-info-subtle text-info">Chat</span>
+          </a>
+        </div>
       </div>
 
     </div>
@@ -80,7 +128,7 @@
         </button>
       </div>
       <div class="footer-note">
-        <i class="bi bi-shield-check text-success me-1"></i> Respuesta directa al WhatsApp: <strong>{{ displayPhone }}</strong>
+        <i class="bi bi-shield-check text-success me-1"></i> Enviando a <strong>{{ selectedLine === 'principal' ? 'Principal' : 'Secundaria' }} ({{ activeDisplay }})</strong>
       </div>
     </div>
 
@@ -95,7 +143,7 @@
         <span class="badge-online"></span>
         <div class="callout-text">
           <strong>¿Atención rápida?</strong>
-          <span>Chatea con nosotros</span>
+          <span>WhatsApp Oficial RUJIM</span>
         </div>
         <button class="callout-close" (click)="$event.stopPropagation(); isOpen = false">
           <i class="bi bi-x"></i>

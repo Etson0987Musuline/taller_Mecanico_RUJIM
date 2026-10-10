@@ -10,10 +10,22 @@ import { FormsModule } from '@angular/forms';
   styleUrl: './whatsapp-widget.css'
 })
 export class WhatsappWidgetComponent {
-  @Input() phoneNumber: string = '51977398357'; // Código de país + número (configurable)
-  @Input() displayPhone: string = '+51 977 398 357';
+  // Líneas oficiales de WhatsApp
+  @Input() primaryPhone: string = '51972865276';
+  @Input() primaryDisplay: string = '+51 972 865 276';
+  @Input() secondaryPhone: string = '51992080854';
+  @Input() secondaryDisplay: string = '+51 992 080 854';
   @Input() workshopName: string = 'Taller Automotriz RUJIM';
 
+  // Compatibilidad hacia atrás si se usa phoneNumber/displayPhone
+  @Input() set phoneNumber(val: string) {
+    if (val) this.primaryPhone = val;
+  }
+  @Input() set displayPhone(val: string) {
+    if (val) this.primaryDisplay = val;
+  }
+
+  selectedLine: 'principal' | 'secundaria' = 'principal';
   isOpen: boolean = false;
   userMessage: string = '';
   horaActual: string = '';
@@ -30,6 +42,18 @@ export class WhatsappWidgetComponent {
     this.horaActual = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
 
+  get activePhone(): string {
+    return this.selectedLine === 'principal' ? this.primaryPhone : this.secondaryPhone;
+  }
+
+  get activeDisplay(): string {
+    return this.selectedLine === 'principal' ? this.primaryDisplay : this.secondaryDisplay;
+  }
+
+  selectLine(line: 'principal' | 'secundaria'): void {
+    this.selectedLine = line;
+  }
+
   toggleChat(): void {
     this.isOpen = !this.isOpen;
   }
@@ -39,19 +63,26 @@ export class WhatsappWidgetComponent {
   }
 
   enviarMensajeRapido(texto: string): void {
-    this.abrirWhatsApp(texto);
+    this.abrirWhatsApp(texto, this.activePhone);
   }
 
   enviarMensajePersonalizado(): void {
     const mensaje = this.userMessage.trim() || 'Hola Taller RUJIM, necesito información y atención sobre un vehículo.';
-    this.abrirWhatsApp(mensaje);
+    this.abrirWhatsApp(mensaje, this.activePhone);
     this.userMessage = '';
     this.isOpen = false;
   }
 
-  abrirWhatsApp(mensaje: string): void {
+  abrirWhatsApp(mensaje: string, numero?: string): void {
+    const targetPhone = numero || this.activePhone;
     const encoded = encodeURIComponent(mensaje);
-    const url = `https://wa.me/${this.phoneNumber}?text=${encoded}`;
+    const url = `https://wa.me/${targetPhone}?text=${encoded}`;
     window.open(url, '_blank');
+  }
+
+  abrirLineaDirecta(linea: 'principal' | 'secundaria'): void {
+    const target = linea === 'principal' ? this.primaryPhone : this.secondaryPhone;
+    const mensaje = encodeURIComponent('Hola Taller Automotriz RUJIM, me gustaría contactar con un asesor.');
+    window.open(`https://wa.me/${target}?text=${mensaje}`, '_blank');
   }
 }

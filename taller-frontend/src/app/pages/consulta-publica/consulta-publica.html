@@ -3,16 +3,22 @@
   <!-- ==========================================
        BARRA SUPERIOR DE CONTACTO RÁPIDO
        ========================================== -->
-  <div class="top-info-bar py-2 px-3 d-none d-md-block">
-    <div class="container d-flex justify-content-between align-items-center small">
-      <div class="d-flex align-items-center gap-3 text-secondary-custom">
-        <span><i class="bi bi-geo-alt-fill text-warning me-1"></i>Huamanga, Ayacucho - Perú</span>
-        <span class="divider-dot">•</span>
-        <span><i class="bi bi-clock-fill text-warning me-1"></i>Lun - Sáb: 8:00 AM – 6:00 PM</span>
+  <div class="top-info-bar py-2 px-3">
+    <div class="container d-flex flex-wrap justify-content-between align-items-center gap-2 small">
+      <div class="d-flex align-items-center flex-wrap gap-2 gap-md-3 text-secondary-custom">
+        <a [href]="googleMapsUrl" target="_blank" class="top-map-link" title="Ver ubicación en Google Maps">
+          <i class="bi bi-geo-alt-fill text-warning me-1"></i>Huamanga, Ayacucho - Perú
+        </a>
+        <span class="divider-dot d-none d-sm-inline">•</span>
+        <span class="d-none d-sm-inline"><i class="bi bi-clock-fill text-warning me-1"></i>Lun - Sáb: 8:00 AM – 6:00 PM</span>
       </div>
-      <div class="d-flex align-items-center gap-3">
-        <a [href]="'https://wa.me/' + whatsappNumber" target="_blank" class="top-contact-link">
-          <i class="bi bi-whatsapp text-success me-1"></i>WhatsApp: <strong>{{ whatsappDisplay }}</strong>
+      <div class="d-flex align-items-center flex-wrap gap-2 gap-md-3">
+        <a [href]="'https://wa.me/' + whatsappPrincipal" target="_blank" class="top-contact-link" title="WhatsApp Principal">
+          <i class="bi bi-whatsapp text-success me-1"></i><span class="d-none d-lg-inline">Principal: </span><strong>{{ whatsappPrincipalDisplay }}</strong>
+        </a>
+        <span class="divider-dot d-none d-md-inline">•</span>
+        <a [href]="'https://wa.me/' + whatsappSecundario" target="_blank" class="top-contact-link secondary-link" title="WhatsApp Secundario">
+          <i class="bi bi-whatsapp text-info me-1"></i><span class="d-none d-lg-inline">Secundaria: </span><strong>{{ whatsappSecundarioDisplay }}</strong>
         </a>
       </div>
     </div>
@@ -37,12 +43,23 @@
 
       <!-- Acciones de cabecera -->
       <div class="d-flex align-items-center gap-2 ms-auto">
-        <a [href]="'https://wa.me/' + whatsappNumber" target="_blank" 
-           class="btn btn-outline-success btn-sm d-none d-sm-inline-flex align-items-center gap-1 nav-whatsapp-btn">
+        <!-- Botón de WhatsApp Principal -->
+        <a [href]="'https://wa.me/' + whatsappPrincipal" target="_blank" 
+           class="btn btn-outline-success btn-sm d-inline-flex align-items-center gap-1 nav-whatsapp-btn"
+           title="Escribir al WhatsApp Principal">
           <i class="bi bi-whatsapp"></i>
-          <span>Atención WhatsApp</span>
+          <span class="d-none d-sm-inline">WhatsApp</span>
         </a>
 
+        <!-- Botón Ubicación Maps -->
+        <a [href]="googleMapsUrl" target="_blank" 
+           class="btn btn-outline-warning btn-sm d-none d-md-inline-flex align-items-center gap-1 nav-map-btn" 
+           title="Ver taller en Google Maps">
+          <i class="bi bi-geo-alt-fill"></i>
+          <span>Ubicación</span>
+        </a>
+
+        <!-- Botón Acceso Personal -->
         <a routerLink="/login" class="btn btn-outline-light btn-sm d-inline-flex align-items-center gap-1 nav-login-btn">
           <i class="bi bi-box-arrow-in-right"></i>
           <span>Acceso Personal</span>
@@ -59,7 +76,7 @@
     <div class="hero-overlay"></div>
     <div class="hero-glow"></div>
 
-    <div class="container hero-content py-5">
+    <div class="container hero-content py-4 py-md-5">
       <div class="row justify-content-center text-center">
         <div class="col-lg-9 col-xl-8">
           
@@ -139,12 +156,13 @@
               </button>
             </div>
 
-            <!-- Pista o nota de ayuda -->
-            <div class="search-tip mt-3">
-              <i class="bi bi-info-circle text-info me-1"></i>
-              <span>¿Tienes dudas? Escríbenos directamente por </span>
-              <a href="javascript:void(0)" (click)="contactarWhatsAppGeneral('Consulta de orden')" class="whatsapp-link-inline">
-                <i class="bi bi-whatsapp"></i> WhatsApp
+            <!-- Pistas y canales de ayuda -->
+            <div class="search-tip mt-3 d-flex flex-wrap align-items-center justify-content-center gap-2">
+              <span class="text-secondary-custom small">
+                <i class="bi bi-info-circle text-info me-1"></i>¿Tienes dudas sobre tu orden? Escríbenos:
+              </span>
+              <a [href]="'https://wa.me/' + whatsappPrincipal" target="_blank" class="whatsapp-link-inline">
+                <i class="bi bi-whatsapp"></i> Línea Principal: {{ whatsappPrincipalDisplay }}
               </a>
             </div>
 
@@ -158,13 +176,13 @@
   <!-- ==========================================
        SECCIÓN DE RESULTADOS DE CONSULTA
        ========================================== -->
-  <main class="container flex-grow-1 py-5">
+  <main class="container flex-grow-1 py-4 py-md-5">
     
     <!-- Mensaje de Error si no se encuentra -->
     @if (error) {
       <div class="row justify-content-center mb-4">
         <div class="col-lg-8">
-          <div class="alert custom-alert-danger shadow-sm d-flex align-items-center justify-content-between p-3">
+          <div class="alert custom-alert-danger shadow-sm d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 p-3">
             <div class="d-flex align-items-center">
               <i class="bi bi-exclamation-triangle-fill fs-4 text-warning me-3"></i>
               <div>
@@ -172,7 +190,7 @@
                 <span class="text-secondary-custom small">{{ error }}</span>
               </div>
             </div>
-            <button class="btn btn-sm btn-outline-success ms-3" (click)="contactarWhatsAppGeneral('No encontré mi orden')">
+            <button class="btn btn-sm btn-outline-success text-nowrap" (click)="contactarWhatsAppGeneral('No encontré mi orden', 'principal')">
               <i class="bi bi-whatsapp me-1"></i>Consultar por WhatsApp
             </button>
           </div>
@@ -198,7 +216,7 @@
             <article class="card vehicle-order-card shadow-lg mb-4">
               
               <!-- Cabecera de la tarjeta -->
-              <div class="card-header border-0 bg-transparent p-4 pb-2">
+              <div class="card-header border-0 bg-transparent p-3 p-md-4 pb-2">
                 <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
                   
                   <div class="d-flex align-items-center gap-3">
@@ -228,7 +246,7 @@
               </div>
 
               <!-- Cuerpo de la tarjeta -->
-              <div class="card-body p-4 pt-2">
+              <div class="card-body p-3 p-md-4 pt-2">
                 
                 <!-- Barra de Progreso Visual por Etapas -->
                 <div class="timeline-stepper my-3">
@@ -262,7 +280,7 @@
                 </div>
 
                 <!-- Resumen de Datos Clave -->
-                <div class="row g-3 order-info-grid mb-3">
+                <div class="row g-2 g-md-3 order-info-grid mb-3">
                   <div class="col-6 col-md-3">
                     <div class="info-metric-card">
                       <span class="metric-label"><i class="bi bi-hash me-1"></i>N° Orden</span>
@@ -314,9 +332,9 @@
                   <button 
                     type="button" 
                     class="btn btn-whatsapp-action" 
-                    (click)="consultarOrdenPorWhatsApp(r)">
+                    (click)="consultarOrdenPorWhatsApp(r, 'principal')">
                     <i class="bi bi-whatsapp"></i>
-                    <span>Consultar por este vehículo en WhatsApp</span>
+                    <span>Consultar estado por WhatsApp</span>
                   </button>
                 </div>
 
@@ -338,7 +356,7 @@
         <p class="text-secondary-custom max-w-500 mx-auto">
           Verifica que la placa o DNI estén escritos correctamente. Si recién ingresaste tu auto, es posible que el registro se esté completando en breve.
         </p>
-        <button class="btn btn-outline-warning mt-2" (click)="contactarWhatsAppGeneral('Ayuda con búsqueda de orden')">
+        <button class="btn btn-outline-warning mt-2" (click)="contactarWhatsAppGeneral('Ayuda con búsqueda de orden', 'principal')">
           <i class="bi bi-whatsapp me-2"></i>Contactar a Asesor por WhatsApp
         </button>
       </div>
@@ -371,7 +389,7 @@
               <button 
                 type="button" 
                 class="btn-service-action" 
-                (click)="contactarWhatsAppGeneral('Cotizar servicio de ' + srv.titulo)">
+                (click)="contactarWhatsAppGeneral('Cotizar servicio de ' + srv.titulo, 'principal')">
                 <span>Cotizar por WhatsApp</span>
                 <i class="bi bi-arrow-right ms-1"></i>
               </button>
@@ -382,9 +400,9 @@
     </section>
 
     <!-- ==========================================
-         PASOS: CÓMO FUNCIONA EL SEGUIMIENTO
+         SECCIÓN: CÓMO FUNCIONA EL SEGUIMIENTO
          ========================================== -->
-    <section class="workflow-section my-5 py-5">
+    <section class="workflow-section my-5 py-4">
       <div class="card workflow-card border-0 p-4 p-md-5">
         <div class="row align-items-center gy-4">
           
@@ -394,7 +412,7 @@
             <p class="text-secondary-custom mb-4">
               Nuestro taller actualiza cada orden de trabajo inmediatamente después de cada fase: desde la recepción y escaneo OBD-II hasta el control final de calidad.
             </p>
-            <button class="btn btn-warning fw-semibold px-4 py-2" (click)="contactarWhatsAppGeneral('Deseo información de servicios')">
+            <button class="btn btn-warning fw-semibold px-4 py-2" (click)="contactarWhatsAppGeneral('Deseo información de servicios', 'principal')">
               <i class="bi bi-headset me-2"></i>Atención Inmediata
             </button>
           </div>
@@ -429,6 +447,87 @@
             </div>
           </div>
 
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SECCIÓN DE UBICACIÓN Y CANALES OFICIALES DE ATENCIÓN
+         ========================================== -->
+    <section class="location-contact-section my-5 py-4">
+      <div class="text-center mb-5">
+        <span class="badge hero-pill-badge mb-2">Ubicación y Contacto Directo</span>
+        <h2 class="display-6 fw-bold text-white">Encuéntranos y Comunícate con Nosotros</h2>
+        <p class="text-secondary-custom max-w-600 mx-auto">
+          Visita nuestro taller mecánico en Huamanga, Ayacucho o contáctanos de inmediato por cualquiera de nuestras líneas de WhatsApp oficiales.
+        </p>
+      </div>
+
+      <div class="row g-4">
+        <!-- Tarjeta: Línea Principal -->
+        <div class="col-12 col-md-6 col-lg-4">
+          <div class="contact-channel-card h-100 p-4">
+            <div class="channel-header d-flex justify-content-between align-items-start mb-3">
+              <div class="channel-icon-wrap primary">
+                <i class="bi bi-whatsapp"></i>
+              </div>
+              <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">Línea Principal</span>
+            </div>
+            <h4 class="channel-title text-white mb-2">{{ whatsappPrincipalDisplay }}</h4>
+            <p class="channel-desc text-secondary-custom small mb-4">
+              Canal principal para consultas de vehículos en taller, presupuestos, agendamiento de citas y atención al cliente.
+            </p>
+            <div class="mt-auto">
+              <a [href]="'https://wa.me/' + whatsappPrincipal" target="_blank" class="btn btn-whatsapp-action w-100 justify-content-center">
+                <i class="bi bi-whatsapp me-1"></i>Chatear a Línea Principal
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tarjeta: Línea Secundaria -->
+        <div class="col-12 col-md-6 col-lg-4">
+          <div class="contact-channel-card h-100 p-4">
+            <div class="channel-header d-flex justify-content-between align-items-start mb-3">
+              <div class="channel-icon-wrap secondary">
+                <i class="bi bi-headset"></i>
+              </div>
+              <span class="badge bg-info-subtle text-info border border-info-subtle px-2 py-1">Línea Secundaria</span>
+            </div>
+            <h4 class="channel-title text-white mb-2">{{ whatsappSecundarioDisplay }}</h4>
+            <p class="channel-desc text-secondary-custom small mb-4">
+              Canal secundario para soporte técnico, seguimiento de repuestos, urgencias y consultas mecánicas.
+            </p>
+            <div class="mt-auto">
+              <a [href]="'https://wa.me/' + whatsappSecundario" target="_blank" class="btn btn-secondary-action w-100 justify-content-center">
+                <i class="bi bi-whatsapp me-1"></i>Chatear a Línea Secundaria
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tarjeta: Ubicación en Google Maps -->
+        <div class="col-12 col-lg-4">
+          <div class="contact-channel-card location-card h-100 p-4">
+            <div class="channel-header d-flex justify-content-between align-items-start mb-3">
+              <div class="channel-icon-wrap location">
+                <i class="bi bi-geo-alt-fill"></i>
+              </div>
+              <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1">Taller Físico</span>
+            </div>
+            <h4 class="channel-title text-white mb-2">Huamanga, Ayacucho</h4>
+            <p class="channel-desc text-secondary-custom small mb-2">
+              <i class="bi bi-pin-map text-warning me-1"></i>Taller Mecánico Automotriz RUJIM multimarca.
+            </p>
+            <div class="schedule-pill mb-3">
+              <i class="bi bi-clock-fill text-warning me-2"></i><strong>Horario:</strong> Lun - Sáb: 8:00 AM – 6:00 PM
+            </div>
+            <div class="mt-auto">
+              <a [href]="googleMapsUrl" target="_blank" class="btn btn-warning-action w-100 justify-content-center">
+                <i class="bi bi-geo-alt-fill me-1"></i>Abrir en Google Maps
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -472,7 +571,7 @@
     <div class="container py-5">
       <div class="row gy-4">
         
-        <div class="col-md-5">
+        <div class="col-12 col-md-5">
           <div class="d-flex align-items-center gap-2 mb-3">
             <div class="brand-icon-box">
               <i class="bi bi-wrench-adjustable-circle-fill text-warning"></i>
@@ -486,10 +585,13 @@
             Taller mecánico multimarca especializado en mantenimiento preventivo, afinamiento electrónico, rectificación y diagnóstico de fallas complejas.
           </p>
           <div class="d-flex align-items-center gap-2">
-            <a [href]="'https://wa.me/' + whatsappNumber" target="_blank" class="footer-social-btn" title="WhatsApp RUJIM">
+            <a [href]="'https://wa.me/' + whatsappPrincipal" target="_blank" class="footer-social-btn" title="WhatsApp Principal RUJIM">
               <i class="bi bi-whatsapp"></i>
             </a>
-            <a href="javascript:void(0)" class="footer-social-btn" title="Ubicación en Google Maps">
+            <a [href]="'https://wa.me/' + whatsappSecundario" target="_blank" class="footer-social-btn" title="WhatsApp Secundario RUJIM">
+              <i class="bi bi-headset"></i>
+            </a>
+            <a [href]="googleMapsUrl" target="_blank" class="footer-social-btn" title="Ubicación en Google Maps">
               <i class="bi bi-geo-alt-fill"></i>
             </a>
             <a routerLink="/login" class="footer-social-btn" title="Acceso al Sistema">
@@ -498,30 +600,42 @@
           </div>
         </div>
 
-        <div class="col-md-3">
-          <h6 class="text-white fw-bold mb-3">Contacto Directo</h6>
+        <div class="col-12 col-md-3">
+          <h6 class="text-white fw-bold mb-3">Contacto & Ubicación</h6>
           <ul class="list-unstyled text-secondary-custom small mb-0 footer-contact-list">
-            <li><i class="bi bi-geo-alt text-warning me-2"></i>Huamanga, Ayacucho</li>
-            <li><i class="bi bi-telephone text-warning me-2"></i>{{ whatsappDisplay }}</li>
-            <li><i class="bi bi-whatsapp text-success me-2"></i>WhatsApp 24/7 para consultas</li>
+            <li>
+              <a [href]="googleMapsUrl" target="_blank" class="text-secondary-custom text-decoration-none hover-white d-inline-flex align-items-center">
+                <i class="bi bi-geo-alt-fill text-warning me-2"></i>Huamanga, Ayacucho (Ver en Maps)
+              </a>
+            </li>
+            <li>
+              <a [href]="'https://wa.me/' + whatsappPrincipal" target="_blank" class="text-secondary-custom text-decoration-none hover-white d-inline-flex align-items-center">
+                <i class="bi bi-whatsapp text-success me-2"></i>Principal: {{ whatsappPrincipalDisplay }}
+              </a>
+            </li>
+            <li>
+              <a [href]="'https://wa.me/' + whatsappSecundario" target="_blank" class="text-secondary-custom text-decoration-none hover-white d-inline-flex align-items-center">
+                <i class="bi bi-whatsapp text-info me-2"></i>Secundaria: {{ whatsappSecundarioDisplay }}
+              </a>
+            </li>
             <li><i class="bi bi-clock text-warning me-2"></i>Lun - Sáb: 8:00 AM - 6:00 PM</li>
           </ul>
         </div>
 
-        <div class="col-md-4">
+        <div class="col-12 col-md-4">
           <h6 class="text-white fw-bold mb-3">Atención al Cliente</h6>
           <p class="text-secondary-custom small mb-3">
-            ¿Requieres asistencia inmediata para tu vehículo o una cotización formal?
+            ¿Requieres asistencia inmediata para tu vehículo o una cotización formal? Escríbenos a nuestra línea principal.
           </p>
-          <button class="btn btn-whatsapp-action w-100 justify-content-center" (click)="contactarWhatsAppGeneral()">
-            <i class="bi bi-whatsapp"></i>
+          <a [href]="'https://wa.me/' + whatsappPrincipal" target="_blank" class="btn btn-whatsapp-action w-100 justify-content-center">
+            <i class="bi bi-whatsapp me-2"></i>
             <span>Hablar con un Asesor Técnico</span>
-          </button>
+          </a>
         </div>
 
       </div>
 
-      <div class="footer-bottom mt-4 pt-4 border-top border-secondary-subtle d-flex flex-wrap justify-content-between align-items-center small text-secondary-custom">
+      <div class="footer-bottom mt-4 pt-4 border-top border-secondary-subtle d-flex flex-wrap justify-content-between align-items-center gap-2 small text-secondary-custom">
         <div>
           © {{ anioActual }} <strong>Taller Automotriz RUJIM</strong>. Todos los derechos reservados.
         </div>
@@ -538,8 +652,10 @@
        COMPONENTE FLOTANTE DE ATENCIÓN VÍA WHATSAPP
        ========================================== -->
   <app-whatsapp-widget 
-    [phoneNumber]="whatsappNumber" 
-    [displayPhone]="whatsappDisplay" 
+    [primaryPhone]="whatsappPrincipal" 
+    [primaryDisplay]="whatsappPrincipalDisplay"
+    [secondaryPhone]="whatsappSecundario" 
+    [secondaryDisplay]="whatsappSecundarioDisplay" 
     [workshopName]="tallerNombre">
   </app-whatsapp-widget>
 

@@ -20,10 +20,20 @@ export class ConsultaPublicaComponent implements OnInit {
   buscado = false;
   error = '';
 
-  // Configuración WhatsApp
-  whatsappNumber: string = '51977398357';
-  whatsappDisplay: string = '+51 977 398 357';
+  // Configuración WhatsApp Oficial y Ubicación
+  whatsappPrincipal: string = '51972865276';
+  whatsappPrincipalDisplay: string = '+51 972 865 276';
+  whatsappSecundario: string = '51992080854';
+  whatsappSecundarioDisplay: string = '+51 992 080 854';
+  
+  // Compatibilidad
+  whatsappNumber: string = '51972865276';
+  whatsappDisplay: string = '+51 972 865 276';
+  
+  googleMapsUrl: string = 'https://maps.app.goo.gl/XFa6bnijnWyTobNY7';
   tallerNombre: string = 'Taller Automotriz RUJIM';
+  tallerDireccion: string = 'Huamanga, Ayacucho - Perú';
+  tallerHorario: string = 'Lunes a Sábado: 8:00 AM – 6:00 PM';
 
   anioActual: number = new Date().getFullYear();
 
@@ -228,18 +238,24 @@ export class ConsultaPublicaComponent implements OnInit {
     }
   }
 
-  consultarOrdenPorWhatsApp(r: any): void {
-    const texto = `Hola Taller Automotriz RUJIM 👋. Mi nombre es *${r.cliente || 'Cliente'}* y deseo consultar información sobre mi vehículo *${r.vehiculo}* (Placa: *${r.placa}*), correspondiente a la Orden de Servicio *#${r.orden}*. El estado actual es: *${this.getEstado(r.estado).label}*. ¡Gracias!`;
-    const url = `https://wa.me/${this.whatsappNumber}?text=${encodeURIComponent(texto)}`;
+  consultarOrdenPorWhatsApp(r: any, linea: 'principal' | 'secundaria' = 'principal'): void {
+    const phone = linea === 'principal' ? this.whatsappPrincipal : this.whatsappSecundario;
+    const texto = `Hola Taller Automotriz RUJIM 👋. Mi nombre es *${r.cliente || 'Cliente'}* y deseo consultar información sobre mi vehículo *${r.vehiculo}* (Placa: *${r.placa}*), correspondiente a la Orden de Servicio *#${r.orden}*. El estado actual es: *${this.getEstado(r.estado).label}*. ¡Muchas gracias!`;
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(texto)}`;
     window.open(url, '_blank');
   }
 
-  contactarWhatsAppGeneral(motivo?: string): void {
+  contactarWhatsAppGeneral(motivo?: string, linea: 'principal' | 'secundaria' = 'principal'): void {
+    const phone = linea === 'principal' ? this.whatsappPrincipal : this.whatsappSecundario;
     const texto = motivo 
       ? `Hola Taller Automotriz RUJIM 👋, deseo consultar sobre: ${motivo}.`
-      : 'Hola Taller Automotriz RUJIM 👋, quisiera consultar información sobre sus servicios mecánicos.';
-    const url = `https://wa.me/${this.whatsappNumber}?text=${encodeURIComponent(texto)}`;
+      : 'Hola Taller Automotriz RUJIM 👋, quisiera consultar información sobre sus servicios y atención mecánica.';
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(texto)}`;
     window.open(url, '_blank');
+  }
+
+  abrirGoogleMaps(): void {
+    window.open(this.googleMapsUrl, '_blank');
   }
 
   toggleFaq(item: any): void {

@@ -138,9 +138,112 @@
   font-size: 0.85rem;
 }
 
-.btn-close-chat:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: rotate(90deg);
+/* Selector de Línea */
+.line-selector-bar {
+  background: #111722;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 8px 12px;
+}
+
+.line-selector-title {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.line-pill-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.line-pill-btn {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 6px 8px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.line-pill-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(37, 211, 102, 0.4);
+}
+
+.line-pill-btn.active {
+  background: rgba(37, 211, 102, 0.12);
+  border-color: #25D366;
+  box-shadow: 0 0 10px rgba(37, 211, 102, 0.2);
+}
+
+.line-tag {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.line-tag.principal {
+  color: #25D366;
+}
+
+.line-tag.secundaria {
+  color: #38bdf8;
+}
+
+.line-number {
+  font-size: 0.73rem;
+  font-weight: 700;
+  color: #f8fafc;
+  white-space: nowrap;
+}
+
+.badge-line-indicator {
+  font-size: 0.62rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(37, 211, 102, 0.15);
+  color: #25D366;
+  margin-left: 6px;
+  font-weight: 700;
+}
+
+.badge-line-indicator.sec {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+}
+
+.direct-lines-box {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.direct-line-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 0.76rem;
+  color: #e2e8f0;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.2s;
+}
+
+.direct-line-link:hover {
+  background: rgba(37, 211, 102, 0.12);
+  border-color: rgba(37, 211, 102, 0.3);
+  color: #ffffff;
 }
 
 /* Body */
