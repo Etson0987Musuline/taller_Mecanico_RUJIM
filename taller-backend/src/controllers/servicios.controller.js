@@ -15,6 +15,22 @@ const getServicios = async (req, res) => {
   }
 };
 
+const getServiciosPublicos = async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('servicios')
+      .select('*')
+      .eq('activo', true)
+      .order('nombre');
+
+    if (error) throw error;
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ mensaje: 'Error al obtener servicios públicos' });
+  }
+};
+
 const createServicio = async (req, res) => {
   const { nombre, descripcion, precio_base, categoria } = req.body;
   if (!nombre) return res.status(400).json({ mensaje: 'El nombre es requerido' });
@@ -83,4 +99,4 @@ const toggleActivo = async (req, res) => {
   }
 };
 
-module.exports = { getServicios, createServicio, updateServicio, toggleActivo };
+module.exports = { getServicios, getServiciosPublicos, createServicio, updateServicio, toggleActivo };

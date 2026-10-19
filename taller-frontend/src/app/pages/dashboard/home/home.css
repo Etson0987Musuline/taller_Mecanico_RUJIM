@@ -2,31 +2,46 @@
   padding: 0.25rem 0;
 }
 
+/* Animación de giro para botón de refrescar */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spin-anim {
+  display: inline-block;
+  animation: spin 0.8s linear infinite;
+}
+
+.busqueda-placa-box {
+  width: 250px;
+}
+
 /* Barra de Acciones Rápidas */
 .quick-actions-bar {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 1rem;
 }
 
 .quick-action-btn {
   background: #ffffff;
   border-radius: 12px;
-  padding: 1rem 1.25rem;
+  padding: 0.95rem 1.15rem;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.9rem;
   text-decoration: none;
-  color: #212529;
-  border: 1px solid #edf2f7;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 10px rgba(15, 23, 42, 0.03);
   transition: all 0.2s ease-in-out;
 }
 
 .quick-action-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
-  border-color: #cbd5e0;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+  border-color: #cbd5e1;
 }
 
 .action-icon {
@@ -40,10 +55,10 @@
   font-size: 1.35rem;
 }
 
-.action-orden .action-icon   { background: #fff8e1; color: #f59e0b; }
-.action-venta .action-icon   { background: #eff6ff; color: #3b82f6; }
-.action-cliente .action-icon { background: #f0fdf4; color: #10b981; }
-.action-factura .action-icon { background: #faf5ff; color: #8b5cf6; }
+.action-orden .action-icon    { background: #eff6ff; color: #2563eb; }
+.action-venta .action-icon    { background: #ecfdf5; color: #059669; }
+.action-repuesto .action-icon { background: #fffbeb; color: #d97706; }
+.action-factura .action-icon  { background: #fdf2f8; color: #db2777; }
 
 .action-text {
   display: flex;
@@ -52,68 +67,281 @@
 
 .action-title {
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   line-height: 1.2;
+  color: #0f172a !important;
 }
 
 .action-desc {
-  font-size: 0.75rem;
-  color: #64748b;
+  font-size: 0.76rem;
+  color: #64748b !important;
   margin-top: 2px;
 }
 
-/* Tarjetas de estadísticas */
+/* ══════════════════════════════════════════════════════════ */
+/* TARJETAS DE MÉTRICAS KPI (VENTA DIARIA, MENSUAL, INVENTARIO) */
+/* ══════════════════════════════════════════════════════════ */
 .stat-card {
   background: #ffffff;
   border-radius: 14px;
   padding: 1.25rem;
   display: flex;
-  align-items: center;
-  gap: 1rem;
+  flex-direction: column;
+  justify-content: space-between;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  border: 1px solid #f1f5f9;
+  border: 1px solid #eef2f6;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+  overflow: hidden;
 }
 
 .stat-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.07);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.07);
 }
 
-.stat-card-success {
+.stat-card-diaria {
   border-left: 4px solid #10b981;
 }
 
-.stat-card-ingresos {
+.stat-card-mensual {
+  border-left: 4px solid #3b82f6;
+}
+
+.stat-card-inventario {
   border-left: 4px solid #f59e0b;
 }
 
-.stat-icon {
-  width: 50px;
-  height: 50px;
-  min-width: 50px;
-  border-radius: 12px;
+.stat-card-ordenes {
+  border-left: 4px solid #64748b;
+}
+
+.stat-icon-mini {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
-}
-
-.stat-info {
-  display: flex;
-  flex-direction: column;
+  font-size: 1rem;
 }
 
 .stat-value {
   font-size: 1.65rem;
   font-weight: 800;
-  line-height: 1.1;
-  color: #0f172a;
+  line-height: 1.15;
+  letter-spacing: -0.5px;
 }
 
-.stat-label {
-  font-size: 0.78rem;
+.stat-subdetail {
+  font-size: 0.8rem;
   color: #64748b;
-  font-weight: 500;
-  margin-top: 4px;
+}
+
+.stat-breakdown {
+  font-size: 0.75rem;
+}
+
+/* ══════════════════════════════════════════════════════════ */
+/* MÓDULO DE PRECIOS Y PRODUCTOS */
+/* ══════════════════════════════════════════════════════════ */
+.modulo-precios-card {
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+}
+
+.tabla-precios thead th {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  padding: 0.85rem 1rem;
+}
+
+.tabla-precios tbody td {
+  padding: 0.8rem 1rem;
+  font-size: 0.875rem;
+}
+
+.producto-avatar {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+/* ══════════════════════════════════════════════════════════ */
+/* GRÁFICO DE BARRAS DE VENTAS (ÚLTIMOS 7 DÍAS) */
+/* ══════════════════════════════════════════════════════════ */
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.chart-container {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  height: 220px;
+  padding-top: 40px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.chart-bar-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  flex: 1;
+  max-width: 60px;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.chart-bar-wrapper {
+  width: 28px;
+  height: 140px;
+  background: #f1f5f9;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.chart-bar-col:hover .chart-bar-wrapper {
+  transform: scaleY(1.02);
+  filter: brightness(1.08);
+}
+
+.chart-bar-segment {
+  width: 100%;
+  transition: height 0.3s ease;
+}
+
+.segment-mostrador {
+  background: #f59e0b; /* Mostrador - ámbar */
+}
+
+.segment-taller {
+  background: #2563eb; /* Taller - azul */
+}
+
+.segment-empty {
+  background: #e2e8f0;
+}
+
+.chart-bar-col:hover .chart-amount-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(-5px);
+}
+
+.chart-amount-tooltip {
+  position: absolute;
+  top: -38px;
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  background: #0f172a;
+  color: #ffffff;
+  padding: 4px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  font-size: 0.72rem;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  z-index: 10;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.chart-amount-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 4px;
+  border-style: solid;
+  border-color: #0f172a transparent transparent transparent;
+}
+
+.chart-bar-label {
+  font-size: 0.75rem;
+  color: #64748b;
+  text-align: center;
+}
+
+/* ══════════════════════════════════════════════════════════ */
+/* MÉTODOS DE PAGO */
+/* ══════════════════════════════════════════════════════════ */
+.progress-sm {
+  height: 6px;
+  border-radius: 10px;
+  background-color: #f1f5f9;
+}
+
+.bg-purple {
+  background-color: #8b5cf6 !important;
+}
+
+.text-purple {
+  color: #8b5cf6 !important;
+}
+
+/* ══════════════════════════════════════════════════════════ */
+/* TOAST FLOTANTE */
+/* ══════════════════════════════════════════════════════════ */
+.toast-flotante {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #0f172a;
+  color: #ffffff;
+  padding: 12px 20px;
+  border-radius: 30px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  z-index: 1060;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+  .chart-bar-wrapper {
+    width: 20px;
+  }
+  .stat-value {
+    font-size: 1.35rem;
+  }
+  .busqueda-placa-box {
+    width: 100%;
+  }
 }

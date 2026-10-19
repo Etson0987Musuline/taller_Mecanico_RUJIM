@@ -324,49 +324,187 @@ const updateManoObra = async (req, res) => {
 
 const getEstadisticas = async (req, res) => {
   try {
-    const { data: ordenesData } = await supabase.from('ordenes_trabajo').select('estado');
+    const now = new Date();
+
+    // Rango de fechas
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0).toISOString();
+    const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999).toISOString();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0).toISOString();
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999).toISOString();
+    const sieteDiasAtras = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6, 0, 0, 0, 0).toISOString();
+
+    // Consultas paralelas a Supabase
+    const [
+      { data: ordenesData },
+      { count: totalClientes },
+      { count: totalVehiculos },
+      { count: totalStockBajo },
+      { data: facturasMes },
+      { data: facturasHoy },
+      { data: ventasMes },
+      { data: ventasHoy },
+      { data: pagosMes },
+      { data: repuestosData },
+      { data: ultimasOrdenes },
+      { data: ultimasVentas },
+      { data: facturasSieteDias },
+      { data: ventasSieteDias }
+    ] = await Promise.all([
+      supabase.from('ordenes_trabajo').select('estado'),
+      supabase.from('clientes').select('*', { count: 'exact', head: true }),
+      supabase.from('vehiculos').select('*', { count: 'exact', head: true }),
+      supabase.from('v_stock_bajo').select('*', { count: 'exact', head: true }),
+      supabase.from('facturas').select('id, total, fecha_emision').gte('fecha_emision', startOfMonth).lte('fecha_emision', endOfMonth),
+      supabase.from('facturas').select('id, total, fecha_emision').gte('fecha_emision', startOfToday).lte('fecha_emision', endOfToday),
+      supabase.from('ventas').select('id, numero, total, metodo_pago, created_at').gte('created_at', startOfMonth).lte('created_at', endOfMonth),
+      supabase.from('ventas').select('id, numero, total, metodo_pago, created_at').gte('created_at', startOfToday).lte('created_at', endOfToday),
+      supabase.from('pagos').select('monto, metodo, fecha_pago').gte('fecha_pago', startOfMonth).lte('fecha_pago', endOfMonth),
+      supabase.from('repuestos').select('id, codigo, nombre, categoria, stock, stock_minimo, precio_compra, precio_venta, precio_mayor, moneda').eq('activo', true),
+      supabase.from('v_ordenes_resumen').select('*').order('fecha_ingreso', { ascending: false }).limit(6),
+      supabase.from('ventas').select('id, numero, cliente_nombre, total, metodo_pago, created_at').order('created_at', { ascending: false }).limit(6),
+      supabase.from('facturas').select('total, fecha_emision').gte('fecha_emision', sieteDiasAtras),
+      supabase.from('ventas').select('total, created_at').gte('created_at', sieteDiasAtras)
+    ]);
+
+    // Resumen de órdenes
     const ordenesList = ordenesData || [];
     const ordenes = {
       total: ordenesList.length,
       recibido: ordenesList.filter(o => o.estado === 'recibido').length,
+      diagnostico: ordenesList.filter(o => o.estado === 'diagnostico').length,
       en_reparacion: ordenesList.filter(o => o.estado === 'en_reparacion').length,
+      espera_repuestos: ordenesList.filter(o => o.estado === 'espera_repuestos').length,
       listo: ordenesList.filter(o => o.estado === 'listo').length,
-      entregado: ordenesList.filter(o => o.estado === 'entregado').length
+      entregado: ordenesList.filter(o => o.estado === 'entregado').length,
+      cancelado: ordenesList.filter(o => o.estado === 'cancelado').length,
+      en_proceso: ordenesList.filter(o => ['recibido', 'diagnostico', 'en_reparacion', 'espera_repuestos'].includes(o.estado)).length
     };
 
-    const { count: totalClientes } = await supabase.from('clientes').select('*', { count: 'exact', head: true });
-    const { count: totalVehiculos } = await supabase.from('vehiculos').select('*', { count: 'exact', head: true });
-    const { count: totalStockBajo } = await supabase.from('v_stock_bajo').select('*', { count: 'exact', head: true });
+    // Venta Diaria (Taller + Mostrador)
+    const tallerHoy = (facturasHoy || []).reduce((acc, f) => acc + (parseFloat(f.total) || 0), 0);
+    const mostradorHoy = (ventasHoy || []).reduce((acc, v) => acc + (parseFloat(v.total) || 0), 0);
+    const totalHoy = tallerHoy + mostradorHoy;
+    const cantHoy = (facturasHoy || []).length + (ventasHoy || []).length;
+    const ventaDiaria = {
+      total: Math.round(totalHoy * 100) / 100,
+      taller: Math.round(tallerHoy * 100) / 100,
+      mostrador: Math.round(mostradorHoy * 100) / 100,
+      cantidad: cantHoy,
+      cantTaller: (facturasHoy || []).length,
+      cantMostrador: (ventasHoy || []).length
+    };
 
-    // Ingresos del mes
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
+    // Venta Mensual (Taller + Mostrador)
+    const tallerMes = (facturasMes || []).reduce((acc, f) => acc + (parseFloat(f.total) || 0), 0);
+    const mostradorMes = (ventasMes || []).reduce((acc, v) => acc + (parseFloat(v.total) || 0), 0);
+    const totalMes = tallerMes + mostradorMes;
+    const cantMes = (facturasMes || []).length + (ventasMes || []).length;
+    const ventaMensual = {
+      total: Math.round(totalMes * 100) / 100,
+      taller: Math.round(tallerMes * 100) / 100,
+      mostrador: Math.round(mostradorMes * 100) / 100,
+      cantidad: cantMes,
+      cantTaller: (facturasMes || []).length,
+      cantMostrador: (ventasMes || []).length,
+      ticketPromedio: cantMes > 0 ? Math.round((totalMes / cantMes) * 100) / 100 : 0
+    };
 
-    const { data: facturasMes } = await supabase
-      .from('facturas')
-      .select('total')
-      .gte('fecha_emision', startOfMonth)
-      .lte('fecha_emision', endOfMonth);
+    // Inventario y Precios de Productos
+    const repuestos = repuestosData || [];
+    let valorInventarioVenta = 0;
+    let valorInventarioCosto = 0;
+    let sinStockCount = 0;
+    let criticoCount = 0;
 
-    const ingresosTotal = (facturasMes || []).reduce((acc, f) => acc + (parseFloat(f.total) || 0), 0);
+    for (const r of repuestos) {
+      const s = r.stock || 0;
+      const pv = parseFloat(r.precio_venta) || 0;
+      const pc = parseFloat(r.precio_compra) || 0;
+      if (s <= 0) {
+        sinStockCount++;
+      } else {
+        valorInventarioVenta += s * pv;
+        valorInventarioCosto += s * pc;
+        if (s <= (r.stock_minimo || 5)) {
+          criticoCount++;
+        }
+      }
+    }
 
-    const { data: ultimasOrdenes } = await supabase
-      .from('v_ordenes_resumen')
-      .select('*')
-      .order('fecha_ingreso', { ascending: false })
-      .limit(5);
+    const inventario = {
+      totalProductos: repuestos.length,
+      valorInventarioVenta: Math.round(valorInventarioVenta * 100) / 100,
+      valorInventarioCosto: Math.round(valorInventarioCosto * 100) / 100,
+      margenPotencial: Math.round((valorInventarioVenta - valorInventarioCosto) * 100) / 100,
+      sinStock: sinStockCount,
+      critico: criticoCount,
+      conStock: repuestos.length - sinStockCount
+    };
+
+    // Métodos de pago (Mes)
+    const metodosPago = { efectivo: 0, yape: 0, plin: 0, tarjeta: 0, transferencia: 0 };
+    for (const v of (ventasMes || [])) {
+      const m = (v.metodo_pago || 'efectivo').toLowerCase();
+      if (metodosPago[m] !== undefined) {
+        metodosPago[m] += parseFloat(v.total) || 0;
+      } else {
+        metodosPago.efectivo += parseFloat(v.total) || 0;
+      }
+    }
+    for (const p of (pagosMes || [])) {
+      const m = (p.metodo || 'efectivo').toLowerCase();
+      if (metodosPago[m] !== undefined) {
+        metodosPago[m] += parseFloat(p.monto) || 0;
+      } else {
+        metodosPago.efectivo += parseFloat(p.monto) || 0;
+      }
+    }
+    // Redondear métodos
+    Object.keys(metodosPago).forEach(k => {
+      metodosPago[k] = Math.round(metodosPago[k] * 100) / 100;
+    });
+
+    // Gráfico de los últimos 7 días
+    const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    const ultimos7Dias = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+      const dayStr = d.toISOString().slice(0, 10);
+      const label = i === 0 ? 'Hoy' : `${diasSemana[d.getDay()]} ${d.getDate()}`;
+
+      const tD = (facturasSieteDias || [])
+        .filter(f => (f.fecha_emision || '').startsWith(dayStr))
+        .reduce((acc, f) => acc + (parseFloat(f.total) || 0), 0);
+
+      const mD = (ventasSieteDias || [])
+        .filter(v => (v.created_at || '').startsWith(dayStr))
+        .reduce((acc, v) => acc + (parseFloat(v.total) || 0), 0);
+
+      ultimos7Dias.push({
+        fecha: dayStr,
+        label,
+        taller: Math.round(tD * 100) / 100,
+        mostrador: Math.round(mD * 100) / 100,
+        total: Math.round((tD + mD) * 100) / 100
+      });
+    }
 
     res.json({
       ordenes,
       clientes: totalClientes || 0,
       vehiculos: totalVehiculos || 0,
       stockBajo: totalStockBajo || 0,
-      ingresosMes: ingresosTotal,
-      ultimasOrdenes: ultimasOrdenes || []
+      ingresosMes: totalMes, // Retrocompatible
+      ventaDiaria,
+      ventaMensual,
+      inventario,
+      metodosPago,
+      ultimos7Dias,
+      ultimasOrdenes: ultimasOrdenes || [],
+      ultimasVentas: ultimasVentas || []
     });
   } catch (err) {
-    console.error(err);
+    console.error('Error al obtener estadísticas del dashboard:', err);
     res.status(500).json({ mensaje: 'Error al obtener estadísticas' });
   }
 };

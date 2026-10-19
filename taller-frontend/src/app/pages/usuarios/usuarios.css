@@ -1,18 +1,28 @@
 .usuario-card {
-  background: #fff;
-  border-radius: 14px;
-  padding: 1.25rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-  transition: transform 0.15s;
-  border: 1px solid transparent;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 1.35rem;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid #e2e8f0;
 }
 
-.usuario-card:hover { transform: translateY(-2px); }
+.usuario-card:hover {
+  transform: translateY(-3px);
+  border-color: #cbd5e1;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+}
+
+.usuario-card .fw-bold {
+  color: #0f172a !important;
+  font-size: 1rem;
+}
 
 .usuario-card.inactivo {
-  opacity: 0.6;
-  border-color: #dee2e6;
-  background: #f8f9fa;
+  opacity: 0.75;
+  border-color: #cbd5e1;
+  border-style: dashed;
+  background: #f8fafc;
 }
 
 .avatar-lg {

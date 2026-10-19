@@ -1,30 +1,6 @@
 <div class="consulta-wrapper min-vh-100 d-flex flex-column">
 
   <!-- ==========================================
-       BARRA SUPERIOR DE CONTACTO RÁPIDO
-       ========================================== -->
-  <div class="top-info-bar py-2 px-3">
-    <div class="container d-flex flex-wrap justify-content-between align-items-center gap-2 small">
-      <div class="d-flex align-items-center flex-wrap gap-2 gap-md-3 text-secondary-custom">
-        <a [href]="googleMapsUrl" target="_blank" class="top-map-link" title="Ver ubicación en Google Maps">
-          <i class="bi bi-geo-alt-fill text-warning me-1"></i>Huamanga, Ayacucho - Perú
-        </a>
-        <span class="divider-dot d-none d-sm-inline">•</span>
-        <span class="d-none d-sm-inline"><i class="bi bi-clock-fill text-warning me-1"></i>Lun - Sáb: 8:00 AM – 6:00 PM</span>
-      </div>
-      <div class="d-flex align-items-center flex-wrap gap-2 gap-md-3">
-        <a [href]="'https://wa.me/' + whatsappPrincipal" target="_blank" class="top-contact-link" title="WhatsApp Principal">
-          <i class="bi bi-whatsapp text-success me-1"></i><span class="d-none d-lg-inline">Principal: </span><strong>{{ whatsappPrincipalDisplay }}</strong>
-        </a>
-        <span class="divider-dot d-none d-md-inline">•</span>
-        <a [href]="'https://wa.me/' + whatsappSecundario" target="_blank" class="top-contact-link secondary-link" title="WhatsApp Secundario">
-          <i class="bi bi-whatsapp text-info me-1"></i><span class="d-none d-lg-inline">Secundaria: </span><strong>{{ whatsappSecundarioDisplay }}</strong>
-        </a>
-      </div>
-    </div>
-  </div>
-
-  <!-- ==========================================
        NAVBAR PRINCIPAL
        ========================================== -->
   <nav class="navbar navbar-expand-lg navbar-dark site-nav sticky-top">
@@ -43,22 +19,6 @@
 
       <!-- Acciones de cabecera -->
       <div class="d-flex align-items-center gap-2 ms-auto">
-        <!-- Botón de WhatsApp Principal -->
-        <a [href]="'https://wa.me/' + whatsappPrincipal" target="_blank" 
-           class="btn btn-outline-success btn-sm d-inline-flex align-items-center gap-1 nav-whatsapp-btn"
-           title="Escribir al WhatsApp Principal">
-          <i class="bi bi-whatsapp"></i>
-          <span class="d-none d-sm-inline">WhatsApp</span>
-        </a>
-
-        <!-- Botón Ubicación Maps -->
-        <a [href]="googleMapsUrl" target="_blank" 
-           class="btn btn-outline-warning btn-sm d-none d-md-inline-flex align-items-center gap-1 nav-map-btn" 
-           title="Ver taller en Google Maps">
-          <i class="bi bi-geo-alt-fill"></i>
-          <span>Ubicación</span>
-        </a>
-
         <!-- Botón Acceso Personal -->
         <a routerLink="/login" class="btn btn-outline-light btn-sm d-inline-flex align-items-center gap-1 nav-login-btn">
           <i class="bi bi-box-arrow-in-right"></i>
@@ -363,40 +323,195 @@
     }
 
     <!-- ==========================================
-         SECCIÓN DE SERVICIOS DESTACADOS
+         SECCIÓN DE SERVICIOS DEL TALLER (MÓDULO DE SERVICIOS)
          ========================================== -->
-    <section class="services-section mt-5 pt-3">
-      <div class="text-center mb-5">
+    <section class="services-section mt-5 pt-3" id="catalogo-servicios">
+      <div class="text-center mb-4">
         <span class="badge hero-pill-badge mb-2">Servicios Técnicos Especializados</span>
         <h2 class="display-6 fw-bold text-white">Excelencia en Cada Reparación</h2>
         <p class="text-secondary-custom max-w-600 mx-auto">
-          Contamos con infraestructura moderna, herramientas de diagnóstico computarizado y repuestos de alta durabilidad en Huamanga, Ayacucho.
+          Catálogo oficial con tarifas base actualizadas. Infraestructura moderna, herramientas de diagnóstico computarizado y garantía en Huamanga, Ayacucho.
         </p>
       </div>
 
-      <div class="row g-4">
-        @for (srv of serviciosDestacados; track srv.titulo) {
-          <div class="col-md-6 col-lg-4">
-            <div class="service-feature-card h-100 p-4">
-              <div class="d-flex justify-content-between align-items-start mb-3">
-                <div class="service-icon-wrap">
-                  <i class="bi {{ srv.icono }}"></i>
-                </div>
-                <span class="service-tag">{{ srv.tag }}</span>
+      <!-- Barra de Control Exclusiva para Administrador -->
+      @if (rol.isAdmin()) {
+        <div class="admin-services-control-bar p-3 rounded-3 mb-4 mx-auto shadow-sm">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge bg-warning text-dark px-2 py-1 fw-bold">
+                <i class="bi bi-shield-lock-fill me-1"></i>Modo Administrador
+              </span>
+              <span class="text-secondary-custom small">
+                Puedes activar o desactivar la visibilidad de los servicios para los clientes en tiempo real.
+              </span>
+            </div>
+
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <div class="btn-group btn-group-sm">
+                <button 
+                  type="button" 
+                  class="btn" 
+                  [class.btn-warning]="filtroEstadoAdmin === 'todos'"
+                  [class.btn-outline-secondary]="filtroEstadoAdmin !== 'todos'"
+                  (click)="setFiltroEstadoAdmin('todos')">
+                  Todos ({{ servicios.length }})
+                </button>
+                <button 
+                  type="button" 
+                  class="btn" 
+                  [class.btn-success]="filtroEstadoAdmin === 'activos'"
+                  [class.btn-outline-secondary]="filtroEstadoAdmin !== 'activos'"
+                  (click)="setFiltroEstadoAdmin('activos')">
+                  Activos ({{ totalServiciosActivos }})
+                </button>
+                <button 
+                  type="button" 
+                  class="btn" 
+                  [class.btn-secondary]="filtroEstadoAdmin === 'inactivos'"
+                  [class.btn-outline-secondary]="filtroEstadoAdmin !== 'inactivos'"
+                  (click)="setFiltroEstadoAdmin('inactivos')">
+                  Inactivos ({{ totalServiciosInactivos }})
+                </button>
               </div>
-              <h4 class="service-card-title text-white mb-2">{{ srv.titulo }}</h4>
-              <p class="service-card-desc text-secondary-custom mb-3">{{ srv.desc }}</p>
-              <button 
-                type="button" 
-                class="btn-service-action" 
-                (click)="contactarWhatsAppGeneral('Cotizar servicio de ' + srv.titulo, 'principal')">
-                <span>Cotizar por WhatsApp</span>
-                <i class="bi bi-arrow-right ms-1"></i>
-              </button>
+
+              <a routerLink="/dashboard/servicios" class="btn btn-outline-warning btn-sm">
+                <i class="bi bi-gear-fill me-1"></i>Gestionar en Panel
+              </a>
             </div>
           </div>
-        }
-      </div>
+        </div>
+      }
+
+      <!-- Filtro por Categorías -->
+      @if (categoriasServicios.length > 1) {
+        <div class="d-flex justify-content-center flex-wrap gap-2 mb-4">
+          <button 
+            type="button" 
+            class="service-filter-pill" 
+            [class.active]="filtroCategoria === 'todas'"
+            (click)="setFiltroCategoria('todas')">
+            Todos
+          </button>
+          @for (cat of categoriasServicios; track cat) {
+            <button 
+              type="button" 
+              class="service-filter-pill" 
+              [class.active]="filtroCategoria === cat"
+              (click)="setFiltroCategoria(cat)">
+              {{ cat }}
+            </button>
+          }
+        </div>
+      }
+
+      <!-- Indicador de Carga -->
+      @if (cargandoServicios) {
+        <div class="text-center py-5">
+          <div class="spinner-border text-warning" role="status">
+            <span class="visually-hidden">Cargando servicios...</span>
+          </div>
+          <p class="text-secondary-custom small mt-2">Cargando catálogo de servicios...</p>
+        </div>
+      }
+
+      <!-- Lista de Servicios Dinámicos -->
+      @if (!cargandoServicios && serviciosFiltrados.length > 0) {
+        <div class="row g-4">
+          @for (srv of serviciosFiltrados; track srv.id) {
+            <div class="col-md-6 col-lg-4">
+              <div class="service-feature-card h-100 p-4 d-flex flex-column" [class.service-card-inactive]="!srv.activo">
+                
+                <!-- Encabezado de la Tarjeta -->
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                  <div class="service-icon-wrap" [class.inactive]="!srv.activo">
+                    <i class="bi {{ getIconoServicio(srv.nombre, srv.categoria) }}"></i>
+                  </div>
+                  
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="service-tag">{{ srv.categoria || 'Servicio Taller' }}</span>
+
+                    <!-- Badge de Estado Admin -->
+                    @if (rol.isAdmin()) {
+                      <span class="badge" [class.bg-success]="srv.activo" [class.bg-secondary]="!srv.activo">
+                        {{ srv.activo ? 'Activo' : 'Inactivo' }}
+                      </span>
+                    }
+                  </div>
+                </div>
+
+                <!-- Nombre y Descripción -->
+                <h4 class="service-card-title text-white mb-2">{{ srv.nombre }}</h4>
+                <p class="service-card-desc text-secondary-custom mb-3 flex-grow-1">
+                  {{ srv.descripcion || 'Servicio automotriz profesional con diagnóstico, calibración e insumos de alta durabilidad.' }}
+                </p>
+
+                <!-- Tarifa Base / Precio -->
+                <div class="service-price-box p-3 rounded-3 mb-3 d-flex justify-content-between align-items-center">
+                  <div>
+                    <span class="text-secondary-custom small d-block">Precio base</span>
+                    <strong class="service-price-amount text-warning fs-4">
+                      S/ {{ srv.precio_base | number:'1.2-2' }}
+                    </strong>
+                  </div>
+                  <span class="badge bg-dark-subtle text-warning border border-warning-subtle small px-2 py-1">
+                    <i class="bi bi-shield-check me-1"></i>Garantizado
+                  </span>
+                </div>
+
+                <!-- Acciones -->
+                <div class="d-flex flex-column gap-2 mt-auto">
+                  <!-- Botón Cotizar por WhatsApp -->
+                  <button 
+                    type="button" 
+                    class="btn-service-action" 
+                    (click)="cotizarServicioPorWhatsApp(srv)">
+                    <i class="bi bi-whatsapp text-success me-1"></i>
+                    <span>Cotizar por WhatsApp</span>
+                    <i class="bi bi-arrow-right ms-auto"></i>
+                  </button>
+
+                  <!-- Botón Activar / Desactivar Exclusivo para Administrador -->
+                  @if (rol.isAdmin()) {
+                    <button 
+                      type="button" 
+                      class="btn btn-sm d-flex align-items-center justify-content-center gap-1 admin-toggle-btn"
+                      [class.btn-outline-danger]="srv.activo"
+                      [class.btn-outline-success]="!srv.activo"
+                      [disabled]="guardandoEstadoId === srv.id"
+                      (click)="toggleActivoServicio(srv)">
+                      @if (guardandoEstadoId === srv.id) {
+                        <span class="spinner-border spinner-border-sm"></span>
+                        <span>Guardando...</span>
+                      } @else {
+                        <i class="bi" [class.bi-slash-circle]="srv.activo" [class.bi-check-circle]="!srv.activo"></i>
+                        <span>{{ srv.activo ? 'Desactivar Servicio' : 'Activar Servicio' }}</span>
+                      }
+                    </button>
+                  }
+                </div>
+
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Sin resultados -->
+      @if (!cargandoServicios && serviciosFiltrados.length === 0) {
+        <div class="text-center py-5 empty-search-state">
+          <div class="empty-icon-circle mx-auto mb-3">
+            <i class="bi bi-tools text-secondary"></i>
+          </div>
+          <h4 class="text-white">No hay servicios disponibles en esta categoría</h4>
+          <p class="text-secondary-custom max-w-500 mx-auto">
+            Por el momento no se registran servicios activos con el filtro seleccionado.
+          </p>
+          <button class="btn btn-outline-warning mt-2" (click)="contactarWhatsAppGeneral('Consulta sobre catálogo de servicios', 'principal')">
+            <i class="bi bi-whatsapp me-2"></i>Consultar con un Asesor por WhatsApp
+          </button>
+        </div>
+      }
     </section>
 
     <!-- ==========================================

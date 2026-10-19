@@ -5,7 +5,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const rutasPublicas = [
     '/auth/login',
     '/seguimiento/',
-    '/consulta-doc/'
+    '/consulta-doc/',
+    '/servicios/publicos'
   ];
 
   const esPublica = rutasPublicas.some(r => req.url.includes(r));

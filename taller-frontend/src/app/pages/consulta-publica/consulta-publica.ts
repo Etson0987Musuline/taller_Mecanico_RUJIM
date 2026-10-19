@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { SeguimientoService } from '../../core/services/seguimiento.service';
+import { ServiciosService } from '../../core/services/servicios.service';
+import { RolService } from '../../core/services/rol.service';
 import { WhatsappWidgetComponent } from '../../shared/components/whatsapp-widget/whatsapp-widget';
 
 @Component({
@@ -97,44 +99,12 @@ export class ConsultaPublicaComponent implements OnInit {
     { num: 5, key: 'entregado', label: 'Entregado' }
   ];
 
-  serviciosDestacados = [
-    {
-      titulo: 'Mantenimiento Preventivo',
-      icono: 'bi-wrench-adjustable',
-      desc: 'Cambio de aceite, filtros, bujías y revisión general por kilometraje.',
-      tag: 'Esencial'
-    },
-    {
-      titulo: 'Diagnóstico Computarizado',
-      icono: 'bi-cpu',
-      desc: 'Escaneo con tecnología OBD-II de última generación para todas las marcas.',
-      tag: 'Alta Precisión'
-    },
-    {
-      titulo: 'Motor y Transmisión',
-      icono: 'bi-gear-wide-connected',
-      desc: 'Reparación y ajuste integral de motores a gasolina, diésel y cajas de cambios.',
-      tag: 'Especialistas'
-    },
-    {
-      titulo: 'Frenos y Suspensión',
-      icono: 'bi-disc',
-      desc: 'Rectificación de discos, cambio de pastillas, amortiguadores y terminales.',
-      tag: 'Seguridad'
-    },
-    {
-      titulo: 'Sistema Eléctrico y Baterías',
-      icono: 'bi-lightning-charge',
-      desc: 'Reparación de alternadores, arrancadores, cableado y diagnóstico de baterías.',
-      tag: 'Garantizado'
-    },
-    {
-      titulo: 'Venta de Repuestos Originales',
-      icono: 'bi-box-seam',
-      desc: 'Catálogo de autopartes originales y de primera calidad con garantía.',
-      tag: 'Stock Disponible'
-    }
-  ];
+  servicios: any[] = [];
+  serviciosFiltrados: any[] = [];
+  cargandoServicios = false;
+  filtroCategoria = 'todas';
+  filtroEstadoAdmin: 'todos' | 'activos' | 'inactivos' = 'activos';
+  guardandoEstadoId: number | null = null;
 
   faqList = [
     {
@@ -156,11 +126,127 @@ export class ConsultaPublicaComponent implements OnInit {
 
   constructor(
     private seguimiento: SeguimientoService,
+    private serviciosService: ServiciosService,
+    public rol: RolService,
     private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
     this.anioActual = new Date().getFullYear();
+    this.cargarServicios();
+  }
+
+  cargarServicios(): void {
+    this.cargandoServicios = true;
+    const esAdmin = this.rol.isAdmin();
+
+    const req$ = esAdmin ? this.serviciosService.getAll() : this.serviciosService.getPublicos();
+
+    req$.subscribe({
+      next: (data) => {
+        this.servicios = data || [];
+        this.aplicarFiltroServicios();
+        this.cargandoServicios = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.cargandoServicios = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  aplicarFiltroServicios(): void {
+    let lista = [...this.servicios];
+
+    if (this.rol.isAdmin()) {
+      if (this.filtroEstadoAdmin === 'activos') {
+        lista = lista.filter(s => s.activo);
+      } else if (this.filtroEstadoAdmin === 'inactivos') {
+        lista = lista.filter(s => !s.activo);
+      }
+    } else {
+      lista = lista.filter(s => s.activo);
+    }
+
+    if (this.filtroCategoria !== 'todas') {
+      lista = lista.filter(s => (s.categoria || 'General') === this.filtroCategoria);
+    }
+
+    this.serviciosFiltrados = lista;
+  }
+
+  setFiltroCategoria(cat: string): void {
+    this.filtroCategoria = cat;
+    this.aplicarFiltroServicios();
+  }
+
+  setFiltroEstadoAdmin(estado: 'todos' | 'activos' | 'inactivos'): void {
+    this.filtroEstadoAdmin = estado;
+    this.aplicarFiltroServicios();
+  }
+
+  get categoriasServicios(): string[] {
+    const cats = new Set<string>();
+    for (const s of this.servicios) {
+      if (s.categoria) {
+        cats.add(s.categoria);
+      }
+    }
+    return Array.from(cats);
+  }
+
+  get totalServiciosActivos(): number {
+    return this.servicios.filter(s => s.activo).length;
+  }
+
+  get totalServiciosInactivos(): number {
+    return this.servicios.filter(s => !s.activo).length;
+  }
+
+  toggleActivoServicio(s: any): void {
+    if (!this.rol.isAdmin()) return;
+    this.guardandoEstadoId = s.id;
+    const nuevoEstado = !s.activo;
+
+    this.serviciosService.toggleActivo(s.id, nuevoEstado).subscribe({
+      next: () => {
+        s.activo = nuevoEstado;
+        this.guardandoEstadoId = null;
+        this.aplicarFiltroServicios();
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.guardandoEstadoId = null;
+        alert('No se pudo actualizar el estado del servicio.');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  cotizarServicioPorWhatsApp(s: any): void {
+    const precio = s.precio_base ? ` (Precio ref: S/ ${Number(s.precio_base).toFixed(2)})` : '';
+    const texto = `Hola Taller RUJIM, deseo consultar y agendar el servicio de *${s.nombre}*${precio}. ¿Tienen disponibilidad?`;
+    const url = `https://wa.me/${this.whatsappPrincipal}?text=${encodeURIComponent(texto)}`;
+    window.open(url, '_blank');
+  }
+
+  getIconoServicio(nombre: string, categoria: string): string {
+    const n = (nombre || '').toLowerCase();
+    const c = (categoria || '').toLowerCase();
+
+    if (n.includes('aceite') || n.includes('filtro')) return 'bi-droplet-half';
+    if (n.includes('freno') || c.includes('freno')) return 'bi-disc';
+    if (n.includes('bater') || c.includes('eléctrico') || c.includes('electrico')) return 'bi-lightning-charge';
+    if (n.includes('buj')) return 'bi-fire';
+    if (n.includes('alinea') || n.includes('balanceo') || c.includes('suspensión') || c.includes('suspension')) return 'bi-compass';
+    if (n.includes('transmi') || n.includes('caja') || c.includes('transmisión') || c.includes('transmision')) return 'bi-gear-wide-connected';
+    if (n.includes('diag') || n.includes('escaneo') || c.includes('diagnóstico') || c.includes('diagnostico')) return 'bi-cpu';
+    if (n.includes('revis') || n.includes('mantenimiento') || c.includes('mantenimiento')) return 'bi-shield-check';
+    if (n.includes('motor') || c.includes('motor')) return 'bi-speedometer2';
+    if (n.includes('carrocería') || n.includes('pintura')) return 'bi-paint-bucket';
+
+    return 'bi-wrench-adjustable';
   }
 
   consultar(): void {

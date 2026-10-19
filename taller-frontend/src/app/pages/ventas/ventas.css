@@ -78,9 +78,10 @@
 }
 
 .producto-nombre {
-  font-size: 0.78rem;
-  font-weight: 600;
-  line-height: 1.2;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #0f172a !important;
+  line-height: 1.25;
   margin-bottom: 2px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -91,13 +92,14 @@
 
 .producto-codigo {
   font-size: 0.68rem;
+  color: #64748b !important;
   margin-bottom: 3px;
 }
 
 .producto-precio {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #f0a500;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #d97706 !important;
   margin-top: 4px;
 }
 

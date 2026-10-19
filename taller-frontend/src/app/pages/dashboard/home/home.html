@@ -1,25 +1,40 @@
 <div class="home-container">
-  <!-- Encabezado con bienvenida y acciones rápidas -->
+  <!-- Encabezado con bienvenida, fecha y acciones rápidas -->
   <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
     <div>
-      <h4 class="fw-bold mb-1">
-        <i class="bi bi-speedometer2 text-warning me-2"></i>Panel de Control del Taller
-      </h4>
-      <p class="text-muted small mb-0">Gestión operativa y financiera en tiempo real</p>
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <h4 class="fw-bold mb-0">
+          <i class="bi bi-speedometer2 text-warning me-2"></i>Panel de Control del Taller
+        </h4>
+        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded-pill">
+          <i class="bi bi-broadcast me-1"></i>En Vivo
+        </span>
+      </div>
+      <p class="text-muted small mb-0">
+        Gestión operativa, consulta de precios de productos y ventas en tiempo real
+        <span class="text-secondary mx-1">·</span>
+        <span class="fw-medium text-dark">{{ fechaActual | date:'EEEE, d \'de\' MMMM y' }}</span>
+      </p>
     </div>
 
-    <!-- Barra de búsqueda rápida de placa -->
-    <div class="d-flex gap-2">
-      <div class="input-group input-group-sm" style="width: 260px;">
-        <span class="input-group-text bg-white border-end-0"><i class="bi bi-car-front text-warning"></i></span>
+    <!-- Barra de búsqueda rápida de placa y botón refrescar -->
+    <div class="d-flex align-items-center gap-2">
+      <div class="input-group input-group-sm busqueda-placa-box">
+        <span class="input-group-text bg-white border-end-0 text-warning"><i class="bi bi-car-front-fill"></i></span>
         <input type="text" class="form-control border-start-0 text-uppercase fw-bold"
-               placeholder="Buscar placa..."
+               placeholder="Consultar placa..."
                [(ngModel)]="placaBusqueda"
                (keyup.enter)="consultarPlaca()">
-        <button class="btn btn-warning btn-sm fw-semibold" (click)="consultarPlaca()">
+        <button class="btn btn-warning btn-sm fw-semibold" (click)="consultarPlaca()" title="Buscar orden por placa">
           <i class="bi bi-search"></i>
         </button>
       </div>
+
+      <button class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1 shadow-sm"
+              (click)="refrescarTodo()" [disabled]="refrescando" title="Actualizar datos">
+        <i class="bi bi-arrow-clockwise" [class.spin-anim]="refrescando"></i>
+        <span class="d-none d-sm-inline">{{ refrescando ? 'Actualizando...' : 'Actualizar' }}</span>
+      </button>
     </div>
   </div>
 
@@ -36,84 +51,515 @@
       <div class="action-icon"><i class="bi bi-cart-plus-fill"></i></div>
       <div class="action-text">
         <span class="action-title">Venta Mostrador</span>
-        <span class="action-desc">Vender refacciones</span>
+        <span class="action-desc">Venta rápida de repuestos</span>
       </div>
     </a>
-    <a routerLink="/dashboard/clientes" class="quick-action-btn action-cliente">
-      <div class="action-icon"><i class="bi bi-person-plus-fill"></i></div>
+    <a routerLink="/dashboard/repuestos" class="quick-action-btn action-repuesto">
+      <div class="action-icon"><i class="bi bi-box-seam-fill"></i></div>
       <div class="action-text">
-        <span class="action-title">Clientes</span>
-        <span class="action-desc">Consulta DNI / RUC</span>
+        <span class="action-title">Inventario</span>
+        <span class="action-desc">Gestión de repuestos y stock</span>
       </div>
     </a>
     <a routerLink="/dashboard/facturas" class="quick-action-btn action-factura">
       <div class="action-icon"><i class="bi bi-receipt-cutoff"></i></div>
       <div class="action-text">
         <span class="action-title">Facturación</span>
-        <span class="action-desc">Boletas y cobros</span>
+        <span class="action-desc">Cobros y liquidaciones</span>
       </div>
     </a>
   </div>
 
-  <!-- Spinner de carga -->
+  <!-- Spinner de carga inicial -->
   <div *ngIf="cargando" class="text-center py-5">
     <div class="spinner-border text-warning" role="status"></div>
-    <p class="mt-2 text-muted small">Cargando métricas del taller...</p>
+    <p class="mt-2 text-muted small">Cargando métricas y ventas del taller...</p>
   </div>
 
   <div *ngIf="!cargando && stats">
-    <!-- Tarjetas de Métricas Principales -->
+    <!-- ═════════════════════════════════════════════════════════════════════ -->
+    <!-- TARJETAS PRINCIPALES DE MÉTRICAS (VENTA DIARIA, MENSUAL, INVENTARIO) -->
+    <!-- ═════════════════════════════════════════════════════════════════════ -->
     <div class="row g-3 mb-4">
-      <div class="col-6 col-md-3">
-        <div class="stat-card">
-          <div class="stat-icon bg-warning-subtle text-warning">
-            <i class="bi bi-clipboard2-check-fill"></i>
+
+      <!-- 1. VENTA DIARIA -->
+      <div class="col-12 col-sm-6 col-xl-3">
+        <div class="stat-card stat-card-diaria h-100">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded-pill small fw-semibold">
+              <i class="bi bi-calendar2-day-fill me-1"></i>Venta Diaria (Hoy)
+            </span>
+            <div class="stat-icon-mini bg-success-subtle text-success">
+              <i class="bi bi-cash-stack"></i>
+            </div>
           </div>
-          <div class="stat-info">
-            <div class="stat-value">{{ stats.ordenes.total }}</div>
-            <div class="stat-label">Órdenes Totales</div>
+          <div class="stat-value text-success">
+            S/ {{ (stats.ventaDiaria?.total || 0) | number:'1.2-2' }}
+          </div>
+          <div class="stat-subdetail mt-1">
+            <span class="fw-semibold text-dark">{{ stats.ventaDiaria?.cantidad || 0 }}</span> transacciones registradas hoy
+          </div>
+          <div class="stat-breakdown mt-2 pt-2 border-top d-flex justify-content-between text-muted small">
+            <span><i class="bi bi-tools me-1 text-primary"></i>Taller: <strong>S/ {{ (stats.ventaDiaria?.taller || 0) | number:'1.2-2' }}</strong></span>
+            <span><i class="bi bi-cart me-1 text-warning"></i>Mostrador: <strong>S/ {{ (stats.ventaDiaria?.mostrador || 0) | number:'1.2-2' }}</strong></span>
           </div>
         </div>
       </div>
 
-      <div class="col-6 col-md-3">
-        <div class="stat-card">
-          <div class="stat-icon bg-primary-subtle text-primary">
-            <i class="bi bi-tools"></i>
+      <!-- 2. VENTA MENSUAL -->
+      <div class="col-12 col-sm-6 col-xl-3">
+        <div class="stat-card stat-card-mensual h-100">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 rounded-pill small fw-semibold">
+              <i class="bi bi-calendar3 me-1"></i>Venta Mensual
+            </span>
+            <div class="stat-icon-mini bg-primary-subtle text-primary">
+              <i class="bi bi-graph-up-arrow"></i>
+            </div>
           </div>
-          <div class="stat-info">
-            <div class="stat-value">{{ stats.ordenes.en_reparacion || 0 }}</div>
-            <div class="stat-label">En Reparación Activa</div>
+          <div class="stat-value text-primary">
+            S/ {{ (stats.ventaMensual?.total || stats.ingresosMes || 0) | number:'1.2-2' }}
+          </div>
+          <div class="stat-subdetail mt-1">
+            <span class="fw-semibold text-dark">{{ stats.ventaMensual?.cantidad || 0 }}</span> movimientos en el mes
+          </div>
+          <div class="stat-breakdown mt-2 pt-2 border-top d-flex justify-content-between text-muted small">
+            <span><i class="bi bi-tools me-1 text-primary"></i>Taller: <strong>S/ {{ (stats.ventaMensual?.taller || 0) | number:'1.2-2' }}</strong></span>
+            <span><i class="bi bi-cart me-1 text-warning"></i>Mostrador: <strong>S/ {{ (stats.ventaMensual?.mostrador || 0) | number:'1.2-2' }}</strong></span>
           </div>
         </div>
       </div>
 
-      <div class="col-6 col-md-3">
-        <div class="stat-card stat-card-success">
-          <div class="stat-icon bg-success-subtle text-success">
-            <i class="bi bi-check-circle-fill"></i>
+      <!-- 3. PRECIOS & VALOR DE PRODUCTOS (INVENTARIO) -->
+      <div class="col-12 col-sm-6 col-xl-3">
+        <div class="stat-card stat-card-inventario h-100">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1 rounded-pill small fw-semibold">
+              <i class="bi bi-tags-fill me-1"></i>Precios & Inventario
+            </span>
+            <div class="stat-icon-mini bg-warning-subtle text-warning">
+              <i class="bi bi-boxes"></i>
+            </div>
           </div>
-          <div class="stat-info">
-            <div class="stat-value text-success">{{ ordenesListas.length }}</div>
-            <div class="stat-label">Listos para Retiro</div>
+          <div class="stat-value text-dark">
+            S/ {{ (stats.inventario?.valorInventarioVenta || 0) | number:'1.2-2' }}
+          </div>
+          <div class="stat-subdetail mt-1 text-truncate">
+            <span class="fw-semibold text-dark">{{ stats.inventario?.totalProductos || productos.length || 0 }}</span> repuestos registrados en almacén
+          </div>
+          <div class="stat-breakdown mt-2 pt-2 border-top d-flex justify-content-between text-muted small">
+            <span>Costo: <strong>S/ {{ (stats.inventario?.valorInventarioCosto || 0) | number:'1.2-2' }}</strong></span>
+            <span class="text-danger" *ngIf="(stats.inventario?.sinStock || 0) > 0">
+              <i class="bi bi-exclamation-circle me-1"></i>{{ stats.inventario?.sinStock }} agotados
+            </span>
+            <span class="text-success" *ngIf="(stats.inventario?.sinStock || 0) === 0">
+              <i class="bi bi-check-circle me-1"></i>Stock óptimo
+            </span>
           </div>
         </div>
       </div>
 
-      <div class="col-6 col-md-3">
-        <div class="stat-card stat-card-ingresos">
-          <div class="stat-icon bg-dark-subtle text-dark">
-            <i class="bi bi-cash-stack"></i>
+      <!-- 4. FLUJO DE TRABAJO DEL TALLER -->
+      <div class="col-12 col-sm-6 col-xl-3">
+        <div class="stat-card stat-card-ordenes h-100">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle px-2 py-1 rounded-pill small fw-semibold">
+              <i class="bi bi-wrench-adjustable me-1"></i>Taller en Servicio
+            </span>
+            <div class="stat-icon-mini bg-secondary-subtle text-secondary">
+              <i class="bi bi-tools"></i>
+            </div>
           </div>
-          <div class="stat-info">
-            <div class="stat-value text-dark">S/ {{ stats.ingresosMes | number:'1.2-2' }}</div>
-            <div class="stat-label">Ingresos del Mes</div>
+          <div class="stat-value text-dark">
+            {{ (stats.ordenes?.en_proceso || 0) + ordenesListas.length }} <small class="fs-6 text-muted fw-normal">vehículos</small>
           </div>
+          <div class="stat-subdetail mt-1">
+            <span class="badge bg-success-subtle text-success me-1">{{ ordenesListas.length }} listos</span>
+            <span class="badge bg-primary-subtle text-primary">{{ stats.ordenes?.en_reparacion || 0 }} en reparación</span>
+          </div>
+          <div class="stat-breakdown mt-2 pt-2 border-top d-flex justify-content-between text-muted small">
+            <span>Diagnóstico: <strong>{{ stats.ordenes?.diagnostico || 0 }}</strong></span>
+            <span>Espera rep.: <strong>{{ stats.ordenes?.espera_repuestos || 0 }}</strong></span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ═════════════════════════════════════════════════════════════════════ -->
+    <!-- MÓDULO ESTRELLA: CONSULTA RÁPIDA DE PRECIOS DE PRODUCTOS Y REPUESTOS  -->
+    <!-- ═════════════════════════════════════════════════════════════════════ -->
+    <div class="card border-0 shadow-sm mb-4 modulo-precios-card">
+      <div class="card-header bg-white border-0 pt-3 pb-3">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+          <div>
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge bg-warning text-dark p-2 rounded-3">
+                <i class="bi bi-tag-fill fs-6"></i>
+              </span>
+              <div>
+                <h6 class="fw-bold mb-0 text-dark">Catálogo y Cotizador Rápido de Precios de Productos</h6>
+                <small class="text-muted">Consulta inmediata de precios de venta, costos, mayoreo y stock para cotizaciones</small>
+              </div>
+            </div>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-light text-dark border px-3 py-2">
+              <i class="bi bi-box-seam me-1 text-warning"></i>
+              <strong>{{ productosFiltrados.length }}</strong> de {{ productos.length }} productos
+            </span>
+            <a routerLink="/dashboard/repuestos" class="btn btn-sm btn-outline-warning fw-semibold">
+              <i class="bi bi-pencil-square me-1"></i>Gestionar Inventario
+            </a>
+          </div>
+        </div>
+
+        <!-- Barra de herramientas: Búsqueda, Filtro de Categoría y Stock -->
+        <div class="row g-2 mt-3 pt-2 border-top">
+          <!-- Input de búsqueda por nombre / código -->
+          <div class="col-12 col-md-4">
+            <div class="input-group input-group-sm">
+              <span class="input-group-text bg-light border-end-0 text-muted">
+                <i class="bi bi-search"></i>
+              </span>
+              <input type="text" class="form-control border-start-0"
+                     placeholder="Buscar por repuesto, código, barra, marca..."
+                     [(ngModel)]="busquedaProducto"
+                     (input)="filtrarProductos()">
+              <button *ngIf="busquedaProducto" class="btn btn-outline-secondary border-start-0"
+                      (click)="busquedaProducto = ''; filtrarProductos()">
+                <i class="bi bi-x-lg"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Selector de Categoría -->
+          <div class="col-6 col-md-3">
+            <select class="form-select form-select-sm" [(ngModel)]="categoriaSeleccionada" (change)="filtrarProductos()">
+              <option value="Todas">Todas las categorías ({{ categorias.length }})</option>
+              <option *ngFor="let c of categorias" [value]="c">{{ c }}</option>
+            </select>
+          </div>
+
+          <!-- Filtro de Disponibilidad / Stock -->
+          <div class="col-6 col-md-2">
+            <select class="form-select form-select-sm" [(ngModel)]="filtroStock" (change)="filtrarProductos()">
+              <option value="todos">Todo el stock</option>
+              <option value="con-stock">Con stock disponible</option>
+              <option value="critico">Stock crítico (<= mín)</option>
+              <option value="sin-stock">Agotados (0)</option>
+            </select>
+          </div>
+
+          <!-- Ordenar por precio o stock -->
+          <div class="col-12 col-md-3">
+            <div class="d-flex gap-1">
+              <select class="form-select form-select-sm" [(ngModel)]="ordenProductos" (change)="filtrarProductos()">
+                <option value="mayor-precio">Mayor precio de venta</option>
+                <option value="menor-precio">Menor precio de venta</option>
+                <option value="mayor-stock">Mayor stock disponible</option>
+                <option value="nombre">Nombre A - Z</option>
+              </select>
+              <button class="btn btn-sm btn-light border text-muted" (click)="limpiarBusqueda()" title="Restablecer filtros">
+                <i class="bi bi-arrow-counterclockwise"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla de Precios de Productos -->
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 tabla-precios">
+          <thead class="table-light text-secondary">
+            <tr>
+              <th style="min-width: 240px;">Producto / Repuesto</th>
+              <th style="min-width: 110px;">Stock</th>
+              <th style="min-width: 120px;" class="text-end">Costo Compra</th>
+              <th style="min-width: 130px;" class="text-end bg-warning-subtle text-dark">Precio Venta (PVP)</th>
+              <th style="min-width: 120px;" class="text-end">Precio Mayorista</th>
+              <th style="min-width: 120px;" class="text-center">Margen</th>
+              <th style="min-width: 150px;" class="text-end pe-3">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of productosPaginados">
+              <!-- Nombre y Detalles -->
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <div class="producto-avatar">
+                    <i class="bi bi-box text-secondary"></i>
+                  </div>
+                  <div>
+                    <div class="fw-bold text-dark text-truncate" style="max-width: 280px;" title="{{ p.nombre }}">
+                      {{ p.nombre }}
+                    </div>
+                    <div class="d-flex flex-wrap align-items-center gap-1 mt-1">
+                      <span class="badge bg-light text-dark border font-monospace small" *ngIf="p.codigo">
+                        {{ p.codigo }}
+                      </span>
+                      <span class="badge bg-secondary-subtle text-secondary small" *ngIf="p.categoria">
+                        {{ p.categoria }}
+                      </span>
+                      <span class="badge bg-info-subtle text-info-emphasis small" *ngIf="p.marca">
+                        {{ p.marca }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </td>
+
+              <!-- Stock -->
+              <td>
+                <span class="badge"
+                      [class.bg-success]="(p.stock || 0) > (p.stock_minimo || 5)"
+                      [class.bg-warning]="(p.stock || 0) > 0 && (p.stock || 0) <= (p.stock_minimo || 5)"
+                      [class.bg-danger]="(p.stock || 0) <= 0">
+                  <i class="bi" [class.bi-check-circle]="(p.stock || 0) > 0" [class.bi-x-circle]="(p.stock || 0) <= 0"></i>
+                  {{ p.stock }} en almacén
+                </span>
+                <div class="small text-muted" style="font-size: 0.72rem;">Mín: {{ p.stock_minimo || 5 }}</div>
+              </td>
+
+              <!-- Precio Compra -->
+              <td class="text-end">
+                <span class="text-secondary fw-semibold">
+                  S/ {{ (p.precio_compra || 0) | number:'1.2-2' }}
+                </span>
+              </td>
+
+              <!-- PRECIO VENTA (PVP) -->
+              <td class="text-end bg-warning-subtle">
+                <div class="fw-bold fs-6 text-dark">
+                  <span class="badge bg-warning text-dark border me-1 small" *ngIf="p.moneda === 'USD'">USD</span>
+                  {{ p.moneda === 'USD' ? '$' : 'S/' }} {{ (p.precio_venta || 0) | number:'1.2-2' }}
+                </div>
+                <div class="small text-muted" style="font-size:0.7rem;">PVP Mostrador</div>
+              </td>
+
+              <!-- Precio Mayorista -->
+              <td class="text-end">
+                <span *ngIf="p.precio_mayor && p.precio_mayor > 0" class="fw-semibold text-primary">
+                  S/ {{ p.precio_mayor | number:'1.2-2' }}
+                </span>
+                <span *ngIf="!p.precio_mayor || p.precio_mayor <= 0" class="text-muted small">
+                  —
+                </span>
+              </td>
+
+              <!-- Margen de Ganancia -->
+              <td class="text-center">
+                <span class="badge"
+                      [class.bg-success-subtle]="getMargen(p).porcentaje >= 25"
+                      [class.text-success]="getMargen(p).porcentaje >= 25"
+                      [class.bg-warning-subtle]="getMargen(p).porcentaje > 0 && getMargen(p).porcentaje < 25"
+                      [class.text-warning-emphasis]="getMargen(p).porcentaje > 0 && getMargen(p).porcentaje < 25"
+                      [class.bg-secondary-subtle]="getMargen(p).porcentaje <= 0"
+                      [class.text-secondary]="getMargen(p).porcentaje <= 0">
+                  +{{ getMargen(p).porcentaje }}%
+                </span>
+                <div class="small text-muted" style="font-size: 0.7rem;">
+                  S/ {{ getMargen(p).monto | number:'1.2-2' }}
+                </div>
+              </td>
+
+              <!-- Acciones Rápidas -->
+              <td class="text-end pe-3">
+                <div class="btn-group btn-group-sm">
+                  <button class="btn btn-outline-secondary" (click)="copiarPrecio(p)" title="Copiar precio para WhatsApp">
+                    <i class="bi bi-clipboard-check"></i>
+                  </button>
+                  <button class="btn btn-outline-info" (click)="verDetallePrecios(p)" title="Ver todos los niveles de precio">
+                    <i class="bi bi-info-circle"></i>
+                  </button>
+                  <a routerLink="/dashboard/ventas" class="btn btn-outline-warning text-dark fw-semibold" title="Vender en mostrador">
+                    <i class="bi bi-cart-plus"></i>
+                  </a>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Empty State -->
+            <tr *ngIf="productosFiltrados.length === 0">
+              <td colspan="7" class="text-center py-5">
+                <i class="bi bi-search text-muted display-6 d-block mb-2"></i>
+                <h6 class="fw-semibold text-dark">No se encontraron productos con los filtros aplicados</h6>
+                <p class="text-muted small mb-2">Intenta cambiar el término de búsqueda o seleccionar otra categoría</p>
+                <button class="btn btn-sm btn-outline-warning" (click)="limpiarBusqueda()">
+                  Limpiar Filtros de Búsqueda
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Paginación de Productos -->
+      <div class="card-footer bg-white border-0 py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <small class="text-muted">
+          Mostrando página <strong>{{ paginaProductos }}</strong> de <strong>{{ totalPaginas }}</strong>
+          ({{ productosFiltrados.length }} repuestos coincidentes)
+        </small>
+        <div class="btn-group btn-group-sm">
+          <button class="btn btn-outline-secondary" [disabled]="paginaProductos <= 1" (click)="cambiarPagina(paginaProductos - 1)">
+            <i class="bi bi-chevron-left me-1"></i>Anterior
+          </button>
+          <button class="btn btn-outline-secondary" [disabled]="paginaProductos >= totalPaginas" (click)="cambiarPagina(paginaProductos + 1)">
+            Siguiente<i class="bi bi-chevron-right ms-1"></i>
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- SECCIÓN CRÍTICA 1: VEHÍCULOS LISTOS PARA RETIRAR (Notificación WhatsApp con 1 clic) -->
+    <!-- ═════════════════════════════════════════════════════════════════════ -->
+    <!-- GRÁFICO DE VENTAS (ÚLTIMOS 7 DÍAS) & CUADRE POR MÉTODO DE PAGO       -->
+    <!-- ═════════════════════════════════════════════════════════════════════ -->
+    <div class="row g-4 mb-4">
+
+      <!-- Gráfico de Ventas de los Últimos 7 Días -->
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-white border-0 pt-3 pb-2 d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="fw-bold mb-0">
+                <i class="bi bi-bar-chart-fill me-2 text-primary"></i>Evolución de Ventas Diarias (Últimos 7 Días)
+              </h6>
+              <small class="text-muted">Seguimiento comparativo de ingresos: Taller vs Ventas Mostrador</small>
+            </div>
+            <div class="d-flex align-items-center gap-3 small">
+              <span class="d-flex align-items-center gap-1">
+                <span class="legend-dot bg-primary"></span> Taller
+              </span>
+              <span class="d-flex align-items-center gap-1">
+                <span class="legend-dot bg-warning"></span> Mostrador
+              </span>
+            </div>
+          </div>
+          <div class="card-body">
+            <!-- Contenedor del gráfico en barras CSS/SVG puro -->
+            <div class="chart-container" *ngIf="stats.ultimos7Dias && stats.ultimos7Dias.length > 0">
+              <div class="chart-bar-col" *ngFor="let dia of stats.ultimos7Dias">
+                <div class="chart-amount-tooltip">
+                  <div class="small fw-bold">S/ {{ dia.total | number:'1.2-2' }}</div>
+                  <div class="tiny text-muted">T: S/ {{ dia.taller | number:'1.2-2' }} · M: S/ {{ dia.mostrador | number:'1.2-2' }}</div>
+                </div>
+
+                <div class="chart-bar-wrapper">
+                  <!-- Barra Mostrador (amarillo) -->
+                  <div class="chart-bar-segment segment-mostrador"
+                       [style.height.%]="getBarHeight(dia.mostrador)"
+                       *ngIf="dia.mostrador > 0"
+                       title="Mostrador: S/ {{ dia.mostrador | number:'1.2-2' }}">
+                  </div>
+                  <!-- Barra Taller (azul) -->
+                  <div class="chart-bar-segment segment-taller"
+                       [style.height.%]="getBarHeight(dia.taller)"
+                       *ngIf="dia.taller > 0"
+                       title="Taller: S/ {{ dia.taller | number:'1.2-2' }}">
+                  </div>
+                  <!-- Barra vacía mínima si total es 0 -->
+                  <div class="chart-bar-segment segment-empty"
+                       [style.height.%]="6"
+                       *ngIf="dia.total <= 0">
+                  </div>
+                </div>
+
+                <div class="chart-bar-label mt-2" [class.fw-bold]="dia.label === 'Hoy'" [class.text-primary]="dia.label === 'Hoy'">
+                  {{ dia.label }}
+                </div>
+                <div class="chart-bar-total text-muted" style="font-size:0.7rem;">
+                  S/ {{ dia.total | number:'1.0-0' }}
+                </div>
+              </div>
+            </div>
+
+            <div *ngIf="!stats.ultimos7Dias || stats.ultimos7Dias.length === 0" class="text-center py-4 text-muted small">
+              No hay suficientes transacciones registradas en los últimos 7 días
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cuadre de Métodos de Pago del Mes -->
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-white border-0 pt-3 pb-2 d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="fw-bold mb-0">
+                <i class="bi bi-wallet2 me-2 text-success"></i>Recaudación por Medio de Pago
+              </h6>
+              <small class="text-muted">Desglose acumulado mensual</small>
+            </div>
+            <span class="badge bg-success-subtle text-success">
+              Total: S/ {{ getTotalMetodos() | number:'1.2-2' }}
+            </span>
+          </div>
+          <div class="card-body">
+            <div class="d-flex flex-column gap-3">
+              <!-- Efectivo -->
+              <div>
+                <div class="d-flex justify-content-between align-items-center small mb-1">
+                  <span><i class="bi bi-cash-coin text-success me-1"></i>Efectivo</span>
+                  <span class="fw-bold">S/ {{ (stats.metodosPago?.efectivo || 0) | number:'1.2-2' }} ({{ getPctMetodo(stats.metodosPago?.efectivo) }}%)</span>
+                </div>
+                <div class="progress progress-sm">
+                  <div class="progress-bar bg-success" [style.width.%]="getPctMetodo(stats.metodosPago?.efectivo)"></div>
+                </div>
+              </div>
+
+              <!-- Yape -->
+              <div>
+                <div class="d-flex justify-content-between align-items-center small mb-1">
+                  <span><i class="bi bi-phone-fill text-purple me-1"></i>Yape</span>
+                  <span class="fw-bold">S/ {{ (stats.metodosPago?.yape || 0) | number:'1.2-2' }} ({{ getPctMetodo(stats.metodosPago?.yape) }}%)</span>
+                </div>
+                <div class="progress progress-sm">
+                  <div class="progress-bar bg-purple" [style.width.%]="getPctMetodo(stats.metodosPago?.yape)"></div>
+                </div>
+              </div>
+
+              <!-- Plin -->
+              <div>
+                <div class="d-flex justify-content-between align-items-center small mb-1">
+                  <span><i class="bi bi-lightning-charge-fill text-info me-1"></i>Plin</span>
+                  <span class="fw-bold">S/ {{ (stats.metodosPago?.plin || 0) | number:'1.2-2' }} ({{ getPctMetodo(stats.metodosPago?.plin) }}%)</span>
+                </div>
+                <div class="progress progress-sm">
+                  <div class="progress-bar bg-info" [style.width.%]="getPctMetodo(stats.metodosPago?.plin)"></div>
+                </div>
+              </div>
+
+              <!-- Tarjetas -->
+              <div>
+                <div class="d-flex justify-content-between align-items-center small mb-1">
+                  <span><i class="bi bi-credit-card-2-front-fill text-primary me-1"></i>Tarjetas (Débito/Crédito)</span>
+                  <span class="fw-bold">S/ {{ (stats.metodosPago?.tarjeta || 0) | number:'1.2-2' }} ({{ getPctMetodo(stats.metodosPago?.tarjeta) }}%)</span>
+                </div>
+                <div class="progress progress-sm">
+                  <div class="progress-bar bg-primary" [style.width.%]="getPctMetodo(stats.metodosPago?.tarjeta)"></div>
+                </div>
+              </div>
+
+              <!-- Transferencia -->
+              <div>
+                <div class="d-flex justify-content-between align-items-center small mb-1">
+                  <span><i class="bi bi-bank text-secondary me-1"></i>Transferencia Bancaria</span>
+                  <span class="fw-bold">S/ {{ (stats.metodosPago?.transferencia || 0) | number:'1.2-2' }} ({{ getPctMetodo(stats.metodosPago?.transferencia) }}%)</span>
+                </div>
+                <div class="progress progress-sm">
+                  <div class="progress-bar bg-secondary" [style.width.%]="getPctMetodo(stats.metodosPago?.transferencia)"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ═════════════════════════════════════════════════════════════════════ -->
+    <!-- VEHÍCULOS LISTOS PARA RETIRAR (ALERTA DE ACCIÓN CON WHATSAPP)        -->
+    <!-- ═════════════════════════════════════════════════════════════════════ -->
     <div *ngIf="ordenesListas.length > 0" class="card border-0 shadow-sm mb-4 border-start border-4 border-success">
       <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
         <div class="d-flex align-items-center gap-2">
@@ -122,7 +568,7 @@
           </span>
           <div>
             <h6 class="fw-bold mb-0 text-success">Vehículos Listos para Retiro ({{ ordenesListas.length }})</h6>
-            <small class="text-muted">Notifica al cliente por WhatsApp para que recoja su unidad</small>
+            <small class="text-muted">Notifica al cliente por WhatsApp para coordinar el recojo y liquidación</small>
           </div>
         </div>
         <a routerLink="/dashboard/ordenes" class="btn btn-sm btn-outline-secondary">Ver todas las órdenes</a>
@@ -166,20 +612,36 @@
       </div>
     </div>
 
-    <!-- SECCIÓN DOBLE: ÚLTIMAS ÓRDENES & ALERTAS DE STOCK BAJO -->
+    <!-- ═════════════════════════════════════════════════════════════════════ -->
+    <!-- ACTIVIDAD RECIENTE (ÓRDENES & VENTAS) Y ALERTAS DE STOCK BAJO        -->
+    <!-- ═════════════════════════════════════════════════════════════════════ -->
     <div class="row g-4 mb-4">
-      <!-- Últimas Órdenes -->
+
+      <!-- Actividad Reciente: Pestañas de Órdenes y Ventas -->
       <div class="col-lg-8">
         <div class="card border-0 shadow-sm h-100">
-          <div class="card-header bg-white border-0 pt-3 pb-2 d-flex justify-content-between align-items-center">
-            <h6 class="fw-bold mb-0">
-              <i class="bi bi-clock-history me-2 text-warning"></i>Últimas Órdenes Registradas
-            </h6>
-            <a routerLink="/dashboard/ordenes" class="btn btn-sm btn-outline-warning">
-              Ver todas <i class="bi bi-arrow-right ms-1"></i>
+          <div class="card-header bg-white border-0 pt-3 pb-2 d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div class="d-flex align-items-center gap-2">
+              <button class="btn btn-sm"
+                      [class.btn-warning]="pestanaActividad === 'ordenes'"
+                      [class.btn-light]="pestanaActividad !== 'ordenes'"
+                      (click)="pestanaActividad = 'ordenes'">
+                <i class="bi bi-clipboard2-check me-1"></i>Últimas Órdenes
+              </button>
+              <button class="btn btn-sm"
+                      [class.btn-warning]="pestanaActividad === 'ventas'"
+                      [class.btn-light]="pestanaActividad !== 'ventas'"
+                      (click)="pestanaActividad = 'ventas'">
+                <i class="bi bi-cart-check me-1"></i>Últimas Ventas Mostrador
+              </button>
+            </div>
+            <a [routerLink]="pestanaActividad === 'ordenes' ? '/dashboard/ordenes' : '/dashboard/ventas'" class="btn btn-sm btn-outline-secondary">
+              Ver histórico completo <i class="bi bi-arrow-right ms-1"></i>
             </a>
           </div>
-          <div class="table-responsive">
+
+          <!-- Pestaña 1: Órdenes de Trabajo Recientes -->
+          <div class="table-responsive" *ngIf="pestanaActividad === 'ordenes'">
             <table class="table table-hover align-middle mb-0">
               <thead class="table-light">
                 <tr>
@@ -187,7 +649,7 @@
                   <th>Cliente</th>
                   <th>Vehículo</th>
                   <th>Estado</th>
-                  <th>Fecha</th>
+                  <th class="text-end">Fecha</th>
                 </tr>
               </thead>
               <tbody>
@@ -199,10 +661,43 @@
                     <span class="small">{{ o.vehiculo }}</span>
                   </td>
                   <td><span [class]="getBadge(o.estado).clase">{{ getBadge(o.estado).label }}</span></td>
-                  <td class="small text-muted">{{ o.fecha_ingreso | date:'dd/MM/yyyy' }}</td>
+                  <td class="small text-muted text-end">{{ o.fecha_ingreso | date:'dd/MM/yyyy' }}</td>
                 </tr>
                 <tr *ngIf="!stats.ultimasOrdenes || stats.ultimasOrdenes.length === 0">
                   <td colspan="5" class="text-center text-muted py-3">No hay órdenes registradas aún</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pestaña 2: Ventas de Mostrador Recientes -->
+          <div class="table-responsive" *ngIf="pestanaActividad === 'ventas'">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Boleta</th>
+                  <th>Cliente</th>
+                  <th>Medio Pago</th>
+                  <th class="text-end">Total Cobrado</th>
+                  <th class="text-end">Fecha</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let v of stats.ultimasVentas">
+                  <td><strong>{{ v.numero }}</strong></td>
+                  <td>{{ v.cliente_nombre || 'Cliente General' }}</td>
+                  <td>
+                    <span class="badge bg-light text-dark border text-capitalize">
+                      {{ v.metodo_pago }}
+                    </span>
+                  </td>
+                  <td class="text-end fw-bold text-success">
+                    S/ {{ (v.total || 0) | number:'1.2-2' }}
+                  </td>
+                  <td class="small text-muted text-end">{{ v.created_at | date:'dd/MM/yyyy HH:mm' }}</td>
+                </tr>
+                <tr *ngIf="!stats.ultimasVentas || stats.ultimasVentas.length === 0">
+                  <td colspan="5" class="text-center text-muted py-3">No hay ventas registradas aún</td>
                 </tr>
               </tbody>
             </table>
@@ -215,7 +710,7 @@
         <div class="card border-0 shadow-sm h-100">
           <div class="card-header bg-white border-0 pt-3 pb-2 d-flex justify-content-between align-items-center">
             <h6 class="fw-bold mb-0 text-danger">
-              <i class="bi bi-exclamation-triangle-fill me-2 text-danger"></i>Stock Bajo ({{ stats.stockBajo }})
+              <i class="bi bi-exclamation-triangle-fill me-2 text-danger"></i>Repuestos con Stock Crítico ({{ stats.stockBajo }})
             </h6>
             <a routerLink="/dashboard/repuestos" class="btn btn-sm btn-outline-danger">Inventario</a>
           </div>
@@ -223,12 +718,12 @@
             <ul class="list-group list-group-flush" *ngIf="repuestosCriticos.length > 0">
               <li *ngFor="let rep of repuestosCriticos" class="list-group-item d-flex justify-content-between align-items-center py-2">
                 <div>
-                  <div class="fw-semibold small text-truncate" style="max-width: 180px;">{{ rep.nombre }}</div>
-                  <small class="text-muted">Cód: {{ rep.codigo || '—' }}</small>
+                  <div class="fw-semibold small text-truncate" style="max-width: 170px;">{{ rep.nombre }}</div>
+                  <small class="text-muted">Cód: {{ rep.codigo || '—' }} · PVP: S/ {{ rep.precio_venta | number:'1.2-2' }}</small>
                 </div>
                 <div class="text-end">
                   <span class="badge bg-danger">Quedan {{ rep.stock }}</span>
-                  <div class="small text-muted" style="font-size:0.7rem">Mín: {{ rep.stock_minimo }}</div>
+                  <div class="small text-muted" style="font-size:0.7rem">Mínimo: {{ rep.stock_minimo }}</div>
                 </div>
               </li>
             </ul>
@@ -239,7 +734,105 @@
           </div>
         </div>
       </div>
+
     </div>
 
   </div>
+
+  <!-- ═════════════════════════════════════════════════════════════════════ -->
+  <!-- MODAL: DETALLE COMPLETO DE NIVELES DE PRECIO DE UN PRODUCTO          -->
+  <!-- ═════════════════════════════════════════════════════════════════════ -->
+  <div class="modal fade show d-block" tabindex="-1" *ngIf="mostrarModalPrecio && productoSeleccionadoModal" style="background: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg">
+        <div class="modal-header bg-warning-subtle py-3">
+          <div>
+            <h6 class="modal-title fw-bold text-dark mb-0">
+              <i class="bi bi-tag-fill me-2 text-warning"></i>Lista de Precios del Producto
+            </h6>
+            <small class="text-muted">{{ productoSeleccionadoModal.nombre }}</small>
+          </div>
+          <button type="button" class="btn-close" (click)="cerrarModalPrecio()"></button>
+        </div>
+        <div class="modal-body p-4">
+          <!-- Datos generales -->
+          <div class="bg-light p-3 rounded-3 mb-3 border">
+            <div class="row g-2 small">
+              <div class="col-6"><strong>Código:</strong> {{ productoSeleccionadoModal.codigo || '—' }}</div>
+              <div class="col-6"><strong>Categoría:</strong> {{ productoSeleccionadoModal.categoria || '—' }}</div>
+              <div class="col-6"><strong>Marca:</strong> {{ productoSeleccionadoModal.marca || '—' }}</div>
+              <div class="col-6"><strong>Stock disponible:</strong> <span class="badge bg-dark">{{ productoSeleccionadoModal.stock }}</span></div>
+            </div>
+          </div>
+
+          <!-- Cuadro de Precios -->
+          <h6 class="fw-bold small text-uppercase text-secondary mb-2">Niveles de Tarifa</h6>
+          <div class="list-group mb-3">
+            <div class="list-group-item d-flex justify-content-between align-items-center py-2 bg-warning-subtle border-warning-subtle">
+              <div>
+                <div class="fw-bold text-dark">Precio Venta al Público (PVP)</div>
+                <small class="text-muted">Tarifa general de mostrador</small>
+              </div>
+              <span class="fs-5 fw-bold text-dark">
+                {{ productoSeleccionadoModal.moneda === 'USD' ? '$' : 'S/' }} {{ (productoSeleccionadoModal.precio_venta || 0) | number:'1.2-2' }}
+              </span>
+            </div>
+
+            <div class="list-group-item d-flex justify-content-between align-items-center py-2">
+              <div>
+                <div class="fw-semibold">Precio por Mayor</div>
+                <small class="text-muted">A partir de {{ productoSeleccionadoModal.cantidad_mayor || 3 }} unidades</small>
+              </div>
+              <span class="fw-bold text-primary">
+                S/ {{ (productoSeleccionadoModal.precio_mayor || 0) | number:'1.2-2' }}
+              </span>
+            </div>
+
+            <div class="list-group-item d-flex justify-content-between align-items-center py-2">
+              <div>
+                <div class="fw-semibold">Costo de Compra</div>
+                <small class="text-muted">Costo registrado en adquisición</small>
+              </div>
+              <span class="text-secondary fw-semibold">
+                S/ {{ (productoSeleccionadoModal.precio_compra || 0) | number:'1.2-2' }}
+              </span>
+            </div>
+
+            <div class="list-group-item d-flex justify-content-between align-items-center py-2" *ngIf="productoSeleccionadoModal.precio_dist1">
+              <div>
+                <div class="fw-semibold">Precio Distribuidor 1</div>
+              </div>
+              <span class="fw-bold">S/ {{ productoSeleccionadoModal.precio_dist1 | number:'1.2-2' }}</span>
+            </div>
+
+            <div class="list-group-item d-flex justify-content-between align-items-center py-2" *ngIf="productoSeleccionadoModal.precio_dist2">
+              <div>
+                <div class="fw-semibold">Precio Distribuidor 2</div>
+              </div>
+              <span class="fw-bold">S/ {{ productoSeleccionadoModal.precio_dist2 | number:'1.2-2' }}</span>
+            </div>
+          </div>
+
+          <!-- Margen proyectado -->
+          <div class="d-flex justify-content-between align-items-center p-2 rounded-2 bg-success-subtle text-success small">
+            <span><i class="bi bi-graph-up me-1"></i>Margen unitario estimado:</span>
+            <strong>+{{ getMargen(productoSeleccionadoModal).porcentaje }}% (S/ {{ getMargen(productoSeleccionadoModal).monto | number:'1.2-2' }})</strong>
+          </div>
+        </div>
+        <div class="modal-footer bg-light py-2">
+          <button type="button" class="btn btn-sm btn-outline-secondary" (click)="copiarPrecio(productoSeleccionadoModal)">
+            <i class="bi bi-clipboard me-1"></i>Copiar Precio
+          </button>
+          <button type="button" class="btn btn-sm btn-secondary" (click)="cerrarModalPrecio()">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICACIÓN FLOTANTE -->
+  <div class="toast-flotante" *ngIf="mensajeToast">
+    <i class="bi bi-check-circle-fill text-success me-2"></i>
+    <span>{{ mensajeToast }}</span>
+  </div>
+
 </div>

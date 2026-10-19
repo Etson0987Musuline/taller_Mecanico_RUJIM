@@ -172,8 +172,11 @@ a, button {
 .modal-dialog-custom,
 .modal-dialog-sm,
 .modal-dialog-xl,
+.modal-dialog-vehiculo,
+.modal-dialog-historial,
 .modal-content {
-  color: #0f172a;
+  color: #0f172a !important;
+  background-color: #ffffff !important;
 }
 
 .modal-dialog-custom h1, .modal-dialog-custom h2, .modal-dialog-custom h3,
@@ -181,13 +184,23 @@ a, button {
 .modal-dialog-sm h1, .modal-dialog-sm h2, .modal-dialog-sm h3,
 .modal-dialog-sm h4, .modal-dialog-sm h5, .modal-dialog-sm h6,
 .modal-dialog-xl h1, .modal-dialog-xl h2, .modal-dialog-xl h3,
-.modal-dialog-xl h4, .modal-dialog-xl h5, .modal-dialog-xl h6 {
-  color: #0f172a;
+.modal-dialog-xl h4, .modal-dialog-xl h5, .modal-dialog-xl h6,
+.modal-dialog-vehiculo h1, .modal-dialog-vehiculo h2, .modal-dialog-vehiculo h3,
+.modal-dialog-vehiculo h4, .modal-dialog-vehiculo h5, .modal-dialog-vehiculo h6,
+.modal-dialog-historial h1, .modal-dialog-historial h2, .modal-dialog-historial h3,
+.modal-dialog-historial h4, .modal-dialog-historial h5, .modal-dialog-historial h6,
+.modal-content h1, .modal-content h2, .modal-content h3,
+.modal-content h4, .modal-content h5, .modal-content h6 {
+  color: #0f172a !important;
+  font-weight: 700;
 }
 
 .modal-dialog-custom .text-muted,
 .modal-dialog-sm .text-muted,
-.modal-dialog-xl .text-muted {
+.modal-dialog-xl .text-muted,
+.modal-dialog-vehiculo .text-muted,
+.modal-dialog-historial .text-muted,
+.modal-content .text-muted {
   color: #64748b !important;
 }
 
@@ -196,10 +209,16 @@ a, button {
 .modal-dialog-sm .form-control,
 .modal-dialog-sm .form-select,
 .modal-dialog-xl .form-control,
-.modal-dialog-xl .form-select {
-  color: #0f172a;
-  background-color: #ffffff;
-  border-color: #cbd5e1;
+.modal-dialog-xl .form-select,
+.modal-dialog-vehiculo .form-control,
+.modal-dialog-vehiculo .form-select,
+.modal-dialog-historial .form-control,
+.modal-dialog-historial .form-select,
+.modal-content .form-control,
+.modal-content .form-select {
+  color: #0f172a !important;
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
 }
 
 .modal-dialog-custom .form-control:focus,
@@ -207,9 +226,319 @@ a, button {
 .modal-dialog-sm .form-control:focus,
 .modal-dialog-sm .form-select:focus,
 .modal-dialog-xl .form-control:focus,
-.modal-dialog-xl .form-select:focus {
-  color: #0f172a;
+.modal-dialog-xl .form-select:focus,
+.modal-dialog-vehiculo .form-control:focus,
+.modal-dialog-vehiculo .form-select:focus,
+.modal-dialog-historial .form-control:focus,
+.modal-dialog-historial .form-select:focus,
+.modal-content .form-control:focus,
+.modal-content .form-select:focus {
+  color: #0f172a !important;
+  background-color: #ffffff !important;
+  border-color: #f59e0b !important;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2) !important;
+}
+
+/* ============================================================
+   SISTEMA DE DISEÑO Y CONTRASTE PARA EL PANEL / DASHBOARD
+   ============================================================ */
+
+.dashboard-layout {
+  background-color: #0f172a;
+}
+
+.dashboard-layout .main-content {
+  background-color: #f8fafc !important;
+  color: #1e293b !important;
+  min-height: 100vh;
+}
+
+/* Tipografía y Títulos en el Panel */
+.dashboard-layout .main-content h1,
+.dashboard-layout .main-content h2,
+.dashboard-layout .main-content h3,
+.dashboard-layout .main-content h4,
+.dashboard-layout .main-content h5,
+.dashboard-layout .main-content h6,
+.dashboard-layout .main-content .h1,
+.dashboard-layout .main-content .h2,
+.dashboard-layout .main-content .h3,
+.dashboard-layout .main-content .h4,
+.dashboard-layout .main-content .h5,
+.dashboard-layout .main-content .h6 {
+  color: #0f172a !important;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.dashboard-layout .main-content p,
+.dashboard-layout .main-content span,
+.dashboard-layout .main-content div,
+.dashboard-layout .main-content label,
+.dashboard-layout .main-content td,
+.dashboard-layout .main-content th {
+  color: inherit;
+}
+
+.dashboard-layout .main-content .text-muted,
+.dashboard-layout .main-content small.text-muted,
+.dashboard-layout .main-content .text-secondary {
+  color: #64748b !important;
+}
+
+.dashboard-layout .main-content .text-dark {
+  color: #0f172a !important;
+}
+
+.dashboard-layout .main-content strong,
+.dashboard-layout .main-content b,
+.dashboard-layout .main-content .fw-bold,
+.dashboard-layout .main-content .fw-semibold {
+  color: #0f172a !important;
+}
+
+/* Tarjetas y Contenedores */
+.dashboard-layout .main-content .card {
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 6px 16px rgba(15, 23, 42, 0.04) !important;
+  color: #1e293b !important;
+}
+
+.dashboard-layout .main-content .card-header {
+  background-color: #ffffff !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  color: #0f172a !important;
+  font-weight: 700;
+}
+
+.dashboard-layout .main-content .card-body {
+  color: #1e293b !important;
+}
+
+.dashboard-layout .main-content .card-footer {
+  background-color: #f8fafc !important;
+  border-top: 1px solid #f1f5f9 !important;
+  color: #475569 !important;
+}
+
+/* Tablas Modernas y de Alto Contraste */
+.dashboard-layout .main-content .table {
+  color: #1e293b !important;
   background-color: #ffffff;
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+}
+
+.dashboard-layout .main-content .table thead th {
+  background-color: #1e293b !important;
+  color: #ffffff !important;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 12px 16px;
+  border: none;
+}
+
+.dashboard-layout .main-content .table thead.table-dark th {
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+}
+
+.dashboard-layout .main-content .table tbody tr {
+  background-color: #ffffff;
+  transition: background-color 0.15s ease;
+}
+
+.dashboard-layout .main-content .table tbody tr:hover {
+  background-color: #f8fafc !important;
+}
+
+.dashboard-layout .main-content .table tbody td {
+  color: #1e293b !important;
+  padding: 14px 16px;
+  vertical-align: middle;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.dashboard-layout .main-content .table tbody td small,
+.dashboard-layout .main-content .table tbody td .text-muted {
+  color: #64748b !important;
+}
+
+.dashboard-layout .main-content .fila-seleccionada,
+.dashboard-layout .main-content tr.seleccionado {
+  background-color: #fef9c3 !important;
+}
+
+/* Campos de Formulario y Entradas */
+.dashboard-layout .main-content .form-control,
+.dashboard-layout .main-content .form-select {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border: 1.5px solid #cbd5e1 !important;
+  border-radius: 9px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 9px 13px;
+  transition: all 0.2s ease;
+}
+
+.dashboard-layout .main-content .form-control:focus,
+.dashboard-layout .main-content .form-select:focus {
+  border-color: #f59e0b !important;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.18) !important;
+  color: #0f172a !important;
+  background-color: #ffffff !important;
+}
+
+.dashboard-layout .main-content .form-control::placeholder {
+  color: #94a3b8 !important;
+}
+
+.dashboard-layout .main-content .input-group-text {
+  background-color: #f1f5f9 !important;
+  color: #475569 !important;
+  border: 1.5px solid #cbd5e1 !important;
+  border-radius: 9px 0 0 9px;
+  font-weight: 600;
+}
+
+.dashboard-layout .main-content .input-group .form-control {
+  border-radius: 0 9px 9px 0;
+}
+
+.dashboard-layout .main-content .form-check-input {
+  border: 1.5px solid #94a3b8;
+  cursor: pointer;
+}
+
+.dashboard-layout .main-content .form-check-input:checked {
+  background-color: #f59e0b;
   border-color: #f59e0b;
+}
+
+/* Badges / Etiquetas Estilizadas con Alto Contraste */
+.dashboard-layout .main-content .badge {
+  font-weight: 600 !important;
+  letter-spacing: 0.02em;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 0.76rem;
+}
+
+.dashboard-layout .main-content .badge.bg-success {
+  background-color: #dcfce7 !important;
+  color: #15803d !important;
+  border: 1px solid #bbf7d0;
+}
+
+.dashboard-layout .main-content .badge.bg-secondary {
+  background-color: #f1f5f9 !important;
+  color: #475569 !important;
+  border: 1px solid #cbd5e1;
+}
+
+.dashboard-layout .main-content .badge.bg-warning {
+  background-color: #fef3c7 !important;
+  color: #b45309 !important;
+  border: 1px solid #fde68a;
+}
+
+.dashboard-layout .main-content .badge.bg-info {
+  background-color: #e0f2fe !important;
+  color: #0369a1 !important;
+  border: 1px solid #bae6fd;
+}
+
+.dashboard-layout .main-content .badge.bg-danger {
+  background-color: #fee2e2 !important;
+  color: #b91c1c !important;
+  border: 1px solid #fecaca;
+}
+
+.dashboard-layout .main-content .badge.bg-light {
+  background-color: #f8fafc !important;
+  color: #334155 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+.dashboard-layout .main-content .badge.bg-dark {
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+}
+
+/* Botones del Panel */
+.dashboard-layout .main-content .btn-warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  border: none !important;
+  color: #ffffff !important;
+  font-weight: 600;
+  border-radius: 9px;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.25);
+  transition: all 0.2s ease;
+}
+
+.dashboard-layout .main-content .btn-warning:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
+  color: #ffffff !important;
+}
+
+.dashboard-layout .main-content .btn-outline-secondary {
+  background-color: #ffffff !important;
+  border: 1.5px solid #cbd5e1 !important;
+  color: #334155 !important;
+  font-weight: 600;
+  border-radius: 9px;
+}
+
+.dashboard-layout .main-content .btn-outline-secondary:hover {
+  background-color: #f8fafc !important;
+  border-color: #94a3b8 !important;
+  color: #0f172a !important;
+}
+
+.dashboard-layout .main-content .btn-outline-danger {
+  background-color: #ffffff !important;
+  border: 1.5px solid #fca5a5 !important;
+  color: #dc2626 !important;
+  font-weight: 600;
+  border-radius: 9px;
+}
+
+.dashboard-layout .main-content .btn-outline-danger:hover {
+  background-color: #dc2626 !important;
+  border-color: #dc2626 !important;
+  color: #ffffff !important;
+}
+
+.dashboard-layout .main-content .btn-outline-success {
+  background-color: #ffffff !important;
+  border: 1.5px solid #86efac !important;
+  color: #16a34a !important;
+  font-weight: 600;
+  border-radius: 9px;
+}
+
+.dashboard-layout .main-content .btn-outline-success:hover {
+  background-color: #16a34a !important;
+  border-color: #16a34a !important;
+  color: #ffffff !important;
+}
+
+.dashboard-layout .main-content .btn-group .btn {
+  border-radius: 0;
+}
+.dashboard-layout .main-content .btn-group .btn:first-child {
+  border-top-left-radius: 9px;
+  border-bottom-left-radius: 9px;
+}
+.dashboard-layout .main-content .btn-group .btn:last-child {
+  border-top-right-radius: 9px;
+  border-bottom-right-radius: 9px;
 }
 

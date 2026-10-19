@@ -22,4 +22,4 @@ BEGIN
     EXECUTE 'DROP POLICY IF EXISTS "allow_all_anon" ON public.' || quote_ident(r.tablename) || ';';
     EXECUTE 'CREATE POLICY "allow_all_anon" ON public.' || quote_ident(r.tablename) || ' FOR ALL TO public USING (true) WITH CHECK (true);';
   END LOOP;
-END $$;
+END $$
