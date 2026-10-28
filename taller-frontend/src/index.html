@@ -1,9 +1,17 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" data-theme="light" data-bs-theme="light">
 <head>
   <meta charset="utf-8">
   <title>Taller Automotriz RUJIM | Servicio Técnico & Consulta en Línea</title>
   <base href="/">
+  <script>
+    try {
+      var savedTheme = localStorage.getItem('rujim-theme') === 'dark' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      document.documentElement.setAttribute('data-bs-theme', savedTheme);
+      document.documentElement.style.colorScheme = savedTheme;
+    } catch (_) {}
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Taller Mecánico RUJIM en Huamanga - Ayacucho. Diagnóstico computarizado, mantenimiento y consulta en tiempo real del estado de tu vehículo. Atención por WhatsApp.">
   <link rel="icon" type="image/x-icon" href="favicon.ico">

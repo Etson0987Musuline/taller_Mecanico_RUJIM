@@ -1,2 +1,10 @@
-
+<div class="appearance-bar">
+  <div class="container-fluid d-flex align-items-center justify-content-between gap-3">
+    <span class="appearance-caption"><span class="appearance-dot"></span> RUJIM <span class="appearance-description">/ Servicio automotriz</span></span>
+    <div class="theme-selector" role="group" aria-label="Apariencia del sistema">
+      <button type="button" [class.selected]="appearance.theme() === 'light'" [attr.aria-pressed]="appearance.theme() === 'light'" (click)="appearance.setTheme('light')"><i class="bi bi-sun" aria-hidden="true"></i> Claro</button>
+      <button type="button" [class.selected]="appearance.theme() === 'dark'" [attr.aria-pressed]="appearance.theme() === 'dark'" (click)="appearance.setTheme('dark')"><i class="bi bi-moon-stars" aria-hidden="true"></i> Oscuro</button>
+    </div>
+  </div>
+</div>
 <router-outlet />

@@ -1,0 +1,145 @@
+/* Paleta compartida: el tema claro es la apariencia inicial. */
+:root, [data-theme="light"] {
+  --ui-page: #f5f7fa; --ui-surface: #ffffff; --ui-subtle: #f0f3f7;
+  --ui-text: #172435; --ui-muted: #536477; --ui-border: #dce3eb;
+  --ui-accent: #a34c06; --ui-accent-soft: #fff4e5; --ui-green: #167046;
+  --ui-shadow: 0 8px 30px rgb(23 36 53 / 6%);
+  --rujim-bg-darkest: var(--ui-page); --rujim-bg-dark: var(--ui-page);
+  --rujim-bg-card: var(--ui-surface); --rujim-text-main: var(--ui-text);
+  --rujim-text-muted: var(--ui-muted); --rujim-border: var(--ui-border);
+}
+[data-theme="dark"] {
+  --ui-page: #101720; --ui-surface: #192330; --ui-subtle: #222f3f;
+  --ui-text: #edf2f8; --ui-muted: #b0becf; --ui-border: #364559;
+  --ui-accent: #f7ba65; --ui-accent-soft: #352b21; --ui-green: #70d6a4;
+  --ui-shadow: 0 8px 30px rgb(0 0 0 / 16%);
+}
+body { background: var(--ui-page); color: var(--ui-text); }
+.appearance-bar { background: var(--ui-surface); border-bottom: 1px solid var(--ui-border); padding: 6px 20px; color: var(--ui-text); }
+.appearance-caption { display: flex; align-items: center; gap: 10px; font-size: .74rem; font-weight: 700; letter-spacing: .05em; }
+.appearance-description { color: var(--ui-muted); font-weight: 400; letter-spacing: 0; }
+.appearance-dot { width: 7px; height: 7px; background: #d97706; border-radius: 50%; }
+.theme-selector { display: flex; gap: 3px; padding: 3px; background: var(--ui-subtle); border: 1px solid var(--ui-border); border-radius: 9px; }
+.theme-selector button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 6px 12px; min-height: 36px; font-size: .78rem; font-weight: 600; color: var(--ui-muted); border: 1px solid transparent; border-radius: 6px; background: transparent; }
+.theme-selector button.selected { background: var(--ui-surface); border-color: var(--ui-border); color: var(--ui-text); box-shadow: 0 1px 3px #0001; }
+.theme-selector button:hover { color: var(--ui-text); }
+/* Página de clientes: composición editorial con superficies limpias. */
+html .consulta-wrapper { background: var(--ui-page) !important; color: var(--ui-text); }
+html .consulta-wrapper .site-nav { background: var(--ui-surface) !important; border-color: var(--ui-border); backdrop-filter: none; padding: 18px 0; }
+html .consulta-wrapper .brand-name { color: var(--ui-text); }
+html .consulta-wrapper .brand-sub { color: var(--ui-accent); }
+html .consulta-wrapper .brand-icon-box { background: var(--ui-accent-soft); border: 1px solid var(--ui-border); box-shadow: none; width: 44px; height: 44px; }
+html .consulta-wrapper .nav-login-btn { color: var(--ui-text); border: 1px solid var(--ui-border); background: var(--ui-surface); padding: 10px 16px; }
+html .consulta-wrapper .nav-login-btn:hover { background: var(--ui-subtle); }
+html .consulta-wrapper .hero-section { background: var(--ui-surface); border-bottom: 1px solid var(--ui-border); }
+html .consulta-wrapper .hero-overlay, html .consulta-wrapper .hero-glow { display: none; }
+.hero-layout { padding: 20px 0 28px; }
+html .consulta-wrapper .hero-pill-badge { color: var(--ui-accent); background: var(--ui-accent-soft); border: 1px solid var(--ui-border); text-transform: none; letter-spacing: 0; font-weight: 600; box-shadow: none; }
+html .consulta-wrapper .hero-title { color: var(--ui-text); font-size: clamp(2.2rem, 4.2vw, 3.7rem); line-height: 1.12; font-weight: 700; max-width: 560px; }
+html .consulta-wrapper .gradient-text { color: var(--ui-accent); background: none; -webkit-text-fill-color: currentColor; }
+html .consulta-wrapper .hero-subtitle { color: var(--ui-muted); margin-left: 0; font-size: 1rem; line-height: 1.75; max-width: 520px; }
+.hero-details { display: flex; flex-wrap: wrap; gap: 10px 20px; color: var(--ui-muted); font-size: .77rem; margin: 20px 0; }
+.hero-details i { color: var(--ui-accent); margin-right: 4px; }
+.hero-workshop-photo { max-width: 520px; height: 160px; border-radius: 14px; overflow: hidden; background: linear-gradient(0deg, #101720c9, #1017200a), url('/img/taller-hero.jpg') center 55% / cover; display: flex; align-items: flex-end; padding: 18px; }
+.hero-workshop-photo span { color: white; font-size: .8rem; font-weight: 500; }
+.hero-workshop-photo i { color: #fbbf24; margin-right: 6px; }
+html .consulta-wrapper .search-card-wrapper { background: var(--ui-surface); border: 1px solid var(--ui-border); box-shadow: var(--ui-shadow); border-radius: 18px; padding: 32px; max-width: 530px; backdrop-filter: none; }
+.search-eyebrow { color: var(--ui-accent); font-size: .68rem; letter-spacing: .12em; font-weight: 700; }
+.search-heading { font-size: 1.65rem; font-weight: 700; color: var(--ui-text); margin: 10px 0; }
+.search-description { color: var(--ui-muted); font-size: .88rem; line-height: 1.6; margin-bottom: 24px; }
+html .consulta-wrapper .search-tabs-container { background: var(--ui-subtle); border-color: var(--ui-border); }
+html .consulta-wrapper .search-tab-btn { color: var(--ui-muted); min-height: 44px; }
+html .consulta-wrapper .search-tab-btn.active { background: var(--ui-surface); color: var(--ui-text); box-shadow: 0 1px 4px #0001; }
+html .consulta-wrapper .search-tab-btn:hover { background: var(--ui-surface); color: var(--ui-text); }
+html .consulta-wrapper .search-field-label { color: var(--ui-text); font-size: .85rem; }
+html .consulta-wrapper .search-input-group { box-shadow: none; border: 1px solid var(--ui-border); border-radius: 10px; }
+html .consulta-wrapper .search-input, html .consulta-wrapper .search-icon-addon { background: var(--ui-subtle); color: var(--ui-text); border: none !important; min-width: 0; }
+html .consulta-wrapper .search-input { font-size: .95rem; min-height: 52px; }
+html .consulta-wrapper .search-input::placeholder { color: var(--ui-muted); }
+html .consulta-wrapper .search-submit-btn { background: #b85c0b; color: white; border: 0; box-shadow: none; }
+html .consulta-wrapper .search-submit-btn:hover:not(:disabled) { background: #944607; color: white; box-shadow: none; }
+html .consulta-wrapper .text-white, html .consulta-wrapper .vehicle-title, html .consulta-wrapper .metric-value { color: var(--ui-text) !important; }
+html .consulta-wrapper .text-secondary-custom, html .consulta-wrapper .notes-text, html .consulta-wrapper .metric-label { color: var(--ui-muted) !important; }
+html .consulta-wrapper .text-warning { color: var(--ui-accent) !important; }
+html .consulta-wrapper .text-info { color: var(--bs-info-text-emphasis) !important; }
+html .consulta-wrapper .text-success { color: var(--ui-green) !important; }
+html .consulta-wrapper .whatsapp-link-inline { color: var(--ui-green); }
+html .consulta-wrapper :is(.vehicle-order-card, .service-feature-card, .workflow-card, .contact-channel-card, .faq-item, .empty-search-state, .next-step-panel) { background: var(--ui-surface); color: var(--ui-text); border: 1px solid var(--ui-border) !important; box-shadow: none !important; }
+html .consulta-wrapper :is(.service-feature-card, .contact-channel-card):hover { background: var(--ui-surface); border-color: var(--ui-accent) !important; transform: translateY(-2px); box-shadow: var(--ui-shadow) !important; }
+html .consulta-wrapper :is(.info-metric-card, .service-price-box, .step-flow-item, .mechanic-notes-box, .schedule-pill, .service-tag, .empty-icon-circle, .footer-social-btn) { background: var(--ui-subtle); color: var(--ui-text); border-color: var(--ui-border); }
+html .consulta-wrapper :is(.service-filter-pill, .btn-secondary-action, .btn-warning-action) { background: var(--ui-surface); color: var(--ui-text); border-color: var(--ui-border); }
+html .consulta-wrapper .service-filter-pill.active { background: var(--ui-accent-soft); border-color: var(--ui-accent); color: var(--ui-accent); }
+html .consulta-wrapper .btn-service-action { color: var(--ui-green); background: var(--ui-subtle); border-color: var(--ui-border); min-height: 44px; }
+html .consulta-wrapper .btn-service-action:hover { background: var(--ui-green); color: var(--ui-page); }
+html .consulta-wrapper .next-step-panel { border-left: 3px solid var(--ui-accent) !important; }
+html .consulta-wrapper .next-step-eyebrow { color: var(--ui-accent); }
+html .consulta-wrapper .node-circle { background: var(--ui-subtle); color: var(--ui-muted); border-color: var(--ui-border); }
+html .consulta-wrapper .node-label, html .consulta-wrapper .completed .node-label { color: var(--ui-muted); }
+html .consulta-wrapper .current .node-circle { background: #f59e0b; color: #172435; box-shadow: none; }
+html .consulta-wrapper .completed .node-circle { background: var(--ui-green); color: var(--ui-page); }
+html .consulta-wrapper .progress-track { background: var(--ui-border); }
+html .consulta-wrapper .progress-bar-glow { background: #d97706; box-shadow: none; }
+html .consulta-wrapper .site-footer { background: var(--ui-surface); border-top: 1px solid var(--ui-border); }
+html .consulta-wrapper .pulse-indicator::after { animation: none; display: none; }
+html .consulta-wrapper .badge-recibido, html .consulta-wrapper .badge-entregado { color: var(--ui-muted); background: var(--ui-subtle); border-color: var(--ui-border); }
+html[data-theme="light"] .consulta-wrapper :is(.badge-diagnostico, .badge-reparacion) { color: #145eb0; }
+html[data-theme="light"] .consulta-wrapper .badge-repuestos { color: #854006; }
+html[data-theme="light"] .consulta-wrapper .badge-listo { color: #166534; box-shadow: none; }
+html[data-theme="light"] .consulta-wrapper .badge-cancelado { color: #a51d2d; }
+/* Panel y formularios: mismas superficies en ambos modos. */
+html .dashboard-layout { background: var(--ui-page); height: calc(100dvh - 56px); }
+html .dashboard-layout .main-content { background: var(--ui-page) !important; color: var(--ui-text) !important; min-height: 0; }
+html .dashboard-layout .sidebar { background: var(--ui-surface); color: var(--ui-text); border-right: 1px solid var(--ui-border); box-shadow: none; }
+html .dashboard-layout :is(.sidebar-title, .sidebar-title .text-muted) { color: var(--ui-text) !important; }
+html .dashboard-layout .nav-item { color: var(--ui-muted); }
+html .dashboard-layout .nav-item:hover { background: var(--ui-subtle); color: var(--ui-text); }
+html .dashboard-layout .nav-item.activo { background: var(--ui-accent-soft); color: var(--ui-accent) !important; box-shadow: none; }
+html .dashboard-layout .nav-item.activo i { color: var(--ui-accent) !important; }
+html .dashboard-layout :is(.sidebar-header, .sidebar-footer) { background: var(--ui-surface); border-color: var(--ui-border); }
+html .dashboard-layout .btn-toggle { background: var(--ui-subtle); color: var(--ui-text); border-color: var(--ui-border); }
+html .dashboard-layout .main-content :is(h1,h2,h3,h4,h5,h6,.h1,.h2,.h3,.h4,.h5,.h6,strong,b,.fw-bold,.fw-semibold,.text-dark) { color: var(--ui-text) !important; }
+html .dashboard-layout .main-content :is(.text-muted, .text-secondary) { color: var(--ui-muted) !important; }
+html .dashboard-layout .main-content :is(.card, .card-header, .card-body, .card-footer, .bg-white, .bg-light, .table, .table tbody tr, .operational-priorities, .priority-item, .stat-card, .quick-action-btn, .detalle-seccion, .order-review, .new-order-steps li, .nav-mecanico-tabs, .sugerencias-dropdown, .filtro-btn) { background: var(--ui-surface) !important; color: var(--ui-text) !important; border-color: var(--ui-border) !important; }
+html .dashboard-layout .main-content :is(.card-header,.card-footer) { border-color: var(--ui-border) !important; }
+html .dashboard-layout .main-content :is(.form-control,.form-select,.input-group-text) { background: var(--ui-surface) !important; color: var(--ui-text) !important; border-color: var(--ui-border) !important; }
+html .dashboard-layout .main-content .form-control::placeholder { color: var(--ui-muted) !important; }
+html .dashboard-layout .main-content .table { --bs-table-bg: var(--ui-surface); --bs-table-color: var(--ui-text); --bs-table-hover-bg: var(--ui-subtle); --bs-table-hover-color: var(--ui-text); }
+html .dashboard-layout .main-content .table thead th { background: var(--ui-subtle) !important; color: var(--ui-muted) !important; border-bottom: 1px solid var(--ui-border); text-transform: none; letter-spacing: 0; }
+html .dashboard-layout .main-content .table tbody td { color: var(--ui-text) !important; border-color: var(--ui-border); }
+html .dashboard-layout .main-content .table tbody tr:hover { background: var(--ui-subtle) !important; }
+html .dashboard-layout .main-content :is(.btn-outline-secondary,.btn-outline-dark,.btn-light) { background: var(--ui-surface) !important; color: var(--ui-text) !important; border-color: var(--ui-border) !important; }
+html .dashboard-layout .main-content .btn-warning { background: #b85c0b !important; color: white !important; box-shadow: none; }
+html .dashboard-layout .main-content :is(.filtro-btn.activo,.new-order-steps .current) { background: var(--ui-accent-soft) !important; color: var(--ui-accent) !important; }
+html :is(.modal-dialog-custom,.modal-dialog-sm,.modal-dialog-xl,.modal-dialog-vehiculo,.modal-dialog-historial,.modal-content) { background: var(--ui-surface) !important; color: var(--ui-text) !important; }
+html :is(.modal-header,.modal-footer) { background: var(--ui-surface); border-color: var(--ui-border); }
+html :is(.modal-dialog-custom,.modal-dialog-sm,.modal-dialog-xl,.modal-dialog-vehiculo,.modal-dialog-historial,.modal-content) :is(h1,h2,h3,h4,h5,h6,.form-control,.form-select) { background-color: var(--ui-surface) !important; color: var(--ui-text) !important; border-color: var(--ui-border) !important; }
+html :is(.modal-content,.modal-dialog-xl,.modal-dialog-custom,.modal-dialog-sm,.modal-dialog-vehiculo,.modal-dialog-historial) .text-muted { color: var(--ui-muted) !important; }
+html .login-wrapper { background: var(--ui-page); min-height: calc(100dvh - 56px) !important; }
+html .login-card { background: var(--ui-surface); border-color: var(--ui-border); border-top-color: #d97706; box-shadow: var(--ui-shadow) !important; backdrop-filter: none; }
+html .login-wrapper :is(.text-white,.text-light) { color: var(--ui-text) !important; }
+html .login-wrapper :is(.text-secondary-custom,.back-link) { color: var(--ui-muted) !important; }
+html .login-wrapper .brand-avatar-box { background: var(--ui-accent-soft); border-color: var(--ui-border); box-shadow: none; }
+html .login-input-group { box-shadow: none; }
+html .login-input-group :is(.form-control,.input-group-text) { background: var(--ui-subtle); color: var(--ui-text); border-color: var(--ui-border); }
+html .login-input-group .form-control::placeholder { color: var(--ui-muted); }
+@media (max-width: 767.98px) {
+  .appearance-bar { padding: 6px 4px; }
+  .appearance-description { display: none; }
+  .hero-layout { padding-top: 0; }
+  html .consulta-wrapper .hero-title { font-size: 2.5rem; }
+  html .consulta-wrapper .search-card-wrapper { padding: 22px; max-width: none; }
+  .hero-workshop-photo { display: none; }
+  html .consulta-wrapper .hero-subtitle { margin-bottom: 14px !important; }
+  html .dashboard-layout .main-content .orders-list tbody tr { background: var(--ui-surface); border-color: var(--ui-border); }
+}
+
+html .dashboard-layout .main-content :is(.action-title,.action-desc,.priority-item small,.order-more summary,.filtro-count,.sugerencia-item,.seguimiento-item) { color: var(--ui-text); }
+html .dashboard-layout .main-content :is(.action-desc,.priority-item small) { color: var(--ui-muted); }
+html[data-theme="dark"] .dashboard-layout .main-content .text-success { color: var(--ui-green) !important; }
+html[data-theme="dark"] .dashboard-layout .main-content .text-primary { color: #91baff !important; }
+html[data-theme="dark"] .dashboard-layout .main-content .text-info { color: #7dd3fc !important; }
+html[data-theme="dark"] .dashboard-layout .main-content .text-warning { color: var(--ui-accent) !important; }
+html[data-theme="dark"] .dashboard-layout .main-content .text-danger { color: #fda4af !important; }
+html[data-theme="dark"] .dashboard-layout .main-content .btn-outline-success { background: var(--ui-surface) !important; color: var(--ui-green) !important; border-color: var(--ui-green) !important; }
+html[data-theme="dark"] .dashboard-layout .main-content .btn-outline-danger { background: var(--ui-surface) !important; color: #fda4af !important; border-color: #fda4af !important; }
+html .consulta-wrapper :is(.btn-secondary-action,.btn-warning-action,.btn-whatsapp-action) { box-shadow: none; }
