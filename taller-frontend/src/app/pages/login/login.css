@@ -19,17 +19,21 @@
   box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6), 0 0 25px rgba(245, 158, 11, 0.1);
 }
 
-.brand-avatar-box {
-  width: 58px;
-  height: 58px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #1f2735 0%, #111622 100%);
-  border: 1px solid rgba(245, 158, 11, 0.35);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2rem;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+.login-logo-link {
+  transition: transform 0.25s ease;
+  display: inline-block;
+}
+
+.login-logo-link:hover {
+  transform: scale(1.04);
+}
+
+.login-brand-logo {
+  height: 54px;
+  width: auto;
+  max-width: 250px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 18px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 16px rgba(6, 182, 212, 0.2));
 }
 
 .login-input-group {

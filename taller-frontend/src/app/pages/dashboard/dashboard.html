@@ -3,8 +3,10 @@
   <!-- Sidebar -->
   <aside class="sidebar">
     <div class="sidebar-header">
-      <i class="bi bi-wrench-adjustable-circle-fill text-warning me-2" style="font-size:1.4rem"></i>
-      <span class="sidebar-title">Taller</span>
+      <a routerLink="/dashboard" class="d-flex align-items-center text-decoration-none sidebar-brand-link">
+        <img src="/img/logo-icon.png" alt="RUJIM" class="sidebar-brand-icon me-2">
+        <span class="sidebar-title">RUJIM</span>
+      </a>
       <button class="btn-toggle ms-auto" (click)="menuAbierto = !menuAbierto">
         <i class="bi" [class.bi-layout-sidebar-inset]="menuAbierto" [class.bi-layout-sidebar]="!menuAbierto"></i>
       </button>

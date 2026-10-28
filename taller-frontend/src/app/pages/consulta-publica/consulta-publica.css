@@ -34,6 +34,36 @@
 
 .brand-logo {
   text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+.navbar-brand-logo {
+  height: 42px;
+  width: auto;
+  max-width: 175px;
+  object-fit: contain;
+  transition: transform 0.25s ease, filter 0.25s ease;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.45));
+}
+
+.brand-logo:hover .navbar-brand-logo {
+  transform: scale(1.03);
+  filter: drop-shadow(0 4px 14px rgba(6, 182, 212, 0.35));
+}
+
+.footer-brand-logo {
+  height: 44px;
+  width: auto;
+  max-width: 195px;
+  object-fit: contain;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+  filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.5));
+}
+
+.footer-brand-logo:hover {
+  transform: scale(1.02);
+  opacity: 0.95;
 }
 
 .brand-icon-box {
