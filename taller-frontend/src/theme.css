@@ -31,18 +31,26 @@ html .consulta-wrapper .brand-sub { color: var(--ui-accent); }
 html .consulta-wrapper .brand-icon-box { background: var(--ui-accent-soft); border: 1px solid var(--ui-border); box-shadow: none; width: 44px; height: 44px; }
 html .consulta-wrapper .nav-login-btn { color: var(--ui-text); border: 1px solid var(--ui-border); background: var(--ui-surface); padding: 10px 16px; }
 html .consulta-wrapper .nav-login-btn:hover { background: var(--ui-subtle); }
-html .consulta-wrapper .hero-section { background: var(--ui-surface); border-bottom: 1px solid var(--ui-border); }
-html .consulta-wrapper .hero-overlay, html .consulta-wrapper .hero-glow { display: none; }
-.hero-layout { padding: 20px 0 28px; }
+html .consulta-wrapper .hero-section {
+  background: var(--ui-surface) url('/img/taller-hero.jpg') center 55% / cover no-repeat;
+  border-bottom: 1px solid var(--ui-border);
+}
+html .consulta-wrapper .hero-overlay {
+  display: block;
+  background: linear-gradient(90deg, rgb(255 255 255 / 92%), rgb(255 255 255 / 73%));
+  pointer-events: none;
+}
+html[data-theme="dark"] .consulta-wrapper .hero-overlay {
+  background: linear-gradient(90deg, rgb(16 23 32 / 91%), rgb(16 23 32 / 66%));
+}
+html .consulta-wrapper .hero-glow { display: none; }
+.hero-layout { padding: 40px 0 48px; min-height: 400px; }
 html .consulta-wrapper .hero-pill-badge { color: var(--ui-accent); background: var(--ui-accent-soft); border: 1px solid var(--ui-border); text-transform: none; letter-spacing: 0; font-weight: 600; box-shadow: none; }
 html .consulta-wrapper .hero-title { color: var(--ui-text); font-size: clamp(2.2rem, 4.2vw, 3.7rem); line-height: 1.12; font-weight: 700; max-width: 560px; }
 html .consulta-wrapper .gradient-text { color: var(--ui-accent); background: none; -webkit-text-fill-color: currentColor; }
 html .consulta-wrapper .hero-subtitle { color: var(--ui-muted); margin-left: 0; font-size: 1rem; line-height: 1.75; max-width: 520px; }
 .hero-details { display: flex; flex-wrap: wrap; gap: 10px 20px; color: var(--ui-muted); font-size: .77rem; margin: 20px 0; }
 .hero-details i { color: var(--ui-accent); margin-right: 4px; }
-.hero-workshop-photo { max-width: 520px; height: 160px; border-radius: 14px; overflow: hidden; background: linear-gradient(0deg, #101720c9, #1017200a), url('/img/taller-hero.jpg') center 55% / cover; display: flex; align-items: flex-end; padding: 18px; }
-.hero-workshop-photo span { color: white; font-size: .8rem; font-weight: 500; }
-.hero-workshop-photo i { color: #fbbf24; margin-right: 6px; }
 html .consulta-wrapper .search-card-wrapper { background: var(--ui-surface); border: 1px solid var(--ui-border); box-shadow: var(--ui-shadow); border-radius: 18px; padding: 32px; max-width: 530px; backdrop-filter: none; }
 .search-eyebrow { color: var(--ui-accent); font-size: .68rem; letter-spacing: .12em; font-weight: 700; }
 .search-heading { font-size: 1.65rem; font-weight: 700; color: var(--ui-text); margin: 10px 0; }
@@ -128,7 +136,6 @@ html .login-input-group .form-control::placeholder { color: var(--ui-muted); }
   .hero-layout { padding-top: 0; }
   html .consulta-wrapper .hero-title { font-size: 2.5rem; }
   html .consulta-wrapper .search-card-wrapper { padding: 22px; max-width: none; }
-  .hero-workshop-photo { display: none; }
   html .consulta-wrapper .hero-subtitle { margin-bottom: 14px !important; }
   html .dashboard-layout .main-content .orders-list tbody tr { background: var(--ui-surface); border-color: var(--ui-border); }
 }
