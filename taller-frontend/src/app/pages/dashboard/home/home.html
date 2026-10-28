@@ -11,7 +11,7 @@
         </span>
       </div>
       <p class="text-muted small mb-0">
-        Gestión operativa, consulta de precios de productos y ventas en tiempo real
+        Gestión operativa, consulta de precios de productos y ventas
         <span class="text-secondary mx-1">·</span>
         <span class="fw-medium text-dark">{{ fechaActual | date:'EEEE, d \'de\' MMMM y' }}</span>
       </p>
@@ -22,7 +22,7 @@
       <div class="input-group input-group-sm busqueda-placa-box">
         <span class="input-group-text bg-white border-end-0 text-warning"><i class="bi bi-car-front-fill"></i></span>
         <input type="text" class="form-control border-start-0 text-uppercase fw-bold"
-               placeholder="Consultar placa..."
+               aria-label="Consultar orden por placa" placeholder="Consultar placa..."
                [(ngModel)]="placaBusqueda"
                (keyup.enter)="consultarPlaca()">
         <button class="btn btn-warning btn-sm fw-semibold" (click)="consultarPlaca()" title="Buscar orden por placa">
@@ -37,6 +37,20 @@
       </button>
     </div>
   </div>
+
+  <section class="operational-priorities mb-4" aria-label="Prioridades del taller">
+    <div class="d-flex justify-content-between align-items-center gap-2 mb-3">
+      <h5 class="mb-0 fw-bold">Qué necesita atención</h5>
+      <a routerLink="/dashboard/ordenes" class="btn btn-sm btn-outline-dark">Revisar órdenes</a>
+    </div>
+    <p *ngIf="errorPrioridades" role="alert" class="alert alert-warning mb-0">No pudimos cargar las prioridades. Usa Actualizar para reintentar.</p>
+    <p *ngIf="cargandoPrioridades" role="status" class="text-muted mb-0">Cargando prioridades...</p>
+    <div *ngIf="!errorPrioridades && !cargandoPrioridades" class="row g-3">
+      <div class="col-12 col-md-4"><div class="priority-item"><span>Entregas atrasadas</span><strong>{{ ordenesAtrasadas.length }}</strong><small>Órdenes activas con fecha estimada vencida</small></div></div>
+      <div class="col-12 col-md-4"><div class="priority-item"><span>Sin mecánico asignado</span><strong>{{ ordenesSinAsignar.length }}</strong><small>Trabajos pendientes de asignación</small></div></div>
+      <div class="col-12 col-md-4"><div class="priority-item"><span>Listos para retirar</span><strong>{{ ordenesListas.length }}</strong><small>Coordina el recojo con el cliente</small></div></div>
+    </div>
+  </section>
 
   <!-- Botones de Acción Rápida (Hub Operativo para Admin) -->
   <div class="quick-actions-bar mb-4">

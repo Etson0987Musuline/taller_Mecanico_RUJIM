@@ -1,6 +1,6 @@
 <div>
   <!-- Encabezado -->
-  <div class="d-flex justify-content-between align-items-center mb-3">
+  <div class="d-flex flex-wrap gap-3 justify-content-between align-items-center mb-3">
     <div>
       <h4 class="fw-bold mb-0">
         <i class="bi bi-clipboard2-check-fill text-warning me-2"></i>Órdenes de trabajo
@@ -34,12 +34,12 @@
   <!-- Buscador -->
   <div class="input-group mb-3" style="max-width:400px">
     <span class="input-group-text"><i class="bi bi-search"></i></span>
-    <input class="form-control" placeholder="Buscar por código, cliente, placa o mecánico..."
+    <input aria-label="Buscar órdenes por código, cliente, placa o mecánico" class="form-control" placeholder="Buscar por código, cliente, placa o mecánico..."
            [(ngModel)]="busqueda" (input)="aplicarFiltros()">
   </div>
 
   <!-- Tabla -->
-  <div class="card border-0 shadow-sm">
+  <div class="card border-0 shadow-sm orders-list">
     <div class="table-responsive">
       <table class="table table-hover mb-0">
         <thead class="table-dark">
@@ -60,56 +60,61 @@
             </td>
           </tr>
           <tr *ngFor="let o of filtradas">
-            <td><strong>{{ o.codigo }}</strong></td>
-            <td>
+            <td data-label="Orden"><strong>{{ o.codigo }}</strong></td>
+            <td data-label="Cliente / Vehículo">
               <div class="fw-semibold small">{{ o.cliente }}</div>
               <span class="badge bg-light text-dark border me-1">{{ o.vehiculo }}</span>
               <span class="badge bg-dark" (click)="abrirHistorialPlaca(o.placa)" style="cursor:pointer" title="Ver historial de esta placa">
                 {{ o.placa }} <i class="bi bi-search ms-1" style="font-size:0.65rem"></i>
               </span>
             </td>
-            <td class="small">{{ o.mecanico || '—' }}</td>
-            <td>
+            <td data-label="Mecánico" class="small">{{ o.mecanico || '—' }}</td>
+            <td data-label="Estado">
               <span [class]="getBadge(o.estado).clase">{{ getBadge(o.estado).label }}</span>
             </td>
-            <td class="small text-muted">{{ o.fecha_ingreso | date:'dd/MM/yy' }}</td>
-            <td class="small text-muted">
+            <td data-label="Ingreso" class="small text-muted">{{ o.fecha_ingreso | date:'dd/MM/yy' }}</td>
+            <td data-label="Entrega estimada" class="small text-muted">
               {{ o.fecha_estimada ? (o.fecha_estimada | date:'dd/MM/yy') : '—' }}
             </td>
-            <td>
+            <td data-label="Acciones">
               <div class="d-flex gap-1 align-items-center">
-                <!-- Botón WhatsApp -->
-                <button class="btn btn-sm btn-outline-success"
-                        (click)="abrirModalWhatsApp(o)" title="Notificar cliente por WhatsApp">
-                  <i class="bi bi-whatsapp"></i>
-                </button>
-                <!-- Botón Historial Placa -->
-                <button class="btn btn-sm btn-outline-info"
-                        (click)="abrirHistorialPlaca(o.placa)" title="Hoja de vida / Historial de este auto">
-                  <i class="bi bi-clock-history"></i>
-                </button>
                 <!-- Botón Ver Detalle -->
                 <button class="btn btn-sm btn-outline-secondary"
-                        (click)="verOrden(o)" title="Ver detalle">
-                  <i class="bi bi-eye"></i>
+                        (click)="verOrden(o)" aria-label="Ver detalle" title="Ver detalle">
+                  <i class="bi bi-eye me-1" aria-hidden="true"></i>Ver detalle
                 </button>
                 <!-- Botón Editar -->
                 <button *ngIf="rol.puedeEditarOrdenBasico()"
                         class="btn btn-sm btn-outline-primary"
-                        (click)="editarOrden(o)" title="Editar orden">
-                  <i class="bi bi-pencil"></i>
+                        (click)="editarOrden(o)" aria-label="Editar orden" title="Editar orden">
+                  <i class="bi bi-pencil me-1" aria-hidden="true"></i>Gestionar
                 </button>
                 <button *ngIf="!rol.puedeEditarOrdenBasico()"
                         class="btn btn-sm btn-outline-warning"
-                        (click)="editarOrden(o)" title="Gestionar orden">
-                  <i class="bi bi-tools"></i>
+                        (click)="editarOrden(o)" aria-label="Gestionar orden" title="Gestionar orden">
+                  <i class="bi bi-tools me-1" aria-hidden="true"></i>Gestionar
+                </button>
+                <details class="order-more">
+                  <summary aria-label="Más acciones de la orden">Más acciones</summary>
+                  <div class="order-more-content">
+                <!-- Botón WhatsApp -->
+                <button class="btn btn-sm btn-outline-success"
+                        (click)="abrirModalWhatsApp(o)" aria-label="Notificar cliente por WhatsApp" title="Notificar cliente por WhatsApp">
+                  <i class="bi bi-whatsapp"></i>
+                </button>
+                <!-- Botón Historial Placa -->
+                <button class="btn btn-sm btn-outline-info"
+                        (click)="abrirHistorialPlaca(o.placa)" aria-label="Hoja de vida / Historial de este auto" title="Hoja de vida / Historial de este auto">
+                  <i class="bi bi-clock-history"></i>
                 </button>
                 <!-- Botón Eliminar -->
                 <button *ngIf="rol.puedeEliminarOrden()"
                         class="btn btn-sm btn-outline-danger"
-                        (click)="eliminarOrden(o)" title="Eliminar orden">
+                        (click)="eliminarOrden(o)" aria-label="Eliminar orden" title="Eliminar orden">
                   <i class="bi bi-trash"></i>
                 </button>
+                  </div>
+                </details>
               </div>
             </td>
           </tr>
@@ -129,20 +134,26 @@
 ══════════════════════════════════════════ -->
 <div class="modal-backdrop-custom" *ngIf="mostrarModalNueva"
      (click)="mostrarModalNueva=false"></div>
-<div class="modal-custom" *ngIf="mostrarModalNueva">
+<div role="dialog" aria-modal="true" aria-label="Nueva orden de trabajo" class="modal-custom" *ngIf="mostrarModalNueva">
   <div class="modal-dialog-xl">
     <div class="modal-header">
       <h5 class="modal-title fw-bold">
         <i class="bi bi-clipboard2-plus me-2"></i>Nueva orden de trabajo
       </h5>
-      <button class="btn-close" (click)="mostrarModalNueva=false"></button>
+      <button aria-label="Cerrar ventana" class="btn-close" (click)="mostrarModalNueva=false"></button>
     </div>
     <div class="modal-body">
+      <ol class="new-order-steps" aria-label="Pasos del registro">
+        <li [class.current]="pasoNueva === 1" [attr.aria-current]="pasoNueva === 1 ? 'step' : null">1. Cliente y vehículo</li>
+        <li [class.current]="pasoNueva === 2" [attr.aria-current]="pasoNueva === 2 ? 'step' : null">2. Trabajo y costos</li>
+        <li [class.current]="pasoNueva === 3" [attr.aria-current]="pasoNueva === 3 ? 'step' : null">3. Confirmación</li>
+      </ol>
+      <p *ngIf="errorNueva" role="alert" class="alert alert-danger">{{ errorNueva }}</p>
       <div class="row g-3">
 
         <!-- Columna izquierda -->
-        <div class="col-md-6">
-          <h6 class="fw-bold text-warning mb-2">Información general</h6>
+        <div class="col-12" *ngIf="pasoNueva === 1">
+          <h6 class="fw-bold text-warning mb-2">Cliente, vehículo y recepción</h6>
 
           <!-- Vehículo -->
           <div class="mb-2">
@@ -150,7 +161,7 @@
               <i class="bi bi-car-front me-1"></i>Vehículo *
             </label>
             <div class="position-relative">
-              <input class="form-control" placeholder="Nombre del cliente o placa..."
+              <input aria-label="Buscar cliente o placa" class="form-control" placeholder="Nombre del cliente o placa..."
                      [(ngModel)]="busquedaVehiculo" (input)="buscarVehiculo()">
               <div *ngIf="mostrarVehiculos" class="sugerencias-dropdown">
                 <div *ngFor="let v of vehiculosFiltrados" class="sugerencia-item"
@@ -177,7 +188,7 @@
               <i class="bi bi-person-gear me-1"></i>Mecánico
             </label>
             <div class="position-relative">
-              <input class="form-control" placeholder="Nombre del mecánico..."
+              <input aria-label="Buscar mecánico" class="form-control" placeholder="Nombre del mecánico..."
                      [(ngModel)]="busquedaMecanico" (input)="buscarMecanico(false)">
               <div *ngIf="mostrarMecanicos" class="sugerencias-dropdown">
                 <div *ngFor="let m of mecanicosFiltrados" class="sugerencia-item"
@@ -197,17 +208,17 @@
           <div class="row g-2">
             <div class="col-6">
               <label class="form-label small fw-semibold">Kilometraje</label>
-              <input class="form-control" type="number"
+              <input aria-label="Kilometraje" class="form-control" type="number"
                      [(ngModel)]="ordenForm.km_actual" placeholder="Ej: 45000">
             </div>
             <div class="col-6">
               <label class="form-label small fw-semibold">Fecha estimada entrega</label>
-              <input class="form-control" type="date"
+              <input aria-label="Fecha estimada de entrega" class="form-control" type="date"
                      [(ngModel)]="ordenForm.fecha_estimada">
             </div>
             <div class="col-6">
               <label class="form-label small fw-semibold">Mano de obra (S/)</label>
-              <input class="form-control" type="number" step="0.01"
+              <input aria-label="Mano de obra en soles" class="form-control" type="number" step="0.01"
                      [(ngModel)]="ordenForm.mano_obra" placeholder="0.00">
             </div>
           </div>
@@ -215,14 +226,14 @@
           <!-- Problema -->
           <div class="mt-2">
             <label class="form-label small fw-semibold">Problema reportado *</label>
-            <textarea class="form-control" rows="3"
+            <textarea aria-label="Problema reportado" class="form-control" rows="3"
                       [(ngModel)]="ordenForm.descripcion_problema"
                       placeholder="Describe el problema reportado por el cliente..."></textarea>
           </div>
         </div>
 
         <!-- Columna derecha -->
-        <div class="col-md-6">
+        <div class="col-12" *ngIf="pasoNueva === 2">
           <h6 class="fw-bold text-warning mb-2">Servicios y Repuestos</h6>
 
           <!-- Servicios -->
@@ -231,7 +242,7 @@
               <i class="bi bi-tools me-1"></i>Servicios
             </div>
             <div class="position-relative mb-2">
-              <input class="form-control form-control-sm"
+              <input aria-label="Buscar servicio" class="form-control form-control-sm"
                      placeholder="Buscar servicio..."
                      [(ngModel)]="busquedaServicioNueva"
                      (input)="buscarServicioNueva()">
@@ -247,10 +258,10 @@
               </div>
             </div>
             <div *ngIf="servicioFormNueva.servicio_id" class="d-flex gap-1 mb-2">
-              <input class="form-control form-control-sm" type="number" step="0.01"
+              <input aria-label="Precio del servicio" class="form-control form-control-sm" type="number" step="0.01"
                      [(ngModel)]="servicioFormNueva.precio"
                      placeholder="Precio" style="max-width:90px">
-              <input class="form-control form-control-sm"
+              <input aria-label="Observación del servicio" class="form-control form-control-sm"
                      [(ngModel)]="servicioFormNueva.observacion"
                      placeholder="Observación">
               <button class="btn btn-sm btn-success" (click)="agregarServicioNueva()">
@@ -281,7 +292,7 @@
               <i class="bi bi-box-seam me-1"></i>Repuestos
             </div>
             <div class="position-relative mb-2">
-              <input class="form-control form-control-sm"
+              <input aria-label="Buscar repuesto" class="form-control form-control-sm"
                      placeholder="Buscar repuesto..."
                      [(ngModel)]="busquedaRepuestoNueva"
                      (input)="buscarRepuestoNueva()">
@@ -297,10 +308,10 @@
               </div>
             </div>
             <div *ngIf="repuestoFormNueva.repuesto_id" class="d-flex gap-1 mb-2">
-              <input class="form-control form-control-sm" type="number"
+              <input aria-label="Cantidad del repuesto" class="form-control form-control-sm" type="number"
                      [(ngModel)]="repuestoFormNueva.cantidad"
                      placeholder="Cant." style="max-width:70px">
-              <input class="form-control form-control-sm" type="number" step="0.01"
+              <input aria-label="Precio unitario del repuesto" class="form-control form-control-sm" type="number" step="0.01"
                      [(ngModel)]="repuestoFormNueva.precio_unitario"
                      placeholder="Precio unit.">
               <button class="btn btn-sm btn-success" (click)="agregarRepuestoNueva()">
@@ -336,9 +347,27 @@
 
       </div>
     </div>
+    <section *ngIf="pasoNueva === 3" class="order-review mx-4 mb-4" aria-label="Resumen de la nueva orden">
+      <h6>Revisa antes de crear la orden</h6>
+      <dl>
+        <dt>Cliente y vehículo</dt><dd>{{ vehiculoSeleccionado?.cliente }} · {{ busquedaVehiculo }}</dd>
+        <dt>Problema reportado</dt><dd>{{ ordenForm.descripcion_problema }}</dd>
+        <dt>Mecánico</dt><dd>{{ mecanicoSeleccionado?.nombre || 'Sin asignar' }}</dd>
+        <dt>Entrega estimada</dt><dd>{{ ordenForm.fecha_estimada || 'Por definir' }}</dd>
+        <dt>Servicios y repuestos</dt><dd>{{ serviciosNuevaOrden.length }} servicios · {{ repuestosNuevaOrden.length }} repuestos</dd>
+        <dt>Total estimado</dt><dd class="fs-4 fw-bold">S/ {{ totalNuevaOrden | number:'1.2-2' }}</dd>
+      </dl>
+      <ul class="small" *ngIf="serviciosNuevaOrden.length || repuestosNuevaOrden.length">
+        <li *ngFor="let servicio of serviciosNuevaOrden">{{ servicio.nombre }} · S/ {{ servicio.precio | number:'1.2-2' }}</li>
+        <li *ngFor="let repuesto of repuestosNuevaOrden">{{ repuesto.cantidad }} × {{ repuesto.nombre }} · S/ {{ repuesto.cantidad * repuesto.precio_unitario | number:'1.2-2' }}</li>
+      </ul>
+      <p class="small mb-0">Este registro crea la orden de trabajo. El importe es una estimación del taller.</p>
+    </section>
     <div class="modal-footer">
       <button class="btn btn-secondary" (click)="mostrarModalNueva=false">Cancelar</button>
-      <button class="btn btn-warning fw-semibold" (click)="guardarOrden()" [disabled]="guardando">
+      <button *ngIf="pasoNueva > 1" class="btn btn-outline-secondary" [disabled]="guardando" (click)="pasoNueva = pasoNueva - 1; errorNueva = ''">Atrás</button>
+      <button *ngIf="pasoNueva < 3" class="btn btn-warning fw-semibold" (click)="avanzarNueva()">Continuar</button>
+      <button *ngIf="pasoNueva === 3" class="btn btn-warning fw-semibold" (click)="guardarOrden()" [disabled]="guardando">
         <span *ngIf="guardando" class="spinner-border spinner-border-sm me-1"></span>
         {{ guardando ? 'Creando...' : 'Crear orden' }}
       </button>
@@ -362,7 +391,7 @@
           {{ ordenActual.cliente }} — {{ ordenActual.vehiculo }} ({{ ordenActual.placa }})
         </small>
       </div>
-      <button class="btn-close" (click)="mostrarModalVer=false"></button>
+      <button aria-label="Cerrar ventana" class="btn-close" (click)="mostrarModalVer=false"></button>
     </div>
     <div class="modal-body">
       <div class="row g-3">
@@ -538,7 +567,7 @@
           {{ ordenActual.cliente }} — {{ ordenActual.vehiculo }} ({{ ordenActual.placa }})
         </small>
       </div>
-      <button class="btn-close" (click)="mostrarModalEditar=false"></button>
+      <button aria-label="Cerrar ventana" class="btn-close" (click)="mostrarModalEditar=false"></button>
     </div>
     <div class="modal-body">
       <div class="row g-3">

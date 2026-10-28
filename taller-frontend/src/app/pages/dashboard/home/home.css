@@ -345,3 +345,8 @@
     width: 100%;
   }
 }
+
+.operational-priorities { background: #fff; color: #1e293b; border: 1px solid #cbd5e1; border-radius: 14px; padding: 1.25rem; }
+.priority-item { display: flex; flex-direction: column; border-left: 3px solid #f59e0b; padding-left: 1rem; }
+.priority-item strong { font-size: 2rem; }
+.priority-item small { color: #64748b; }

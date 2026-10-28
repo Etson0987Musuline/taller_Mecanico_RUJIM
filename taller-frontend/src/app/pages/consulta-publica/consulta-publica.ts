@@ -251,7 +251,8 @@ export class ConsultaPublicaComponent implements OnInit {
 
   consultar(): void {
     const query = this.busqueda.trim();
-    if (!query) return;
+    if (this.buscando) return;
+    if (!query) { this.error = 'Ingresa un dato para consultar tu vehículo.'; return; }
 
     this.buscando = true;
     this.buscado = false;
@@ -275,8 +276,10 @@ export class ConsultaPublicaComponent implements OnInit {
         this.buscado = true;
         this.cdr.detectChanges();
       },
-      error: () => {
-        this.error = `No se encontraron órdenes registradas para la búsqueda "${query}".`;
+      error: (err) => {
+        this.error = err.status === 404
+          ? `No encontramos órdenes para "${query}". Revisa los datos o consulta al taller.`
+          : 'No pudimos conectar con el taller. Inténtalo nuevamente en unos momentos.';
         this.buscando = false;
         this.buscado = true;
         this.cdr.detectChanges();
@@ -300,6 +303,19 @@ export class ConsultaPublicaComponent implements OnInit {
     };
   }
 
+  getSiguientePaso(estado: string): string {
+    const siguientes: Record<string, string> = {
+      recibido: 'El equipo revisará el vehículo para identificar el problema.',
+      diagnostico: 'El taller te comunicará el diagnóstico y el trabajo recomendado.',
+      en_reparacion: 'Al terminar la reparación, el equipo verificará el funcionamiento.',
+      espera_repuestos: 'Cuando estén disponibles los repuestos, el equipo podrá continuar. Consulta al taller por la fecha estimada.',
+      listo: 'Comunícate con el taller para coordinar el recojo y confirmar cualquier saldo pendiente.',
+      entregado: 'Conserva tu comprobante y consulta al taller por los cuidados y el próximo mantenimiento.',
+      cancelado: 'Contacta al taller si necesitas conocer el motivo o coordinar el retiro.'
+    };
+    return siguientes[estado] || 'Consulta al taller para conocer el siguiente paso.';
+  }
+
   getStepStatus(estadoActual: string, stepNumber: number): 'completed' | 'current' | 'pending' {
     const actualConfig = this.getEstado(estadoActual);
     const actualStep = actualConfig.stepNumber;
@@ -319,7 +335,7 @@ export class ConsultaPublicaComponent implements OnInit {
       case 'espera_repuestos': return 65;
       case 'listo': return 95;
       case 'entregado': return 100;
-      case 'cancelado': return 10;
+      case 'cancelado': return 0;
       default: return 30;
     }
   }

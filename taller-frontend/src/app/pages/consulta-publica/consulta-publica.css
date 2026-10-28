@@ -969,3 +969,15 @@
     padding: 26px;
   }
 }
+/* Seguimiento legible y con una jerarquía visual estable. */
+.search-field-label { display: block; text-align: left; color: #e2e8f0; font-weight: 600; margin-bottom: .5rem; }
+.next-step-panel { background: #192231; border: 1px solid #334155; border-left: 3px solid #f59e0b; border-radius: 12px; padding: 1rem; color: #f1f5f9; }
+.next-step-eyebrow { color: #fbbf24; font-weight: 700; margin-bottom: .4rem; }
+.hero-glow { display: none; }
+.vehicle-order-card { box-shadow: 0 6px 20px #0003 !important; }
+@media (max-width: 575.98px) {
+  .search-input-group > .search-input { width: 100%; min-height: 48px; }
+  .stepper-nodes .node-label { display: block; font-size: .62rem; overflow-wrap: anywhere; }
+  .stepper-node { min-width: 0; flex: 1; }
+  .hero-title { font-size: 2rem; }
+}

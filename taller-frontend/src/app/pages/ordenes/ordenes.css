@@ -118,3 +118,31 @@
   bottom: 0;
   background: #fff;
 }
+
+.new-order-steps { display: flex; list-style: none; padding: 0; gap: .5rem; margin-bottom: 1.5rem; }
+.new-order-steps li { flex: 1; padding: .75rem; border-radius: 8px; background: #f1f5f9; color: #475569; font-size: .85rem; }
+.new-order-steps .current { background: #fef3c7; color: #78350f; font-weight: 700; box-shadow: inset 0 -3px #f59e0b; }
+.order-review { border: 1px solid #cbd5e1; border-radius: 12px; padding: 1.25rem; color: #1e293b; background: #f8fafc; overflow-wrap: anywhere; }
+.order-review dt { color: #64748b; font-size: .8rem; }
+@media (max-width: 767.98px) {
+  .orders-list { background: transparent; box-shadow: none !important; }
+  .orders-list .table-responsive { overflow: visible; }
+  .orders-list table, .orders-list tbody { display: block; width: 100%; }
+  .orders-list thead { display: none; }
+  .orders-list tbody tr { display: block; background: #fff; border: 1px solid #cbd5e1; border-radius: 12px; padding: .75rem; margin-bottom: 1rem; }
+  .orders-list tbody td { display: flex; justify-content: space-between; gap: .75rem; padding: .6rem .25rem; border: 0; overflow-wrap: anywhere; }
+  .orders-list td[data-label]::before { content: attr(data-label); color: #64748b; font-size: .8rem; min-width: 5rem; }
+  .orders-list td[data-label="Cliente / Vehículo"] { display: block; }
+  .orders-list td[data-label="Cliente / Vehículo"]::before { display: block; margin-bottom: .4rem; }
+  .orders-list td .d-flex { flex-wrap: wrap; }
+  .orders-list button { min-width: 44px; min-height: 44px; }
+  .filtro-btn { min-height: 44px; }
+  .modal-custom { padding: .5rem; }
+  .modal-body { padding: 1rem; }
+  .modal-footer { flex-wrap: wrap; padding: .75rem; }
+  .new-order-steps li { font-size: .72rem; padding: .5rem; }
+}
+
+.order-more summary { cursor: pointer; padding: .4rem .6rem; color: #475569; border: 1px solid #cbd5e1; border-radius: 6px; font-size: .8rem; }
+.order-more-content { display: flex; flex-wrap: wrap; gap: .4rem; padding-top: .5rem; }
+.order-more[open] { flex-basis: 100%; }

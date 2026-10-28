@@ -18,6 +18,10 @@ export class HomeComponent implements OnInit {
   cargando = true;
   refrescando = false;
   ordenesListas: any[] = [];
+  ordenesAtrasadas: any[] = [];
+  ordenesSinAsignar: any[] = [];
+  errorPrioridades = false;
+  cargandoPrioridades = true;
   repuestosCriticos: any[] = [];
   placaBusqueda = '';
   fechaActual = new Date();
@@ -96,12 +100,20 @@ export class HomeComponent implements OnInit {
   }
 
   cargarListos() {
+    this.cargandoPrioridades = true;
     this.ordenesService.getAll().subscribe({
       next: (data) => {
-        this.ordenesListas = (data || []).filter(o => o.estado === 'listo');
+        const ordenes = data || [];
+        const hoy = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Lima', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+        const activas = ordenes.filter(o => !['entregado', 'cancelado'].includes(o.estado));
+        this.ordenesListas = ordenes.filter(o => o.estado === 'listo');
+        this.ordenesAtrasadas = activas.filter(o => o.estado !== 'listo' && o.fecha_estimada && String(o.fecha_estimada).slice(0, 10) < hoy);
+        this.ordenesSinAsignar = activas.filter(o => o.estado !== 'listo' && !o.mecanico_id && !o.mecanico);
+        this.errorPrioridades = false;
+        this.cargandoPrioridades = false;
         this.cdr.detectChanges();
       },
-      error: () => {}
+      error: () => { this.cargandoPrioridades = false; this.errorPrioridades = true; this.cdr.detectChanges(); }
     });
   }
 

@@ -542,3 +542,9 @@ a, button {
   border-bottom-right-radius: 9px;
 }
 
+
+/* Navegación accesible y preferencia de movimiento. */
+:where(button, a, input, textarea, select, summary):focus-visible { outline: 3px solid #06b6d4 !important; outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}

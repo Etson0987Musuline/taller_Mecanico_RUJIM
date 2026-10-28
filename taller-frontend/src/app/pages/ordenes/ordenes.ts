@@ -27,6 +27,22 @@ export class OrdenesComponent implements OnInit {
   guardando           = false;
 
   ordenForm: any = {};
+  pasoNueva = 1;
+  errorNueva = '';
+
+  avanzarNueva(): void {
+    this.errorNueva = '';
+    if (this.pasoNueva === 1 && (!this.ordenForm.vehiculo_id || !this.ordenForm.descripcion_problema?.trim())) {
+      this.errorNueva = 'Selecciona un vehículo y describe el problema para continuar.';
+      return;
+    }
+    if ([this.ordenForm.km_actual, this.ordenForm.mano_obra].some(v => v != null && v !== '' && (!Number.isFinite(Number(v)) || Number(v) < 0))) {
+      this.errorNueva = 'El kilometraje y la mano de obra deben ser valores válidos, iguales o mayores que cero.';
+      return;
+    }
+    this.pasoNueva = Math.min(3, this.pasoNueva + 1);
+  }
+
   busquedaVehiculo = ''; vehiculosFiltrados: any[] = [];
   vehiculoSeleccionado: any = null; mostrarVehiculos = false;
   busquedaMecanico = ''; mecanicosFiltrados: any[] = [];
@@ -319,6 +335,8 @@ export class OrdenesComponent implements OnInit {
 
   // ── Nueva orden ──
   nueva() {
+    this.pasoNueva = 1;
+    this.errorNueva = '';
     this.ordenForm              = {};
     this.busquedaVehiculo       = '';
     this.busquedaMecanico       = '';
@@ -333,6 +351,7 @@ export class OrdenesComponent implements OnInit {
   }
 
   guardarOrden() {
+    if (this.guardando) return;
     if (!this.ordenForm.vehiculo_id || !this.ordenForm.descripcion_problema) {
       alert('Selecciona un vehículo y describe el problema'); return;
     }
