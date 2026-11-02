@@ -4,7 +4,7 @@
 2. En las variables de entorno **del backend**, configurar `SUPABASE_SERVICE_ROLE_KEY` con la clave secreta/service_role de ese mismo proyecto. Mantener `SUPABASE_URL`. También se admite que `SUPABASE_KEY` ya sea una clave service_role. Nunca poner claves secretas en Angular, archivos públicos o el repositorio.
 3. Reiniciar o desplegar el backend y desplegar el frontend. El módulo aparecerá para administradores en `/dashboard/cotizaciones`; los enlaces del cliente usan `/cotizacion/:token`.
 
-La configuración local actual contiene una clave pública: el módulo devuelve 503 hasta configurar la clave privada. No se ha ejecutado la migración ni publicado estos cambios desde esta tarea.
+La configuración local contiene una clave pública: el módulo local devuelve 503 hasta configurar la clave privada. En producción, la migración ya está instalada y ambos proyectos fueron publicados el 2 de noviembre de 2026; la clave privada está configurada únicamente en el backend de Vercel.
 
 ## Flujo
 

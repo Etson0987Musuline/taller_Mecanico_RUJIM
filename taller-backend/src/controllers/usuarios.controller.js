@@ -62,9 +62,10 @@ const updateUsuario = async (req, res) => {
   if(rol==='cliente')return res.status(400).json({mensaje:'La identidad del cliente se administra mediante Google.'});
   if(Number(req.params.id)===req.usuario.id&&rol!=='admin')return res.status(400).json({mensaje:'No puedes quitarte tu propio acceso administrativo.'});
   try {
-    const {data:prev,error:pe}=await supabase.from('usuarios').select('rol,google_uid,email').eq('id',req.params.id).single();if(pe)throw pe;
+    const {data:prev,error:pe}=await supabase.from('usuarios').select('rol,google_uid,supabase_uid,email').eq('id',req.params.id).single();if(pe)throw pe;
     if(prev.rol==='cliente')return res.status(400).json({mensaje:'No se puede convertir una cuenta cliente en personal. Crea una cuenta autorizada independiente.'});
     if(prev.google_uid&&prev.email.toLowerCase()!==email.trim().toLowerCase())return res.status(400).json({mensaje:'No cambies el correo de una identidad Google vinculada.'});
+    if(prev.supabase_uid && (password || prev.email.toLowerCase()!==email.trim().toLowerCase()))return res.status(400).json({mensaje:'El correo y la contraseña de esta cuenta se administran en Supabase Auth.'});
     const updateData = { nombre, email:email.trim().toLowerCase(), telefono, rol,google_habilitado:req.body.google_habilitado===true, updated_at: new Date().toISOString() };
     if (password) {
       updateData.password_hash = await bcrypt.hash(password, 10);
