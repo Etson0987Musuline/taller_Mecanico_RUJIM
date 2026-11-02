@@ -317,6 +317,7 @@
 
       <!-- Totales -->
       <div class="resumen-factura mb-3">
+        <div *ngIf="facturaDetalle.descuento" class="d-flex justify-content-between small mb-1 text-success"><span>Descuento de fidelidad:</span><span>− S/ {{ facturaDetalle.descuento | number:'1.2-2' }}</span></div>
         <div class="d-flex justify-content-between small mb-1"><span class="text-muted">Subtotal:</span><span>S/ {{ facturaDetalle.subtotal | number:'1.2-2' }}</span></div>
         <div class="d-flex justify-content-between small mb-1"><span class="text-muted">IGV (18%):</span><span>S/ {{ facturaDetalle.igv | number:'1.2-2' }}</span></div>
         <div class="d-flex justify-content-between fw-bold"><span>Total:</span><span class="text-warning">S/ {{ facturaDetalle.total | number:'1.2-2' }}</span></div>

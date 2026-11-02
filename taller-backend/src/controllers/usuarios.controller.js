@@ -5,7 +5,7 @@ const getUsuarios = async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('usuarios')
-      .select('id, nombre, email, rol, telefono, activo, created_at')
+      .select('id, nombre, email, rol, telefono, activo, created_at,google_habilitado,cliente_id')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -18,6 +18,7 @@ const getUsuarios = async (req, res) => {
 
 const createUsuario = async (req, res) => {
   const { nombre, email, password, rol, telefono } = req.body;
+  if(!['admin','mecanico'].includes(rol))return res.status(400).json({mensaje:'Los clientes se vinculan mediante Google. Selecciona un rol de personal válido.'});
   if (!nombre || !email || !password || !rol) {
     return res.status(400).json({ mensaje: 'Nombre, email, contraseña y rol son requeridos' });
   }
@@ -37,11 +38,12 @@ const createUsuario = async (req, res) => {
       .from('usuarios')
       .insert([{
         nombre,
-        email,
+        email:email.trim().toLowerCase(),
         password_hash: hash,
         rol,
         telefono,
         activo: true
+        ,google_habilitado:req.body.google_habilitado===true
       }])
       .select('id')
       .single();
@@ -56,8 +58,14 @@ const createUsuario = async (req, res) => {
 
 const updateUsuario = async (req, res) => {
   const { nombre, email, telefono, rol, password } = req.body;
+  if(!['admin','mecanico','cliente'].includes(rol))return res.status(400).json({mensaje:'Rol no válido.'});
+  if(rol==='cliente')return res.status(400).json({mensaje:'La identidad del cliente se administra mediante Google.'});
+  if(Number(req.params.id)===req.usuario.id&&rol!=='admin')return res.status(400).json({mensaje:'No puedes quitarte tu propio acceso administrativo.'});
   try {
-    const updateData = { nombre, email, telefono, rol, updated_at: new Date().toISOString() };
+    const {data:prev,error:pe}=await supabase.from('usuarios').select('rol,google_uid,email').eq('id',req.params.id).single();if(pe)throw pe;
+    if(prev.rol==='cliente')return res.status(400).json({mensaje:'No se puede convertir una cuenta cliente en personal. Crea una cuenta autorizada independiente.'});
+    if(prev.google_uid&&prev.email.toLowerCase()!==email.trim().toLowerCase())return res.status(400).json({mensaje:'No cambies el correo de una identidad Google vinculada.'});
+    const updateData = { nombre, email:email.trim().toLowerCase(), telefono, rol,google_habilitado:req.body.google_habilitado===true, updated_at: new Date().toISOString() };
     if (password) {
       updateData.password_hash = await bcrypt.hash(password, 10);
     }
@@ -68,6 +76,8 @@ const updateUsuario = async (req, res) => {
       .eq('id', req.params.id);
 
     if (error) throw error;
+    const {error:ae}=await supabase.from('auditoria').insert({usuario_id:req.usuario.id,accion:'actualizar_acceso',entidad:'usuarios',entidad_id:String(req.params.id),detalle:{rol,google_habilitado:updateData.google_habilitado}});if(ae)throw ae;
+    const {error:se}=await supabase.from('sesiones').delete().eq('usuario_id',Number(req.params.id));if(se)throw se;
     res.json({ mensaje: 'Usuario actualizado' });
   } catch (err) {
     console.error(err);
@@ -76,6 +86,7 @@ const updateUsuario = async (req, res) => {
 };
 
 const toggleActivo = async (req, res) => {
+  if(Number(req.params.id)===req.usuario.id)return res.status(400).json({mensaje:'No puedes desactivar tu propia cuenta.'});
   try {
     const { data: user, error: getErr } = await supabase
       .from('usuarios')
@@ -91,6 +102,8 @@ const toggleActivo = async (req, res) => {
       .eq('id', req.params.id);
 
     if (error) throw error;
+    const {error:ae}=await supabase.from('auditoria').insert({usuario_id:req.usuario.id,accion:'cambiar_estado_usuario',entidad:'usuarios',entidad_id:String(req.params.id),detalle:{activo:!user.activo}});if(ae)throw ae;
+    const {error:se}=await supabase.from('sesiones').delete().eq('usuario_id',Number(req.params.id));if(se)throw se;
     res.json({ mensaje: 'Estado del usuario actualizado' });
   } catch (err) {
     console.error(err);
@@ -104,6 +117,7 @@ const getMecanicos = async (req, res) => {
       .from('usuarios')
       .select('id, nombre, rol')
       .eq('activo', true)
+      .in('rol',['admin','mecanico'])
       .order('nombre');
 
     if (error) throw error;

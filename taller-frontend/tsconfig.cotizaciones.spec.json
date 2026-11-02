@@ -1,0 +1,4 @@
+{
+  "extends": "./tsconfig.spec.json",
+  "include": ["src/app/pages/cotizaciones/*.spec.ts", "src/**/*.d.ts"]
+}

@@ -2,9 +2,12 @@ const supabase = require('../config/supabase');
 
 const getClientes = async (req, res) => {
   try {
-    const { data, error } = await supabase
-      .from('clientes')
-      .select('*')
+    let query=supabase.from('clientes').select('*');
+    if(req.vehiculosPermitidos){
+      const {data:vs,error:ve}=await supabase.from('vehiculos').select('cliente_id').in('id',req.vehiculosPermitidos.length?req.vehiculosPermitidos:[-1]);
+      if(ve)throw ve;query=query.in('id',vs.length?vs.map(v=>v.cliente_id):[-1]);
+    }
+    const { data, error } = await query
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -126,6 +129,7 @@ const getHistorialCliente = async (req, res) => {
         fecha_entrega,
         mano_obra,
         vehiculos!inner (
+          id,
           placa,
           marca,
           modelo,
@@ -145,7 +149,7 @@ const getHistorialCliente = async (req, res) => {
 
     if (error) throw error;
 
-    const historial = (data || []).map(ot => {
+    const historial = (data || []).filter(ot=>!req.vehiculosPermitidos||req.vehiculosPermitidos.includes(ot.vehiculos?.id)).map(ot => {
       const factura = Array.isArray(ot.facturas) ? ot.facturas[0] : ot.facturas;
       return {
         id: ot.id,

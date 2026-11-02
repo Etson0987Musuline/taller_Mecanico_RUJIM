@@ -2,9 +2,12 @@ const supabase = require('../config/supabase');
 
 const getOrdenes = async (req, res) => {
   try {
-    const { data, error } = await supabase
-      .from('v_ordenes_resumen')
-      .select('*')
+    let query = supabase.from('v_ordenes_resumen').select('*');
+    if(req.usuario.rol==='mecanico') {
+      const {data:asignadas,error:ae}=await supabase.from('ordenes_trabajo').select('id').eq('mecanico_id',req.usuario.id);
+      if(ae)throw ae;query=query.in('id',asignadas.length?asignadas.map(o=>o.id):[-1]);
+    }
+    const { data, error } = await query
       .order('fecha_ingreso', { ascending: false });
 
     if (error) throw error;
@@ -112,6 +115,12 @@ const getOrdenById = async (req, res) => {
 };
 
 const createOrden = async (req, res) => {
+  if(req.usuario.rol==='mecanico') {
+    const {data,error}=await supabase.from('ordenes_trabajo').select('id').eq('vehiculo_id',req.body.vehiculo_id).eq('mecanico_id',req.usuario.id).limit(1);
+    if(error)return res.status(503).json({mensaje:'No se pudo verificar la asignación.'});
+    if(!data.length)return res.status(403).json({mensaje:'El administrador debe asignarte este vehículo.'});
+    req.body.mecanico_id=req.usuario.id;
+  }
   const { vehiculo_id, mecanico_id, descripcion_problema, fecha_estimada, km_actual, mano_obra } = req.body;
   if (!vehiculo_id || !descripcion_problema) {
     return res.status(400).json({ mensaje: 'vehiculo_id y descripcion_problema son requeridos' });
@@ -189,6 +198,7 @@ const updateEstado = async (req, res) => {
 
 const agregarServicio = async (req, res) => {
   const { servicio_id, precio, observacion } = req.body;
+  if(!Number.isFinite(Number(precio))||Number(precio)<0)return res.status(400).json({mensaje:'Precio no válido.'});
   if (!servicio_id) return res.status(400).json({ mensaje: 'servicio_id es requerido' });
 
   try {
@@ -214,7 +224,7 @@ const eliminarServicio = async (req, res) => {
     const { error } = await supabase
       .from('orden_servicios')
       .delete()
-      .eq('id', req.params.osId);
+      .eq('id', req.params.osId).eq('orden_id',req.params.id);
 
     if (error) throw error;
     res.json({ mensaje: 'Servicio eliminado' });
@@ -224,90 +234,23 @@ const eliminarServicio = async (req, res) => {
   }
 };
 
-const agregarRepuesto = async (req, res) => {
-  const { repuesto_id, cantidad, precio_unitario } = req.body;
-  if (!repuesto_id) return res.status(400).json({ mensaje: 'repuesto_id es requerido' });
-
-  try {
-    const { data: rep, error: rErr } = await supabase
-      .from('repuestos')
-      .select('stock')
-      .eq('id', repuesto_id)
-      .single();
-
-    if (rErr || !rep) return res.status(404).json({ mensaje: 'Repuesto no encontrado' });
-
-    const cant = Number(cantidad) || 1;
-    if (rep.stock < cant) {
-      return res.status(400).json({ mensaje: `Stock insuficiente. Disponible: ${rep.stock}` });
-    }
-
-    const { error: insErr } = await supabase
-      .from('orden_repuestos')
-      .insert([{
-        orden_id: req.params.id,
-        repuesto_id,
-        cantidad: cant,
-        precio_unitario: Number(precio_unitario) || 0
-      }]);
-
-    if (insErr) throw insErr;
-
-    // Descontar stock
-    await supabase
-      .from('repuestos')
-      .update({ stock: rep.stock - cant })
-      .eq('id', repuesto_id);
-
-    res.status(201).json({ mensaje: 'Repuesto agregado' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ mensaje: 'Error al agregar repuesto' });
-  }
+const agregarRepuesto = async (req,res) => {
+  const cantidad=Number(req.body.cantidad),precio=Number(req.body.precio_unitario),repuesto=Number(req.body.repuesto_id);
+  if(!Number.isSafeInteger(cantidad)||cantidad<1||cantidad>10000||!Number.isFinite(precio)||precio<0||precio>1000000||!Number.isSafeInteger(repuesto)||repuesto<1)return res.status(400).json({mensaje:'Revisa el repuesto, la cantidad y el precio.'});
+  const {error}=await supabase.rpc('modificar_repuesto_orden',{p_orden:Number(req.params.id),p_usuario:req.usuario.id,p_repuesto:repuesto,p_detalle:null,p_cantidad:cantidad,p_precio:precio});
+  if(error)return res.status(error.code==='P0001'?409:503).json({mensaje:error.code==='P0001'?error.message:'No se pudo agregar el repuesto.'});
+  res.status(201).json({mensaje:'Repuesto agregado.'});
 };
-
-const eliminarRepuesto = async (req, res) => {
-  try {
-    const { data: detalle, error: detErr } = await supabase
-      .from('orden_repuestos')
-      .select('repuesto_id, cantidad')
-      .eq('id', req.params.orId)
-      .single();
-
-    if (detErr || !detalle) return res.status(404).json({ mensaje: 'Repuesto no encontrado en la orden' });
-
-    const { error: delErr } = await supabase
-      .from('orden_repuestos')
-      .delete()
-      .eq('id', req.params.orId);
-
-    if (delErr) throw delErr;
-
-    // Reponer stock
-    if (detalle.repuesto_id) {
-      const { data: rep } = await supabase
-        .from('repuestos')
-        .select('stock')
-        .eq('id', detalle.repuesto_id)
-        .single();
-
-      if (rep) {
-        await supabase
-          .from('repuestos')
-          .update({ stock: rep.stock + (Number(detalle.cantidad) || 1) })
-          .eq('id', detalle.repuesto_id);
-      }
-    }
-
-    res.json({ mensaje: 'Repuesto eliminado y stock repuesto' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ mensaje: 'Error al eliminar repuesto' });
-  }
+const eliminarRepuesto = async (req,res) => {
+  const detalle=Number(req.params.orId);if(!Number.isSafeInteger(detalle)||detalle<1)return res.status(400).json({mensaje:'Detalle no válido.'});
+  const {error}=await supabase.rpc('modificar_repuesto_orden',{p_orden:Number(req.params.id),p_usuario:req.usuario.id,p_repuesto:null,p_detalle:detalle,p_cantidad:null,p_precio:null});
+  if(error)return res.status(error.code==='P0001'?409:503).json({mensaje:error.code==='P0001'?error.message:'No se pudo eliminar el repuesto.'});
+  res.json({mensaje:'Repuesto eliminado y stock repuesto.'});
 };
 
 const updateManoObra = async (req, res) => {
   const { mano_obra } = req.body;
+  if(!Number.isFinite(Number(mano_obra))||Number(mano_obra)<0)return res.status(400).json({mensaje:'Importe de mano de obra no válido.'});
   try {
     const { error } = await supabase
       .from('ordenes_trabajo')

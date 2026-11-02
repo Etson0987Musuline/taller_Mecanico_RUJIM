@@ -1,8 +1,10 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { adminGuard } from './core/guards/admin.guard';
+import {panelGuard} from './core/guards/panel.guard';
 
 export const routes: Routes = [
+  { path: 'cotizacion/:token', loadComponent: () => import('./pages/cotizaciones/cotizacion-publica').then(m => m.CotizacionPublicaComponent) },
   { path: '', redirectTo: 'consulta', pathMatch: 'full' },
   {
     path: 'login',
@@ -15,8 +17,12 @@ export const routes: Routes = [
   {
     path: 'dashboard',
     canActivate: [authGuard],
+    canActivateChild:[panelGuard],
     loadComponent: () => import('./pages/dashboard/dashboard').then(m => m.DashboardComponent),
     children: [
+      {path:'programa',loadComponent:()=>import('./pages/programa/programa').then(m=>m.ProgramaComponent)},
+      {path:'mi-cuenta',loadComponent:()=>import('./pages/programa/programa').then(m=>m.ProgramaComponent)},
+      { path: 'cotizaciones', canActivate: [adminGuard], loadComponent: () => import('./pages/cotizaciones/cotizaciones').then(m => m.CotizacionesComponent) },
       { path: '', redirectTo: 'home', pathMatch: 'full' },
       {
         path: 'home',

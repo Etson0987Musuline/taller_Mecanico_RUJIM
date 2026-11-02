@@ -1,0 +1,1257 @@
+<main class="programa">
+  <header class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+    <div>
+      <h1 class="h3 mb-1">
+        {{
+          cliente
+            ? 'Mi cuenta y mis vehículos'
+            : mecanico
+              ? 'Mantenimiento y centro de alertas'
+              : 'Servicios, mantenimiento y fidelidad'
+        }}
+      </h1>
+      <p class="text-muted mb-0">
+        {{
+          cliente
+            ? 'Tu historial, próximos cuidados y beneficios en RUJIM.'
+            : 'Del trabajo realizado al seguimiento de la próxima visita.'
+        }}
+      </p>
+    </div>
+    <button class="btn btn-outline-secondary" (click)="cargar()" [disabled]="cargando || ocupado">
+      <i class="bi bi-arrow-clockwise me-1"></i>Actualizar
+    </button>
+  </header>
+  <div *ngIf="error" class="alert alert-danger" role="alert">{{ error }}</div>
+  <div *ngIf="mensaje" class="alert alert-success" role="status">{{ mensaje }}</div>
+  <p *ngIf="cargando" role="status">Cargando información del taller…</p>
+  <ng-container *ngIf="datos">
+    <nav class="tabs" aria-label="Secciones del programa">
+      <button
+        *ngFor="let t of ['resumen', 'vehiculos', 'servicios', 'preventivo', 'notificaciones']"
+        class="btn"
+        [class.btn-warning]="tab === t"
+        [class.btn-outline-secondary]="tab !== t"
+        [attr.aria-pressed]="tab === t"
+        (click)="tab = t"
+      >
+        {{
+          t === 'resumen'
+            ? 'Resumen'
+            : t === 'vehiculos'
+              ? 'Vehículos'
+              : t === 'servicios'
+                ? 'Servicios e historial'
+                : t === 'preventivo'
+                  ? 'Mantenimiento preventivo'
+                  : 'Notificaciones'
+        }}
+      </button>
+      <button
+        *ngIf="admin"
+        class="btn"
+        [class.btn-warning]="tab === 'configuracion'"
+        [class.btn-outline-secondary]="tab !== 'configuracion'"
+        (click)="tab = 'configuracion'"
+      >
+        Configurar programa
+      </button>
+      <button
+        *ngIf="cliente"
+        class="btn"
+        [class.btn-warning]="tab === 'preferencias'"
+        [class.btn-outline-secondary]="tab !== 'preferencias'"
+        (click)="tab = 'preferencias'"
+      >
+        Mi perfil y preferencias
+      </button>
+    </nav>
+
+    <section *ngIf="admin && (tab === 'resumen' || tab === 'servicios')" class="tarjeta seccion">
+      <h2 class="h6">Filtros del historial y las estadísticas</h2>
+      <div class="row g-2">
+        <div class="col-6 col-md-2">
+          <label for="f-desde" class="form-label">Desde</label
+          ><input id="f-desde" type="date" class="form-control" [(ngModel)]="filtros.desde" />
+        </div>
+        <div class="col-6 col-md-2">
+          <label for="f-hasta" class="form-label">Hasta</label
+          ><input id="f-hasta" type="date" class="form-control" [(ngModel)]="filtros.hasta" />
+        </div>
+        <div class="col-md-3">
+          <label for="f-cliente" class="form-label">Cliente</label
+          ><select id="f-cliente" class="form-select" [(ngModel)]="filtros.cliente_id">
+            <option value="">Todos</option>
+            <option *ngFor="let c of datos.clientes" [ngValue]="c.id">
+              {{ c.nombre }} {{ c.apellido }}
+            </option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label for="f-vehiculo" class="form-label">Vehículo</label
+          ><select id="f-vehiculo" class="form-select" [(ngModel)]="filtros.vehiculo_id">
+            <option value="">Todos</option>
+            <option *ngFor="let v of datos.vehiculos" [ngValue]="v.id">{{ v.placa }}</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label for="f-tipo" class="form-label">Tipo de servicio</label
+          ><select id="f-tipo" class="form-select" [(ngModel)]="filtros.tipo">
+            <option value="">Todos</option>
+            <option *ngFor="let t of tiposServicio">{{ t }}</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-outline-secondary mt-3" (click)="filtrarEstadisticas()">
+        Aplicar filtros
+      </button>
+    </section>
+
+    <section *ngIf="tab === 'resumen'">
+      <div *ngIf="admin && stats" class="row g-3 seccion">
+        <div class="col-6 col-xl-3">
+          <article class="tarjeta">
+            <div class="text-muted">Servicios aprobados</div>
+            <div class="indicador">{{ stats.total_servicios }}</div>
+          </article>
+        </div>
+        <div class="col-6 col-xl-3">
+          <article class="tarjeta">
+            <div class="text-muted">Recompensas generadas / usadas</div>
+            <div class="indicador">
+              {{ stats.recompensas_generadas }} / {{ stats.recompensas_utilizadas }}
+            </div>
+          </article>
+        </div>
+        <div class="col-6 col-xl-3">
+          <article class="tarjeta">
+            <div class="text-muted">Mantenimientos próximos / vencidos</div>
+            <div class="indicador">
+              {{ stats.mantenimientos_proximos }} / {{ stats.mantenimientos_vencidos }}
+            </div>
+          </article>
+        </div>
+        <div class="col-6 col-xl-3">
+          <article class="tarjeta">
+            <div class="text-muted">Recordatorios enviados / pendientes</div>
+            <div class="indicador">
+              {{ stats.recordatorios_enviados }} / {{ stats.recordatorios_pendientes }}
+            </div>
+          </article>
+        </div>
+        <div class="col-12">
+          <article class="tarjeta">
+            <h2 class="h5">Servicios por cliente</h2>
+            <p class="small text-muted">
+              El conteo del período respeta los filtros. El progreso acumulado usa todo el historial
+              aprobado. Cada orden aprobada cuenta como una visita.
+            </p>
+            <div class="table-responsive">
+              <table class="table tabla">
+                <thead>
+                  <tr>
+                    <th>Cliente</th>
+                    <th>Servicios del período</th>
+                    <th>Acumulados</th>
+                    <th>Próxima recompensa</th>
+                    <th>Última visita</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let c of stats.por_cliente">
+                    <td>
+                      {{ c.nombre }} {{ c.apellido }}
+                      <div class="small text-muted">{{ c.email }}</div>
+                    </td>
+                    <td>{{ c.servicios }}</td>
+                    <td>{{ c.acumulados }}</td>
+                    <td>
+                      {{
+                        c.faltan == null
+                          ? 'Hitos completados'
+                          : 'Faltan ' + c.faltan + ' para ' + c.siguiente_porcentaje + '%'
+                      }}
+                    </td>
+                    <td>{{ c.ultima_visita || 'Sin servicio aprobado' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+        </div>
+        <div class="col-md-6">
+          <article class="tarjeta">
+            <h2 class="h5">Cerca del próximo descuento</h2>
+            <p *ngIf="!stats.proximos_descuento.length" class="text-muted">
+              No hay clientes a dos servicios o menos de una recompensa.
+            </p>
+            <p *ngFor="let c of stats.proximos_descuento">
+              {{ c.nombre }} {{ c.apellido }} · faltan {{ c.faltan }} servicios.
+            </p>
+          </article>
+        </div>
+        <div class="col-md-6">
+          <article class="tarjeta">
+            <h2 class="h5">Más de 180 días sin regresar</h2>
+            <p *ngIf="!stats.clientes_inactivos.length" class="text-muted">
+              No hay clientes con visitas aprobadas fuera de ese plazo.
+            </p>
+            <p *ngFor="let c of stats.clientes_inactivos">
+              {{ c.nombre }} {{ c.apellido }} · última visita {{ c.ultima_visita }}
+            </p>
+          </article>
+        </div>
+      </div>
+      <article *ngIf="cliente" class="tarjeta seccion">
+        <h2 class="h5">Hola, {{ datos.usuario.nombre }}</h2>
+        <p class="indicador mb-1">{{ acumulados }} servicios acumulados</p>
+        <p *ngIf="proximaRegla">
+          Te faltan <strong>{{ proximaRegla.servicios - acumulados }}</strong> servicios aprobados
+          para obtener {{ proximaRegla.porcentaje }}% de descuento.
+        </p>
+        <p *ngIf="!proximaRegla">Has alcanzado todos los hitos activos del programa.</p>
+        <div
+          class="progress"
+          role="progressbar"
+          aria-label="Progreso de fidelidad"
+          [attr.aria-valuenow]="progreso"
+          aria-valuemin="0"
+          aria-valuemax="100"
+        >
+          <div class="progress-bar bg-warning" [style.width.%]="progreso"></div>
+        </div>
+        <p class="small text-muted mt-3 mb-0">
+          Cuentan las visitas revisadas y aprobadas por el taller. Los servicios pendientes y
+          cancelados no suman.
+        </p>
+      </article>
+      <article *ngIf="mecanico" class="tarjeta seccion">
+        <h2 class="h5">Tu trabajo y seguimiento</h2>
+        <p>
+          {{ datos.ordenes.length }} órdenes asignadas · {{ datos.alertas.length }} alertas de
+          mantenimiento y seguimiento.
+        </p>
+        <button class="btn btn-warning me-2" (click)="tab = 'servicios'">Reportar un trabajo</button
+        ><a class="btn btn-outline-secondary" routerLink="/dashboard/mecanico"
+          >Abrir mi panel de trabajo</a
+        >
+      </article>
+      <article *ngIf="!mecanico" class="tarjeta seccion">
+        <h2 class="h5">{{ cliente ? 'Mis descuentos' : 'Recompensas emitidas' }}</h2>
+        <p class="small text-muted">
+          Se aplica automáticamente una recompensa disponible en mano de obra y servicios al
+          facturar una nueva visita elegible. No se acumulan descuentos ni se descuentan repuestos.
+        </p>
+        <p *ngIf="!datos.recompensas.length" class="text-muted">
+          Todavía no hay recompensas generadas.
+        </p>
+        <div class="table-responsive" *ngIf="datos.recompensas.length">
+          <table class="table tabla">
+            <thead>
+              <tr>
+                <th *ngIf="admin">Cliente</th>
+                <th>Descuento</th>
+                <th>Generado</th>
+                <th>Vence</th>
+                <th>Estado</th>
+                <th>Autorización</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let r of datos.recompensas">
+                <td *ngIf="admin">{{ nombre(r.cliente_id) }}</td>
+                <td>{{ r.porcentaje }}% · hito {{ r.servicios_requeridos }}</td>
+                <td>{{ r.created_at | date: 'dd/MM/yyyy' : '-0500' }}</td>
+                <td>{{ r.vence_at | date: 'dd/MM/yyyy' : '-0500' }}</td>
+                <td>
+                  {{ estadoPremio(r) }}
+                  <div *ngIf="r.usada_at" class="small">
+                    {{ r.usada_at | date: 'dd/MM/yyyy' : '-0500' }}
+                  </div>
+                </td>
+                <td>{{ admin ? responsable(r.autorizado_por) : 'Validada por el taller' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+
+    <section *ngIf="tab === 'vehiculos'">
+      <h2 class="h5">{{ cliente ? 'Mis vehículos' : 'Vehículos del programa' }}</h2>
+      <p *ngIf="!datos.vehiculos.length" class="alert alert-info">
+        No hay vehículos vinculados. Contacta al taller para revisar tu ficha.
+      </p>
+      <div class="row g-3">
+        <div class="col-md-6 col-xl-4" *ngFor="let v of datos.vehiculos">
+          <article class="tarjeta">
+            <h3 class="h5">{{ v.placa }} · {{ v.marca }} {{ v.modelo }}</h3>
+            <p *ngIf="!cliente">{{ nombre(v.cliente_id) }}</p>
+            <p class="small text-muted">
+              {{ v.anio || 'Año sin registrar' }} · {{ v.tipo || 'Tipo sin registrar' }} ·
+              {{ v.color || 'Color sin registrar' }}
+            </p>
+            <p *ngIf="v.vin" class="small">VIN: {{ v.vin }}</p>
+            <p>
+              Kilometraje registrado: <strong>{{ v.km_ingreso | number }} km</strong>
+            </p>
+            <div *ngIf="!cliente" class="d-flex gap-2 mb-3">
+              <input
+                class="form-control"
+                type="number"
+                min="0"
+                [attr.aria-label]="'Kilometraje de ' + v.placa"
+                [(ngModel)]="kilometrajes[v.id]"
+              /><button
+                class="btn btn-outline-secondary"
+                (click)="actualizarKm(v)"
+                [disabled]="ocupado"
+              >
+                Guardar km
+              </button>
+            </div>
+            <button
+              class="btn btn-sm btn-outline-secondary me-2"
+              (click)="filtros.vehiculo_id = v.id; tab = 'servicios'"
+            >
+              Ver historial</button
+            ><button class="btn btn-sm btn-outline-secondary" (click)="tab = 'preventivo'">
+              Ver mantenimientos
+            </button>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section *ngIf="tab === 'servicios'">
+      <form *ngIf="!cliente" class="tarjeta seccion" (ngSubmit)="reportar()" #reporteForm="ngForm">
+        <h2 class="h5">Reportar servicio finalizado</h2>
+        <p class="small text-muted">
+          Los repuestos y trabajos se toman de la orden existente. Completa esos detalles en el
+          panel de trabajo antes de reportar. El administrador revisará el resultado.
+        </p>
+        <fieldset [disabled]="ocupado">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="r-orden" class="form-label">Orden de trabajo</label
+              ><select
+                id="r-orden"
+                name="orden"
+                class="form-select"
+                required
+                [(ngModel)]="reporte.orden_id"
+                (ngModelChange)="seleccionarOrden()"
+              >
+                <option [ngValue]="null">Selecciona una orden</option>
+                <option *ngFor="let o of ordenesReportables" [ngValue]="o.id">
+                  {{ o.codigo }} · {{ placa(o.vehiculo_id) }}
+                </option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label for="r-tipo" class="form-label">Tipo de servicio</label
+              ><input
+                id="r-tipo"
+                name="tipo"
+                class="form-control"
+                required
+                maxlength="120"
+                [(ngModel)]="reporte.tipo_servicio"
+              />
+            </div>
+            <div class="col-md-6">
+              <label for="r-fecha" class="form-label">Fecha del servicio</label
+              ><input
+                id="r-fecha"
+                name="fecha"
+                class="form-control"
+                type="date"
+                required
+                [(ngModel)]="reporte.fecha_servicio"
+              />
+            </div>
+            <div class="col-md-6">
+              <label for="r-km" class="form-label">Kilometraje actual</label
+              ><input
+                id="r-km"
+                name="km"
+                class="form-control"
+                type="number"
+                min="0"
+                step="1"
+                required
+                [(ngModel)]="reporte.km"
+              />
+            </div>
+            <div class="col-12">
+              <label for="r-observaciones" class="form-label"
+                >Trabajos realizados y observaciones técnicas</label
+              ><textarea
+                id="r-observaciones"
+                name="observaciones"
+                class="form-control"
+                rows="3"
+                required
+                maxlength="4000"
+                [(ngModel)]="reporte.observaciones"
+              ></textarea>
+            </div>
+            <div class="col-md-6">
+              <label for="r-fallas" class="form-label">Problemas o fallas detectadas</label
+              ><textarea
+                id="r-fallas"
+                name="fallas"
+                class="form-control"
+                maxlength="4000"
+                [(ngModel)]="reporte.fallas"
+              ></textarea>
+            </div>
+            <div class="col-md-6">
+              <label for="r-recomendaciones" class="form-label"
+                >Recomendaciones y próxima revisión</label
+              ><textarea
+                id="r-recomendaciones"
+                name="recomendaciones"
+                class="form-control"
+                maxlength="4000"
+                [(ngModel)]="reporte.recomendaciones"
+              ></textarea>
+            </div>
+            <div class="col-12">
+              <h3 class="h6">Componentes atendidos en esta visita</h3>
+              <p class="small text-muted">
+                Marca únicamente lo que se realizó. Ajusta los intervalos al fabricante, vehículo y
+                condiciones de uso. Los próximos vencimientos se actualizan al aprobar el servicio.
+              </p>
+              <div class="border rounded p-2 mb-2" *ngFor="let t of componentes">
+                <div class="form-check">
+                  <input
+                    [id]="'componente-' + t.tipo_id"
+                    [name]="'componente' + t.tipo_id"
+                    type="checkbox"
+                    class="form-check-input"
+                    [(ngModel)]="t.elegido"
+                  /><label [for]="'componente-' + t.tipo_id" class="form-check-label">{{
+                    t.nombre
+                  }}</label>
+                </div>
+                <div class="row g-2 mt-1" *ngIf="t.elegido">
+                  <div class="col-6">
+                    <label [for]="'meses-' + t.tipo_id" class="form-label">Intervalo (meses)</label
+                    ><input
+                      [id]="'meses-' + t.tipo_id"
+                      [name]="'meses' + t.tipo_id"
+                      class="form-control"
+                      type="number"
+                      min="1"
+                      max="120"
+                      [(ngModel)]="t.meses"
+                    />
+                  </div>
+                  <div class="col-6">
+                    <label [for]="'intervalo-' + t.tipo_id" class="form-label">Intervalo (km)</label
+                    ><input
+                      [id]="'intervalo-' + t.tipo_id"
+                      [name]="'intervalo' + t.tipo_id"
+                      class="form-control"
+                      type="number"
+                      min="1"
+                      max="1000000"
+                      [(ngModel)]="t.intervalo_km"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button
+            type="submit"
+            class="btn btn-warning mt-3"
+            [disabled]="reporteForm.invalid || ocupado || !ordenesReportables.length"
+          >
+            Enviar al administrador
+          </button>
+        </fieldset>
+      </form>
+      <article class="tarjeta seccion">
+        <h2 class="h5">Historial de servicios</h2>
+        <p *ngIf="!historial.length" class="text-muted">
+          No hay reportes para los filtros seleccionados.
+        </p>
+        <div class="table-responsive" *ngIf="historial.length">
+          <table class="table tabla">
+            <thead>
+              <tr>
+                <th>Vehículo / fecha</th>
+                <th>Servicio</th>
+                <th>Estado</th>
+                <th>Detalle y revisión</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let r of historial">
+                <td>
+                  {{ placa(r.vehiculo_id) }}
+                  <div class="small">{{ r.fecha_servicio }} · {{ r.km | number }} km</div>
+                  <div *ngIf="!cliente" class="small text-muted">{{ nombre(r.cliente_id) }}</div>
+                </td>
+                <td>{{ r.tipo_servicio }}</td>
+                <td>
+                  <span class="estado" [ngClass]="r.estado">{{ r.estado }}</span>
+                  <div class="small pre-line" *ngIf="r.motivo_revision">
+                    {{ r.motivo_revision }}
+                  </div>
+                </td>
+                <td>
+                  <button class="btn btn-sm btn-outline-secondary" (click)="detalle = r">
+                    Ver trabajo
+                  </button>
+                  <div *ngIf="admin && r.estado === 'pendiente'" class="mt-2">
+                    <button
+                      class="btn btn-sm btn-success mb-2"
+                      (click)="revisar(r, true)"
+                      [disabled]="ocupado"
+                    >
+                      Aprobar servicio</button
+                    ><input
+                      class="form-control form-control-sm mb-2"
+                      placeholder="Motivo para devolver"
+                      [attr.aria-label]="'Motivo para devolver reporte ' + r.id"
+                      [(ngModel)]="motivos[r.id]"
+                    /><button
+                      class="btn btn-sm btn-outline-danger"
+                      (click)="revisar(r, false)"
+                      [disabled]="ocupado || !motivos[r.id]?.trim()"
+                    >
+                      Devolver para corregir
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+      <article *ngIf="detalle" class="tarjeta seccion">
+        <h3 class="h5">{{ placa(detalle.vehiculo_id) }} · {{ detalle.tipo_servicio }}</h3>
+        <p class="pre-line">{{ detalle.observaciones }}</p>
+        <h4 class="h6">Fallas detectadas</h4>
+        <p class="pre-line">{{ detalle.fallas || 'Sin fallas adicionales registradas' }}</p>
+        <h4 class="h6">Recomendaciones</h4>
+        <p class="pre-line">{{ detalle.recomendaciones || 'Sin recomendaciones adicionales' }}</p>
+        <h4 class="h6">Trabajos y repuestos de la orden</h4>
+        <ul>
+          <li *ngFor="let s of detalle.trabajos?.servicios">
+            {{ s.nombre || 'Servicio registrado' }} · S/ {{ s.precio | number: '1.2-2' }}
+          </li>
+          <li *ngFor="let r of detalle.trabajos?.repuestos">
+            {{ r.repuesto_nombre || r.nombre || 'Repuesto registrado' }} · {{ r.cantidad }} unidades
+          </li>
+        </ul>
+        <p>Mano de obra: S/ {{ detalle.trabajos?.mano_obra || 0 | number: '1.2-2' }}</p>
+        <p *ngIf="detalle.aprobado_at" class="small text-muted">
+          Aprobado el {{ detalle.aprobado_at | date: 'dd/MM/yyyy HH:mm' : '-0500' }}
+        </p>
+        <button class="btn btn-outline-secondary btn-sm" (click)="detalle = null">
+          Cerrar detalle
+        </button>
+      </article>
+      <article class="tarjeta">
+        <h3 class="h6">Órdenes y visitas registradas</h3>
+        <p class="small text-muted">
+          Las órdenes anteriores al programa permanecen en el historial. Solo las que tengan un
+          reporte aprobado suman al contador.
+        </p>
+        <div class="table-responsive">
+          <table class="table tabla">
+            <thead>
+              <tr>
+                <th>Orden</th>
+                <th>Vehículo</th>
+                <th>Ingreso</th>
+                <th>Trabajo solicitado</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let o of datos.ordenes">
+                <td>{{ o.codigo }}</td>
+                <td>{{ placa(o.vehiculo_id) }}</td>
+                <td>{{ o.fecha_ingreso | date: 'dd/MM/yyyy' : '-0500' }}</td>
+                <td>{{ o.descripcion_problema }}</td>
+                <td>{{ o.estado }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+
+    <section *ngIf="tab === 'preventivo'">
+      <h2 class="h5">Próximos cuidados del vehículo</h2>
+      <p class="small text-muted">
+        Se considera el primer límite alcanzado: fecha o kilometraje. Si el kilometraje no está
+        actualizado, confirma el estado con el taller.
+      </p>
+      <article class="tarjeta seccion">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <h3 class="h6 mb-0">Calendario de próximas fechas</h3>
+          <div>
+            <label for="mes-preventivo" class="visually-hidden">Mes del calendario</label
+            ><input
+              id="mes-preventivo"
+              class="form-control"
+              type="month"
+              [(ngModel)]="mesCalendario"
+            />
+          </div>
+        </div>
+        <div class="table-responsive">
+          <div class="calendario-grid">
+            <strong *ngFor="let d of ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']">{{
+              d
+            }}</strong>
+            <div *ngFor="let d of diasCalendario" class="calendario-dia">
+              <span>{{ d.dia }}</span>
+              <div *ngFor="let m of d.eventos" class="small calendario-evento" [ngClass]="m.estado">
+                {{ m.placa }}<br />{{ m.componente }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+      <div class="calendar-list seccion">
+        <article class="tarjeta" *ngFor="let m of datos.mantenimientos">
+          <div class="d-flex justify-content-between gap-2">
+            <h3 class="h6">{{ m.placa }} · {{ m.componente }}</h3>
+            <span class="estado" [ngClass]="m.estado">{{
+              m.estado === 'al_dia' ? 'Al día' : m.estado === 'proximo' ? 'Próximo' : m.estado
+            }}</span>
+          </div>
+          <p>
+            Próxima fecha: <strong>{{ m.proxima_fecha || 'Según kilometraje' }}</strong
+            ><br />Próximo kilometraje:
+            <strong>{{
+              m.proximo_km == null ? 'Según fecha' : (m.proximo_km | number) + ' km'
+            }}</strong>
+          </p>
+          <p class="small text-muted">
+            Último: {{ m.ultima_fecha }} · {{ m.ultimo_km | number }} km<br />Intervalo:
+            {{ m.meses || '—' }} meses / {{ m.intervalo_km || '—' }} km<br />Kilometraje registrado:
+            {{ m.km_actual | number }} km
+          </p>
+          <p class="pre-line">{{ m.recomendaciones }}</p>
+          <button
+            *ngIf="admin"
+            class="btn btn-sm btn-outline-secondary"
+            (click)="editarMantenimiento(m)"
+          >
+            Editar ficha
+          </button>
+        </article>
+      </div>
+      <p *ngIf="!datos.mantenimientos.length" class="alert alert-info">
+        Aún no hay fichas preventivas. Se generan al aprobar servicios con componentes atendidos o
+        al programarlas desde administración.
+      </p>
+      <form *ngIf="admin" class="tarjeta" (ngSubmit)="guardarMantenimiento()" #mantForm="ngForm">
+        <h2 class="h5">Programar o ajustar ficha individual</h2>
+        <fieldset [disabled]="ocupado">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label for="m-vehiculo" class="form-label">Vehículo</label
+              ><select
+                id="m-vehiculo"
+                name="vehiculo"
+                class="form-select"
+                required
+                [(ngModel)]="mantenimiento.vehiculo_id"
+              >
+                <option [ngValue]="null">Seleccionar</option>
+                <option *ngFor="let v of datos.vehiculos" [ngValue]="v.id">{{ v.placa }}</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label for="m-tipo" class="form-label">Componente</label
+              ><select
+                id="m-tipo"
+                name="componente"
+                class="form-select"
+                required
+                [(ngModel)]="mantenimiento.tipo_id"
+                (ngModelChange)="elegirTipo()"
+              >
+                <option [ngValue]="null">Seleccionar</option>
+                <option *ngFor="let t of datos.tipos" [ngValue]="t.id">{{ t.nombre }}</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label for="m-mecanico" class="form-label">Responsable</label
+              ><select
+                id="m-mecanico"
+                name="mecanico"
+                class="form-select"
+                [(ngModel)]="mantenimiento.mecanico_id"
+              >
+                <option [ngValue]="null">Sin asignar</option>
+                <option *ngFor="let p of datos.personal" [ngValue]="p.id">{{ p.nombre }}</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label for="m-fecha" class="form-label">Último mantenimiento</label
+              ><input
+                id="m-fecha"
+                name="fecha"
+                type="date"
+                class="form-control"
+                required
+                [(ngModel)]="mantenimiento.ultima_fecha"
+              />
+            </div>
+            <div class="col-md-3">
+              <label for="m-km" class="form-label">Kilometraje del último servicio</label
+              ><input
+                id="m-km"
+                name="km"
+                type="number"
+                min="0"
+                class="form-control"
+                required
+                [(ngModel)]="mantenimiento.ultimo_km"
+              />
+            </div>
+            <div class="col-md-3">
+              <label for="m-meses" class="form-label">Intervalo (meses)</label
+              ><input
+                id="m-meses"
+                name="meses"
+                type="number"
+                min="1"
+                max="120"
+                class="form-control"
+                [(ngModel)]="mantenimiento.meses"
+              />
+            </div>
+            <div class="col-md-3">
+              <label for="m-intervalo" class="form-label">Intervalo (km)</label
+              ><input
+                id="m-intervalo"
+                name="intervalo"
+                type="number"
+                min="1"
+                max="1000000"
+                class="form-control"
+                [(ngModel)]="mantenimiento.intervalo_km"
+              />
+            </div>
+            <div class="col-12">
+              <label for="m-recomendaciones" class="form-label"
+                >Recomendaciones del fabricante y condiciones de uso</label
+              ><textarea
+                id="m-recomendaciones"
+                name="recomendaciones"
+                class="form-control"
+                maxlength="4000"
+                [(ngModel)]="mantenimiento.recomendaciones"
+              ></textarea>
+            </div>
+          </div>
+          <button
+            class="btn btn-warning mt-3"
+            type="submit"
+            [disabled]="mantForm.invalid || ocupado"
+          >
+            Guardar ficha preventiva
+          </button>
+        </fieldset>
+      </form>
+    </section>
+
+    <section *ngIf="tab === 'notificaciones'">
+      <article class="tarjeta seccion">
+        <h2 class="h5">Alertas y seguimiento</h2>
+        <p *ngIf="!datos.alertas.length" class="text-muted">
+          No hay alertas de mantenimiento o seguimiento.
+        </p>
+        <div
+          *ngFor="let a of datos.alertas"
+          class="border-bottom py-3"
+          [class.alerta-leida]="a.leida"
+        >
+          <h3 class="h6">{{ a.titulo }}</h3>
+          <p class="pre-line">{{ a.mensaje }}</p>
+          <button
+            *ngIf="!a.leida"
+            class="btn btn-sm btn-outline-secondary"
+            (click)="leerAlerta(a)"
+            [disabled]="ocupado"
+          >
+            Marcar leída</button
+          ><span *ngIf="a.leida" class="small text-muted">Leída</span>
+        </div>
+      </article>
+      <form
+        *ngIf="admin"
+        class="tarjeta seccion"
+        (ngSubmit)="crearRecordatorio()"
+        #recForm="ngForm"
+      >
+        <h2 class="h5">Crear y programar recordatorio</h2>
+        <fieldset [disabled]="ocupado">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label for="n-cliente" class="form-label">Cliente</label
+              ><select
+                id="n-cliente"
+                name="cliente"
+                class="form-select"
+                required
+                [(ngModel)]="recordatorio.cliente_id"
+                (ngModelChange)="recordatorio.vehiculo_id = null"
+              >
+                <option [ngValue]="null">Seleccionar</option>
+                <option *ngFor="let c of datos.clientes" [ngValue]="c.id">
+                  {{ c.nombre }} {{ c.apellido }}
+                </option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label for="n-vehiculo" class="form-label">Vehículo (opcional)</label
+              ><select
+                id="n-vehiculo"
+                name="vehiculo"
+                class="form-select"
+                [(ngModel)]="recordatorio.vehiculo_id"
+              >
+                <option [ngValue]="null">Sin vehículo específico</option>
+                <option *ngFor="let v of vehiculosRecordatorio" [ngValue]="v.id">
+                  {{ v.placa }}
+                </option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label for="n-canal" class="form-label">Canal</label
+              ><select
+                id="n-canal"
+                name="canal"
+                class="form-select"
+                [(ngModel)]="recordatorio.canal"
+              >
+                <option value="interna">Dentro del sistema</option>
+                <option value="email">Correo electrónico</option>
+                <option value="whatsapp">WhatsApp oficial</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label for="n-fecha" class="form-label">Enviar a partir de (hora local)</label
+              ><input
+                id="n-fecha"
+                name="fecha"
+                type="datetime-local"
+                class="form-control"
+                required
+                [(ngModel)]="recordatorio.programado_at"
+              />
+            </div>
+            <div class="col-md-8">
+              <label for="n-mensaje" class="form-label">Mensaje</label
+              ><textarea
+                id="n-mensaje"
+                name="mensaje"
+                class="form-control"
+                required
+                maxlength="1000"
+                [(ngModel)]="recordatorio.mensaje"
+              ></textarea>
+            </div>
+          </div>
+          <p class="small text-muted mt-3">
+            Los canales externos requieren autorización del cliente. WhatsApp utiliza la plantilla
+            aprobada del taller.
+          </p>
+          <button class="btn btn-warning" type="submit" [disabled]="recForm.invalid || ocupado">
+            Programar recordatorio
+          </button>
+        </fieldset>
+      </form>
+      <article *ngIf="!mecanico" class="tarjeta">
+        <div class="d-flex flex-wrap justify-content-between gap-2 mb-3">
+          <h2 class="h5">
+            {{ cliente ? 'Historial de notificaciones' : 'Recordatorios y cola de envíos' }}
+          </h2>
+          <div *ngIf="admin" class="d-flex gap-2">
+            <button
+              class="btn btn-sm btn-outline-secondary"
+              (click)="generarRecordatorios()"
+              [disabled]="ocupado"
+            >
+              Generar preventivos</button
+            ><button
+              class="btn btn-sm btn-warning"
+              (click)="procesarRecordatorios()"
+              [disabled]="ocupado"
+            >
+              Procesar envíos pendientes
+            </button>
+          </div>
+        </div>
+        <p *ngIf="!datos.recordatorios.length" class="text-muted">Todavía no hay recordatorios.</p>
+        <div class="table-responsive" *ngIf="datos.recordatorios.length">
+          <table class="table tabla">
+            <thead>
+              <tr>
+                <th>Programado</th>
+                <th>Mensaje</th>
+                <th>Canal / estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let r of datos.recordatorios">
+                <td>
+                  {{ r.programado_at | date: 'dd/MM/yyyy HH:mm' : '-0500' }}
+                  <div *ngIf="admin" class="small">
+                    {{ nombre(r.cliente_id) }} · {{ placa(r.vehiculo_id) }}
+                  </div>
+                </td>
+                <td class="pre-line">
+                  {{ r.mensaje }}
+                  <p *ngIf="admin && r.error" class="small text-danger mb-0">{{ r.error }}</p>
+                </td>
+                <td>
+                  {{ r.canal }} · {{ r.estado }}
+                  <div *ngIf="r.enviado_at" class="small">
+                    {{ r.enviado_at | date: 'dd/MM/yyyy HH:mm' : '-0500' }}
+                  </div>
+                </td>
+                <td>
+                  <button
+                    *ngIf="
+                      cliente && r.canal === 'interna' && !r.leido_at && r.estado === 'enviado'
+                    "
+                    class="btn btn-sm btn-outline-secondary"
+                    (click)="leerRecordatorio(r)"
+                    [disabled]="ocupado"
+                  >
+                    Marcar leída</button
+                  ><span *ngIf="cliente && r.leido_at">Leída</span>
+                  <div *ngIf="admin" class="d-flex flex-wrap gap-1">
+                    <button
+                      *ngIf="r.estado === 'error'"
+                      class="btn btn-sm btn-outline-secondary"
+                      (click)="cambiarRecordatorio(r, 'pendiente')"
+                      [disabled]="ocupado"
+                    >
+                      Reintentar</button
+                    ><button
+                      *ngIf="['pendiente', 'error', 'revisar', 'enviado'].includes(r.estado)"
+                      class="btn btn-sm btn-outline-success"
+                      (click)="cambiarRecordatorio(r, 'completado')"
+                      [disabled]="ocupado"
+                    >
+                      Completar</button
+                    ><button
+                      *ngIf="['pendiente', 'error', 'revisar'].includes(r.estado)"
+                      class="btn btn-sm btn-outline-danger"
+                      (click)="cambiarRecordatorio(r, 'cancelado')"
+                      [disabled]="ocupado"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+
+    <section *ngIf="tab === 'configuracion' && admin" class="row g-3">
+      <div class="col-xl-5">
+        <form class="tarjeta" (ngSubmit)="guardarRegla()" #reglaForm="ngForm">
+          <h2 class="h5">Programa de fidelización</h2>
+          <p class="small text-muted">
+            Cada hito genera una sola recompensa por cliente. Cambiar una regla no modifica
+            recompensas ya emitidas.
+          </p>
+          <fieldset [disabled]="ocupado">
+            <div class="mb-3">
+              <label for="g-servicios" class="form-label">Servicios aprobados requeridos</label
+              ><input
+                id="g-servicios"
+                name="servicios"
+                type="number"
+                min="1"
+                max="100000"
+                required
+                class="form-control"
+                [(ngModel)]="regla.servicios"
+              />
+            </div>
+            <div class="mb-3">
+              <label for="g-porcentaje" class="form-label">Descuento (%)</label
+              ><input
+                id="g-porcentaje"
+                name="porcentaje"
+                type="number"
+                min="0.01"
+                max="100"
+                step="0.01"
+                required
+                class="form-control"
+                [(ngModel)]="regla.porcentaje"
+              />
+            </div>
+            <div class="mb-3">
+              <label for="g-dias" class="form-label">Vigencia (días)</label
+              ><input
+                id="g-dias"
+                name="dias"
+                type="number"
+                min="1"
+                max="3650"
+                required
+                class="form-control"
+                [(ngModel)]="regla.vigencia_dias"
+              />
+            </div>
+            <div class="form-check mb-3">
+              <input
+                id="g-activo"
+                name="activo"
+                type="checkbox"
+                class="form-check-input"
+                [(ngModel)]="regla.activo"
+              /><label for="g-activo" class="form-check-label">Regla activa</label>
+            </div>
+            <button class="btn btn-warning" type="submit" [disabled]="reglaForm.invalid || ocupado">
+              Guardar regla</button
+            ><button
+              class="btn btn-outline-secondary ms-2"
+              type="button"
+              (click)="regla = { servicios: 1, porcentaje: 10, vigencia_dias: 90, activo: true }"
+            >
+              Nueva
+            </button>
+          </fieldset>
+          <ul class="list-group list-group-flush mt-3">
+            <li
+              *ngFor="let r of datos.reglas"
+              class="list-group-item d-flex justify-content-between gap-2"
+            >
+              <span
+                >{{ r.servicios }} servicios → {{ r.porcentaje }}% · {{ r.vigencia_dias }} días ·
+                {{ r.activo ? 'activa' : 'inactiva' }}</span
+              ><button
+                type="button"
+                class="btn btn-sm btn-outline-secondary"
+                (click)="editarRegla(r)"
+              >
+                Editar
+              </button>
+            </li>
+          </ul>
+        </form>
+      </div>
+      <div class="col-xl-7">
+        <form class="tarjeta" (ngSubmit)="guardarTipo()" #tipoForm="ngForm">
+          <h2 class="h5">Componentes e intervalos de referencia</h2>
+          <p class="small text-muted">
+            Los valores de referencia se pueden ajustar en la ficha de cada vehículo según su
+            fabricante y uso.
+          </p>
+          <fieldset [disabled]="ocupado">
+            <div class="row g-3">
+              <div class="col-12">
+                <label for="t-nombre" class="form-label">Componente</label
+                ><input
+                  id="t-nombre"
+                  name="nombre"
+                  class="form-control"
+                  required
+                  maxlength="120"
+                  [(ngModel)]="tipo.nombre"
+                />
+              </div>
+              <div class="col-6">
+                <label for="t-meses" class="form-label">Intervalo (meses)</label
+                ><input
+                  id="t-meses"
+                  name="meses"
+                  class="form-control"
+                  type="number"
+                  min="1"
+                  max="120"
+                  [(ngModel)]="tipo.meses"
+                />
+              </div>
+              <div class="col-6">
+                <label for="t-km" class="form-label">Intervalo (km)</label
+                ><input
+                  id="t-km"
+                  name="km"
+                  class="form-control"
+                  type="number"
+                  min="1"
+                  max="1000000"
+                  [(ngModel)]="tipo.km"
+                />
+              </div>
+              <div class="col-6">
+                <label for="t-aviso-dias" class="form-label">Avisar antes (días)</label
+                ><input
+                  id="t-aviso-dias"
+                  name="avisoDias"
+                  class="form-control"
+                  type="number"
+                  min="0"
+                  max="365"
+                  required
+                  [(ngModel)]="tipo.aviso_dias"
+                />
+              </div>
+              <div class="col-6">
+                <label for="t-aviso-km" class="form-label">Avisar antes (km)</label
+                ><input
+                  id="t-aviso-km"
+                  name="avisoKm"
+                  class="form-control"
+                  type="number"
+                  min="0"
+                  max="100000"
+                  required
+                  [(ngModel)]="tipo.aviso_km"
+                />
+              </div>
+            </div>
+            <div class="form-check my-3">
+              <input
+                id="t-activo"
+                name="activo"
+                type="checkbox"
+                class="form-check-input"
+                [(ngModel)]="tipo.activo"
+              /><label for="t-activo" class="form-check-label">Componente activo</label>
+            </div>
+            <button class="btn btn-warning" type="submit" [disabled]="tipoForm.invalid || ocupado">
+              Guardar componente</button
+            ><button
+              class="btn btn-outline-secondary ms-2"
+              type="button"
+              (click)="
+                tipo = {
+                  nombre: '',
+                  meses: 6,
+                  km: 5000,
+                  aviso_dias: 14,
+                  aviso_km: 500,
+                  activo: true,
+                }
+              "
+            >
+              Nuevo
+            </button>
+          </fieldset>
+          <ul class="list-group list-group-flush mt-3">
+            <li
+              *ngFor="let t of datos.tipos"
+              class="list-group-item d-flex justify-content-between gap-2"
+            >
+              <span
+                >{{ t.nombre }} · {{ t.meses || '—' }} meses / {{ t.km || '—' }} km ·
+                {{ t.activo ? 'activo' : 'inactivo' }}</span
+              ><button
+                type="button"
+                class="btn btn-sm btn-outline-secondary"
+                (click)="editarTipo(t)"
+              >
+                Editar
+              </button>
+            </li>
+          </ul>
+        </form>
+      </div>
+    </section>
+
+    <section *ngIf="tab === 'preferencias' && cliente" class="row g-3">
+      <div class="col-md-6">
+        <form class="tarjeta" (ngSubmit)="guardarPerfil()" #perfilForm="ngForm">
+          <h2 class="h5">Mis datos personales</h2>
+          <p>{{ datos.usuario.nombre }}<br />{{ datos.usuario.email }}</p>
+          <div *ngIf="datos.clientes[0] as c">
+            <label for="p-telefono" class="form-label">Teléfono</label
+            ><input
+              id="p-telefono"
+              name="telefono"
+              class="form-control mb-3"
+              maxlength="20"
+              [(ngModel)]="c.telefono"
+            /><label for="p-direccion" class="form-label">Dirección</label
+            ><input
+              id="p-direccion"
+              name="direccion"
+              class="form-control mb-3"
+              maxlength="255"
+              [(ngModel)]="c.direccion"
+            /><button
+              class="btn btn-warning"
+              type="submit"
+              [disabled]="ocupado || perfilForm.invalid"
+            >
+              Guardar contacto
+            </button>
+          </div>
+          <p class="small text-muted mt-3">
+            Para corregir tu identidad o la propiedad de un vehículo, comunícate con el taller.
+          </p>
+        </form>
+      </div>
+      <div class="col-md-6">
+        <form class="tarjeta" (ngSubmit)="guardarPreferencias()">
+          <h2 class="h5">Cómo quieres recibir recordatorios</h2>
+          <p class="small text-muted">
+            Activa únicamente los canales en los que autorizas recibir avisos de mantenimiento.
+            Puedes retirar tu autorización en cualquier momento.
+          </p>
+          <div class="form-check mb-3">
+            <input
+              id="p-email"
+              name="email"
+              type="checkbox"
+              class="form-check-input"
+              [(ngModel)]="datos.preferencias.email"
+            /><label for="p-email" class="form-check-label"
+              >Autorizo recordatorios por correo electrónico</label
+            >
+          </div>
+          <div class="form-check mb-3">
+            <input
+              id="p-whatsapp"
+              name="whatsapp"
+              type="checkbox"
+              class="form-check-input"
+              [(ngModel)]="datos.preferencias.whatsapp"
+            /><label for="p-whatsapp" class="form-check-label"
+              >Autorizo recordatorios por WhatsApp</label
+            >
+          </div>
+          <div class="form-check mb-3">
+            <input
+              id="p-interna"
+              name="interna"
+              type="checkbox"
+              class="form-check-input"
+              [(ngModel)]="datos.preferencias.interna"
+            /><label for="p-interna" class="form-check-label"
+              >Recibir recordatorios dentro del sistema</label
+            >
+          </div>
+          <button class="btn btn-warning" type="submit" [disabled]="ocupado">
+            Guardar preferencias
+          </button>
+        </form>
+      </div>
+    </section>
+  </ng-container>
+</main>

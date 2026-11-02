@@ -5,6 +5,9 @@ const {
   getHistorialByPlaca
 } = require('../controllers/vehiculos.controller');
 const { verificarToken } = require('../middlewares/auth.middleware');
+const {alcanceVehiculo}=require('../middlewares/alcance.middleware');
+router.use(verificarToken);
+router.use('/',alcanceVehiculo);
 
 router.get('/',                       verificarToken, getVehiculos);
 router.get('/placa/:placa/historial', verificarToken, getHistorialByPlaca);

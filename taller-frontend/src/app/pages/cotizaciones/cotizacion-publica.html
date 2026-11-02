@@ -1,0 +1,26 @@
+<main class="container py-4" style="max-width: 850px">
+  <a routerLink="/consulta" class="text-decoration-none">Taller Automotriz RUJIM</a>
+  <h1 class="h3 mt-3">Tu presupuesto</h1>
+  <p *ngIf="cargando" role="status">Cargando cotización…</p>
+  <div *ngIf="error" class="alert alert-danger" role="alert">{{ error }}</div>
+  <article *ngIf="cotizacion as c" class="card card-body">
+    <div class="d-flex flex-wrap justify-content-between gap-2"><h2 class="h5">{{ c.codigo }}</h2><span>{{ c.estado === 'pendiente' && vencida ? 'Vencida' : c.estado === 'convertida' ? 'Aprobada · orden creada' : c.estado }}</span></div>
+    <p class="pre-line">{{ c.descripcion }}</p>
+    <div class="table-responsive"><table class="table"><thead><tr><th>Concepto</th><th>Cantidad</th><th>Precio unitario</th><th>Importe</th></tr></thead><tbody>
+      <tr *ngFor="let i of c.items"><td>{{ i.descripcion }}<div class="small text-muted">{{ i.tipo === 'mano_obra' ? 'Mano de obra' : 'Repuesto' }}</div></td><td>{{ i.cantidad }}</td><td class="text-nowrap">S/ {{ i.precio_unitario | number:'1.2-2' }}</td><td class="text-nowrap">S/ {{ i.cantidad * i.precio_unitario | number:'1.2-2' }}</td></tr>
+    </tbody></table></div>
+    <div class="text-end"><p class="mb-1">Subtotal: S/ {{ c.subtotal | number:'1.2-2' }}</p><p class="mb-1">IGV (18%): S/ {{ c.igv | number:'1.2-2' }}</p><strong class="fs-4">Total: S/ {{ c.total | number:'1.2-2' }}</strong></div>
+    <p class="small text-muted mt-3">Puedes responder hasta el {{ c.vence_at | date:'dd/MM/yyyy HH:mm':'-0500' }} (hora de Perú). La disponibilidad de repuestos se confirma al crear la orden.</p>
+    <div *ngIf="c.respondido_at" class="alert alert-info" role="status">Respuesta registrada: {{ c.estado === 'rechazada' ? 'rechazada' : 'aprobada' }} por {{ c.aprobado_por }} el {{ c.respondido_at | date:'dd/MM/yyyy HH:mm':'-0500' }} (hora de Perú).</div>
+    <p *ngIf="c.estado === 'pendiente' && vencida" class="alert alert-warning">Este presupuesto venció. Solicita una nueva cotización al taller.</p>
+    <form *ngIf="c.estado === 'pendiente' && !vencida" (ngSubmit)="responder()" #respuesta="ngForm" class="border-top pt-3 mt-3">
+      <fieldset [disabled]="guardando">
+        <label for="nombre-aprobacion" class="form-label">Nombre completo de quien responde</label><input id="nombre-aprobacion" class="form-control mb-3" name="nombre" [(ngModel)]="nombre" required minlength="3" maxlength="150" autocomplete="name">
+        <label for="decision-aprobacion" class="form-label">Tu decisión</label><select id="decision-aprobacion" class="form-select mb-3" name="decision" [(ngModel)]="decision" required><option value="">Selecciona una opción</option><option value="aprobada">Aprobar el presupuesto y autorizar el trabajo detallado</option><option value="rechazada">Rechazar el presupuesto</option></select>
+        <div class="form-check mb-3"><input id="consentimiento-aprobacion" class="form-check-input" type="checkbox" name="consentimiento" [(ngModel)]="consentimiento" required><label class="form-check-label" for="consentimiento-aprobacion">He revisado los conceptos y el total. Confirmo que soy el cliente o su representante y deseo registrar la decisión seleccionada.</label></div>
+        <p class="small text-muted">Tu nombre, decisión y fecha quedarán registrados junto con este presupuesto. Si deseas cambios, comunícate con el taller antes de responder.</p>
+        <button class="btn btn-warning" type="submit" [disabled]="respuesta.invalid || !consentimiento || guardando || nombre.trim().length < 3">{{ guardando ? 'Registrando…' : 'Confirmar mi decisión' }}</button>
+      </fieldset>
+    </form>
+  </article>
+</main>

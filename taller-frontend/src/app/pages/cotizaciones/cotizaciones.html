@@ -1,0 +1,59 @@
+<section class="container-fluid py-3">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div><h1 class="h4 mb-1">Cotizaciones</h1><p class="text-muted mb-0">Presupuesta el trabajo, recibe la autorización y crea la orden.</p></div>
+    <button class="btn btn-outline-secondary" (click)="cargar()" [disabled]="cargando || guardando">Actualizar</button>
+  </div>
+  <div *ngIf="error" class="alert alert-danger" role="alert">{{ error }}</div>
+  <div *ngIf="mensaje" class="alert alert-success" role="status">{{ mensaje }}</div>
+  <div *ngIf="enlace" class="card card-body mb-3">
+    <label for="enlace-cotizacion" class="fw-semibold">Enlace privado para el cliente</label>
+    <input id="enlace-cotizacion" class="form-control my-2" [value]="enlace" readonly (focus)="$any($event.target).select()">
+    <small class="text-muted">Selecciona y copia el enlace. Cualquier persona que lo reciba podrá responder a esta cotización. Comparte solo con el cliente.</small>
+  </div>
+  <form class="card card-body mb-4" (ngSubmit)="guardar()" #form="ngForm">
+    <h2 class="h5">Nuevo presupuesto</h2>
+    <fieldset [disabled]="guardando || cargando">
+      <div class="row g-3 mb-3">
+        <div class="col-md-5"><label for="vehiculo-cot" class="form-label">Vehículo y cliente</label>
+          <select id="vehiculo-cot" class="form-select" name="vehiculo" [(ngModel)]="vehiculoId" required>
+            <option [ngValue]="null">Selecciona un vehículo</option>
+            <option *ngFor="let v of vehiculos" [ngValue]="v.id">{{ v.placa }} · {{ v.cliente }} · {{ v.marca }} {{ v.modelo }}</option>
+          </select><small><a routerLink="/dashboard/vehiculos">Registrar un vehículo</a></small>
+        </div>
+        <div class="col-md-7"><label for="descripcion-cot" class="form-label">Diagnóstico o trabajo propuesto</label>
+          <textarea id="descripcion-cot" class="form-control" name="descripcion" [(ngModel)]="descripcion" required maxlength="2000" rows="2"></textarea>
+        </div>
+      </div>
+      <div *ngFor="let i of items; let n = index" class="concepto border rounded p-3 mb-2">
+        <div class="row g-2 align-items-end">
+          <div class="col-md-2"><label [for]="'tipo-'+n" class="form-label">Tipo</label><select [id]="'tipo-'+n" class="form-select" [name]="'tipo'+n" [(ngModel)]="i.tipo" (ngModelChange)="cambiarTipo(i)"><option value="mano_obra">Mano de obra</option><option value="repuesto">Repuesto</option></select></div>
+          <div class="col-md-4">
+            <label [for]="'concepto-'+n" class="form-label">Concepto</label>
+            <input *ngIf="i.tipo === 'mano_obra'" [id]="'concepto-'+n" class="form-control" [name]="'descripcion'+n" [(ngModel)]="i.descripcion" required maxlength="150" placeholder="Ej. Cambio de aceite">
+            <select *ngIf="i.tipo === 'repuesto'" [id]="'concepto-'+n" class="form-select" [name]="'repuesto'+n" [(ngModel)]="i.repuesto_id" (ngModelChange)="seleccionarRepuesto(i)" required><option [ngValue]="null">Selecciona un repuesto</option><option *ngFor="let r of repuestos" [ngValue]="r.id">{{ r.nombre }} · stock {{ r.stock }}</option></select>
+          </div>
+          <div class="col-5 col-md-2"><label [for]="'cantidad-'+n" class="form-label">Cantidad</label><input [id]="'cantidad-'+n" class="form-control" type="number" min="1" max="10000" step="1" required [name]="'cantidad'+n" [(ngModel)]="i.cantidad"></div>
+          <div class="col-5 col-md-3"><label [for]="'precio-'+n" class="form-label">Precio unitario S/ (sin IGV)</label><input [id]="'precio-'+n" class="form-control" type="number" min="0" max="1000000" step="0.01" required [name]="'precio'+n" [(ngModel)]="i.precio_unitario"></div>
+          <div class="col-2 col-md-1"><button type="button" class="btn btn-outline-danger" [disabled]="items.length === 1" (click)="items.splice(n, 1)" [attr.aria-label]="'Quitar concepto '+(n+1)">×</button></div>
+        </div>
+      </div>
+      <button type="button" class="btn btn-outline-secondary mt-2" (click)="agregar()" [disabled]="items.length >= 100">+ Agregar concepto</button>
+      <div class="text-end mt-3"><div>Subtotal: S/ {{ subtotal | number:'1.2-2' }}</div><div>IGV (18%): S/ {{ igv | number:'1.2-2' }}</div><strong class="fs-5">Total: S/ {{ total | number:'1.2-2' }}</strong></div>
+      <p class="small text-muted mt-3">Vigencia: 7 días. Crear la cotización no reserva ni descuenta stock. Para cambiar un presupuesto pendiente, anúlalo y emite uno nuevo.</p>
+      <button class="btn btn-warning" type="submit" [disabled]="form.invalid || total <= 0 || guardando || cargando">{{ guardando ? 'Guardando…' : 'Crear cotización' }}</button>
+    </fieldset>
+  </form>
+  <h2 class="h5">Presupuestos emitidos</h2>
+  <p *ngIf="cargando" role="status">Cargando…</p>
+  <p *ngIf="!cargando && !cotizaciones.length && !error" class="text-muted">Todavía no hay cotizaciones.</p>
+  <div class="table-responsive" *ngIf="cotizaciones.length"><table class="table align-middle">
+    <thead><tr><th>Código / cliente</th><th>Vehículo</th><th>Total</th><th>Estado</th><th>Acciones</th></tr></thead>
+    <tbody><tr *ngFor="let c of cotizaciones">
+      <td>{{ c.codigo }}<div class="small text-muted">{{ c.vehiculos?.clientes?.nombre }} {{ c.vehiculos?.clientes?.apellido }}</div></td>
+      <td>{{ c.vehiculos?.placa }}</td><td class="text-nowrap">S/ {{ c.total | number:'1.2-2' }}</td>
+      <td><span class="badge" [class.bg-success]="c.estado === 'aprobada' || c.estado === 'convertida'" [class.bg-secondary]="c.estado !== 'aprobada' && c.estado !== 'convertida'">{{ vencida(c) ? 'Vencida' : c.estado }}</span><div *ngIf="c.aprobado_por" class="small">{{ c.aprobado_por }} · {{ c.respondido_at | date:'dd/MM/yyyy HH:mm':'-0500' }}</div></td>
+      <td><div class="d-flex flex-wrap gap-2"><button class="btn btn-sm btn-outline-secondary" (click)="verEnlace(c)">Ver detalle y enlace</button><button *ngIf="c.estado === 'pendiente'" class="btn btn-sm btn-outline-danger" [disabled]="convirtiendo !== null" (click)="anular(c)">Anular presupuesto</button><button *ngIf="c.estado === 'aprobada'" class="btn btn-sm btn-warning" [disabled]="convirtiendo !== null" (click)="convertir(c)">{{ convirtiendo === c.id ? 'Creando…' : 'Crear orden autorizada' }}</button><a *ngIf="c.orden_id" routerLink="/dashboard/ordenes" class="btn btn-sm btn-outline-success">Ver órdenes · OT-C{{ c.id }}</a></div></td>
+    </tr></tbody>
+  </table></div>
+  <article *ngIf="detalle" class="card card-body mt-3"><h3 class="h5">{{ detalle.codigo }}</h3><p class="pre-line">{{ detalle.descripcion }}</p><ul><li *ngFor="let i of detalle.items">{{ i.descripcion }} · {{ i.cantidad }} × S/ {{ i.precio_unitario | number:'1.2-2' }}</li></ul><p>Vence: {{ detalle.vence_at | date:'dd/MM/yyyy HH:mm':'-0500' }} · Total con IGV: S/ {{ detalle.total | number:'1.2-2' }}</p></article>
+</section>

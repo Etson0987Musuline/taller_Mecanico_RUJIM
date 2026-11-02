@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "crons": [{"path":"/api/programa/cron","schedule":"0 13 * * *"}],
   "builds": [
     {
       "src": "src/index.js",

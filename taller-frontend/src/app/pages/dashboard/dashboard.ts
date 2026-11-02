@@ -16,6 +16,8 @@ export class DashboardComponent {
   usuario: any;
 
   menuAdmin = [
+    {path:'programa',label:'Servicios y fidelidad',icono:'bi-heart-fill'},
+    { path: 'cotizaciones', label: 'Cotizaciones', icono: 'bi-file-earmark-text' },
     { path: 'home',      label: 'Inicio',      icono: 'bi-speedometer2' },
     { path: 'clientes',  label: 'Clientes',    icono: 'bi-people-fill' },
     { path: 'vehiculos', label: 'Vehículos',   icono: 'bi-car-front-fill' },
@@ -28,6 +30,7 @@ export class DashboardComponent {
   ];
 
   menuMecanico = [
+    {path:'programa',label:'Mantenimiento y alertas',icono:'bi-bell-fill'},
     { path: 'mecanico',  label: 'Mi panel',    icono: 'bi-wrench-adjustable-circle-fill' },
     { path: 'ordenes',   label: 'Órdenes',     icono: 'bi-clipboard2-check-fill' },
     { path: 'clientes',  label: 'Clientes',    icono: 'bi-people-fill' },
@@ -45,7 +48,7 @@ export class DashboardComponent {
   }
 
   get menuItems() {
-    return this.rol.isAdmin() ? this.menuAdmin : this.menuMecanico;
+    return this.rol.isAdmin() ? this.menuAdmin : this.rol.getRol()==='cliente' ? [{path:'mi-cuenta',label:'Mi cuenta y vehículos',icono:'bi-person-circle'}] : this.menuMecanico;
   }
 
   logout() { this.auth.logout(); }

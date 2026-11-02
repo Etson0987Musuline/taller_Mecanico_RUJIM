@@ -1,7 +1,8 @@
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component, ChangeDetectorRef,OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink,ActivatedRoute } from '@angular/router';
+import {environment} from '../../../environments/environment';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
@@ -11,7 +12,15 @@ import { AuthService } from '../../core/services/auth.service';
   templateUrl: './login.html',
   styleUrls: ['./login.css']
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
+  googleUrl=`${environment.apiUrl}/auth/google`;
+  ngOnInit(){
+    this.error=this.route.snapshot.queryParamMap.get('error')||'';
+    if(this.route.snapshot.queryParamMap.get('google')==='ok'){
+      if(this.auth.isLoggedIn())this.router.navigateByUrl(this.auth.destino());
+      else this.error='No se pudo restaurar la sesión. Revisa la configuración de cookies e inténtalo de nuevo.';
+    }
+  }
   email    = '';
   password = '';
   error    = '';
@@ -19,6 +28,7 @@ export class LoginComponent {
 
   constructor(
     private auth: AuthService,
+    private route:ActivatedRoute,
     private router: Router,
     private cdr: ChangeDetectorRef
   ) {}
@@ -34,17 +44,13 @@ export class LoginComponent {
     this.auth.login(this.email, this.password).subscribe({
       next: (res) => {
         this.cargando = false;
-        this.auth.guardarSesion(res.token, res.usuario);
+        this.auth.guardarSesion(res.usuario);
         this.cdr.detectChanges();
         // Redirigir según rol
-        if (res.usuario.rol === 'admin') {
-          this.router.navigate(['/dashboard/home']);
-        } else {
-          this.router.navigate(['/dashboard/mecanico']);
-        }
+        this.router.navigateByUrl(this.auth.destino());
       },
-      error: () => {
-        this.error    = 'Credenciales incorrectas';
+      error: (err) => {
+        this.error    = err.error?.mensaje || 'No se pudo conectar con el taller';
         this.cargando = false;
         this.cdr.detectChanges();
       }

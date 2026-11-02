@@ -277,7 +277,7 @@ export class ConsultaPublicaComponent implements OnInit {
         this.cdr.detectChanges();
       },
       error: (err) => {
-        this.error = err.status === 404
+        this.error = err.status===401||err.status===403 ? 'Inicia sesión para consultar tus vehículos de forma privada.' : err.status === 404
           ? `No encontramos órdenes para "${query}". Revisa los datos o consulta al taller.`
           : 'No pudimos conectar con el taller. Inténtalo nuevamente en unos momentos.';
         this.buscando = false;

@@ -2,9 +2,9 @@ const supabase = require('../config/supabase');
 
 const getVehiculos = async (req, res) => {
   try {
-    const { data, error } = await supabase
-      .from('vehiculos')
-      .select('*, clientes(nombre, apellido)')
+    let query=supabase.from('vehiculos').select('*, clientes(nombre, apellido)');
+    if(req.vehiculosPermitidos)query=query.in('id',req.vehiculosPermitidos.length?req.vehiculosPermitidos:[-1]);
+    const { data, error } = await query
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -23,9 +23,9 @@ const getVehiculos = async (req, res) => {
 
 const getVehiculosByCliente = async (req, res) => {
   try {
-    const { data, error } = await supabase
-      .from('vehiculos')
-      .select('*')
+    let query=supabase.from('vehiculos').select('*');
+    if(req.vehiculosPermitidos)query=query.in('id',req.vehiculosPermitidos.length?req.vehiculosPermitidos:[-1]);
+    const { data, error } = await query
       .eq('cliente_id', req.params.id)
       .order('created_at', { ascending: false });
 

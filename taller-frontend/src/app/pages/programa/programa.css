@@ -1,0 +1,119 @@
+:host {
+  display: block;
+}
+.programa {
+  max-width: 1500px;
+  margin: auto;
+  padding: 1.25rem;
+}
+.tarjeta {
+  border: 1px solid var(--ui-border, var(--bs-border-color));
+  border-radius: 1rem;
+  padding: 1.25rem;
+  background: var(--ui-surface, var(--bs-body-bg));
+  color: var(--ui-text, var(--bs-body-color));
+  height: 100%;
+}
+.indicador {
+  font-size: 2rem;
+  font-weight: 700;
+}
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0 1.5rem;
+}
+.tabs button {
+  border-radius: 2rem;
+}
+.pre-line {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+.tabla {
+  min-width: 650px;
+}
+.tabla td {
+  max-width: 330px;
+  overflow-wrap: anywhere;
+}
+.estado {
+  display: inline-block;
+  border-radius: 2rem;
+  padding: 0.25rem 0.65rem;
+  background: var(--ui-subtle, var(--bs-secondary-bg));
+  font-size: 0.85rem;
+}
+.estado.vencido,
+.estado.rechazado {
+  color: #b42318;
+  background: #fee4e2;
+}
+.estado.aprobado,
+.estado.al_dia {
+  color: #067647;
+  background: #dcfae6;
+}
+.estado.proximo,
+.estado.pendiente {
+  color: #854d0e;
+  background: #fef3c7;
+}
+.progress {
+  height: 0.7rem;
+}
+.form-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.seccion {
+  margin-bottom: 1.5rem;
+}
+.alerta-leida {
+  opacity: 0.7;
+}
+fieldset {
+  min-width: 0;
+}
+.calendar-list {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+@media (max-width: 600px) {
+  .programa {
+    padding: 0.75rem;
+  }
+  .tarjeta {
+    padding: 1rem;
+  }
+  .indicador {
+    font-size: 1.6rem;
+  }
+}
+.calendario-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(90px, 1fr));
+  min-width: 650px;
+  gap: 4px;
+}
+.calendario-dia {
+  min-height: 90px;
+  border: 1px solid var(--bs-border-color);
+  padding: 6px;
+  border-radius: 6px;
+}
+.calendario-evento {
+  margin-top: 4px;
+  padding: 4px;
+  background: var(--ui-subtle, var(--bs-secondary-bg));
+  border-left: 3px solid #f59e0b;
+  overflow-wrap: anywhere;
+}
+.calendario-evento.vencido {
+  border-left-color: #d92d20;
+}
+.calendario-evento.al_dia {
+  border-left-color: #039855;
+}

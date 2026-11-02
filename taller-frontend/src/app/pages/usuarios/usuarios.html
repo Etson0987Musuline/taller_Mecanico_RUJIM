@@ -128,6 +128,7 @@
         </div>
 
         <!-- Password -->
+        <div class="col-12"><div class="form-check"><input id="google-autorizado" type="checkbox" class="form-check-input" [(ngModel)]="usuarioForm.google_habilitado"><label for="google-autorizado" class="form-check-label">Autorizar acceso con Google para este correo y rol</label></div><small class="text-muted">Google verifica la identidad; este permiso conserva el rol asignado por el administrador.</small></div>
         <div class="col-12">
           <label class="form-label small fw-semibold">
             {{ modoEdicion ? 'Nueva contraseña (dejar vacío para no cambiar)' : 'Contraseña *' }}

@@ -1,10 +1,9 @@
 const supabase = require('../config/supabase');
+function consulta(req){let q=supabase.from('v_consulta_cliente').select('*');return req.placasPermitidas?q.in('placa',req.placasPermitidas):q;}
 
 const consultarPorNombre = async (req, res) => {
   try {
-    const { data, error } = await supabase
-      .from('v_consulta_cliente')
-      .select('*')
+    const { data, error } = await consulta(req)
       .ilike('cliente', `%${req.params.nombre}%`);
 
     if (error) throw error;
@@ -20,9 +19,7 @@ const consultarPorNombre = async (req, res) => {
 
 const consultarPorDni = async (req, res) => {
   try {
-    const { data, error } = await supabase
-      .from('v_consulta_cliente')
-      .select('*')
+    const { data, error } = await consulta(req)
       .eq('dni', req.params.dni);
 
     if (error) throw error;
@@ -38,10 +35,8 @@ const consultarPorDni = async (req, res) => {
 
 const consultarPorPlaca = async (req, res) => {
   try {
-    const { data, error } = await supabase
-      .from('v_consulta_cliente')
-      .select('*')
-      .ilike('placa', `%${req.params.placa}%`);
+    const { data, error } = await consulta(req)
+      .eq('placa', req.params.placa.trim().toUpperCase());
 
     if (error) throw error;
     if (!data || data.length === 0) {

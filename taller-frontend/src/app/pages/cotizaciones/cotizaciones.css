@@ -1,0 +1,5 @@
+:host { display: block; }
+.pre-line { white-space: pre-line; overflow-wrap: anywhere; }
+fieldset { min-width: 0; }
+.table td { max-width: 340px; overflow-wrap: anywhere; }
+.card { border-radius: 14px; }

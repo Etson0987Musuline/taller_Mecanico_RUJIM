@@ -175,66 +175,12 @@ const getFacturaByOrden = async (req, res) => {
   }
 };
 
-const createFactura = async (req, res) => {
-  const { orden_id, notas } = req.body;
-  if (!orden_id) return res.status(400).json({ mensaje: 'orden_id es requerido' });
-
-  try {
-    const { data: orden } = await supabase
-      .from('ordenes_trabajo')
-      .select('mano_obra')
-      .eq('id', orden_id)
-      .single();
-
-    const { data: servicios } = await supabase
-      .from('orden_servicios')
-      .select('precio')
-      .eq('orden_id', orden_id);
-
-    const { data: repuestos } = await supabase
-      .from('orden_repuestos')
-      .select('cantidad, precio_unitario')
-      .eq('orden_id', orden_id);
-
-    const manoObra = parseFloat(orden?.mano_obra) || 0;
-    const totServ = (servicios || []).reduce((acc, s) => acc + (parseFloat(s.precio) || 0), 0);
-    const totRep = (repuestos || []).reduce((acc, r) => acc + ((parseFloat(r.precio_unitario) || 0) * (Number(r.cantidad) || 1)), 0);
-
-    const subtotal = manoObra + totServ + totRep;
-    const igv = parseFloat((subtotal * 0.18).toFixed(2));
-    const total = parseFloat((subtotal + igv).toFixed(2));
-
-    const { count } = await supabase.from('facturas').select('*', { count: 'exact', head: true });
-    const numero = `F-${new Date().getFullYear()}-${String((count || 0) + 1).padStart(3, '0')}`;
-
-    const { data: newFactura, error } = await supabase
-      .from('facturas')
-      .insert([{
-        orden_id,
-        numero,
-        subtotal,
-        igv,
-        total,
-        notas,
-        estado_pago: 'pendiente'
-      }])
-      .select('id')
-      .single();
-
-    if (error) throw error;
-
-    res.status(201).json({
-      mensaje: 'Factura generada',
-      id: newFactura.id,
-      numero,
-      total,
-      subtotal,
-      igv
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ mensaje: 'Error al generar factura' });
-  }
+const createFactura = async (req,res) => {
+  const id=Number(req.body.orden_id);
+  if(!Number.isSafeInteger(id)||id<1||typeof (req.body.notas||'')!=='string'||(req.body.notas||'').length>4000)return res.status(400).json({mensaje:'Revisa la orden y las notas.'});
+  const {data,error}=await supabase.rpc('facturar_con_fidelidad',{p_orden:id,p_admin:req.usuario.id,p_notas:req.body.notas||''});
+  if(error)return res.status(error.code==='P0001'?409:503).json({mensaje:error.code==='P0001'?error.message:'No se pudo generar la factura. Verifica la migración.'});
+  res.status(201).json({mensaje:'Factura generada',...data});
 };
 
 const registrarPago = async (req, res) => {

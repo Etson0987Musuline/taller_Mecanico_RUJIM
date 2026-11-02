@@ -6,6 +6,6 @@ export const adminGuard: CanActivateFn = () => {
   const auth   = inject(AuthService);
   const router = inject(Router);
   if (auth.getRol() === 'admin') return true;
-  router.navigate(['/dashboard/mecanico']);
+  router.navigateByUrl(auth.destino());
   return false;
 };

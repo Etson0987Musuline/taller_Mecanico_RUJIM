@@ -19,6 +19,7 @@ Thumbs.db
 
 # Env
 .env
+backups/
 
 # Temp
 taller-backend/schema_mysql.json
