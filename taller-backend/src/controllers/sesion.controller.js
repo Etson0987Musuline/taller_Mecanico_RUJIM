@@ -1,7 +1,6 @@
 const db = require("../config/supabase");
 const bcrypt = require("bcryptjs");
 const crypto = require("node:crypto");
-const { verificarPasswordSupabase } = require('../services/password-auth.service');
 const {
   cookies,
   hash,
@@ -54,17 +53,8 @@ exports.login = async (req, res) => {
       mensaje:
         "No se pudo iniciar sesión. Verifica la configuración del servidor.",
     });
-  let valido = false;
-  try {
-    if (u?.supabase_uid) {
-      valido = await verificarPasswordSupabase(email.trim().toLowerCase(), password, u.supabase_uid);
-    } else if (u?.password_hash) {
-      valido = await bcrypt.compare(password, u.password_hash);
-    }
-  } catch {
-    return res.status(503).json({ mensaje: 'No se pudo validar el acceso. Inténtalo nuevamente más tarde.' });
-  }
-  if (!valido) return res.status(401).json({ mensaje: "Credenciales incorrectas." });
+  if (!u?.password_hash || !(await bcrypt.compare(password, u.password_hash)))
+    return res.status(401).json({ mensaje: "Credenciales incorrectas." });
   try {
     await crearSesion(res, u);
     res.set("Cache-Control", "no-store").json({ usuario: publicUser(u) });
