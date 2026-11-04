@@ -277,3 +277,22 @@ test("anon no puede leer datos privados ni invocar funciones y los scripts prese
   );
   assert.deepEqual(permisos, { cliente: false, premio: false, aprobar: false });
 });
+
+test('la limpieza autorizada respalda todo, conserva el administrador y no toca otras aplicaciones',async()=>{
+  await db.exec("CREATE TABLE public.drivers(id int); INSERT INTO public.drivers VALUES(99);");
+  const [admin]=await query('select * from usuarios where id=1');
+  const [{n:previos}]=await query('select count(*)::int n from ordenes_trabajo');
+  const sql=await readFile(new URL('../limpieza_autorizada_20261104.sql',import.meta.url),'utf8');
+  await db.exec(sql);
+  assert.deepEqual(await query('select * from usuarios'),[admin]);
+  for(const table of ['clientes','vehiculos','ordenes_trabajo','servicios','repuestos','reglas_fidelidad','tipos_mantenimiento','sesiones','reportes_servicio','recompensas','cotizaciones']){
+    assert.equal((await query(`select count(*)::int n from ${table}`))[0].n,0,table);
+  }
+  assert.equal((await query('select count(*)::int n from rujim_backup_antes_limpieza_20261104.ordenes_trabajo'))[0].n,previos);
+  assert.equal((await query('select count(*)::int n from rujim_backup_antes_limpieza_20261104.manifiesto'))[0].n,26);
+  assert.deepEqual(await query('select * from drivers'),[{id:99}]);
+  assert.equal((await query("select has_schema_privilege('anon','rujim_backup_antes_limpieza_20261104','USAGE') permitido"))[0].permitido,false);
+  await assert.rejects(db.exec(sql),/already exists/);
+  await db.exec('ROLLBACK');
+  assert.deepEqual(await query('select * from usuarios'),[admin]);
+});

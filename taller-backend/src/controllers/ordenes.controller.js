@@ -1,4 +1,5 @@
 const supabase = require('../config/supabase');
+const { randomUUID } = require('node:crypto');
 
 const getOrdenes = async (req, res) => {
   try {
@@ -127,9 +128,8 @@ const createOrden = async (req, res) => {
   }
 
   try {
-    const { count } = await supabase.from('ordenes_trabajo').select('*', { count: 'exact', head: true });
-    const numero = String((count || 0) + 1).padStart(3, '0');
-    const codigo = `OT-${new Date().getFullYear()}-${numero}`;
+    // No reutiliza números tras borrar órdenes ni depende de un conteo concurrente.
+    const codigo = `OT-${randomUUID().replaceAll('-', '').slice(0, 16).toUpperCase()}`;
 
     const { data: newOrden, error } = await supabase
       .from('ordenes_trabajo')

@@ -1,4 +1,5 @@
 const supabase = require('../config/supabase');
+const { validarVehiculo } = require('../utils/validar-vehiculo');
 
 const getVehiculos = async (req, res) => {
   try {
@@ -38,6 +39,8 @@ const getVehiculosByCliente = async (req, res) => {
 };
 
 const createVehiculo = async (req, res) => {
+  try { req.body = validarVehiculo(req.body, true); }
+  catch (error) { return res.status(400).json({mensaje:error.message}); }
   const {
     cliente_id, placa, marca, modelo, anio, anio_modelo, color, tipo,
     vin, km_ingreso, n_motor, n_serie, estado_vehiculo, propietario_registral
@@ -84,6 +87,8 @@ const createVehiculo = async (req, res) => {
 };
 
 const updateVehiculo = async (req, res) => {
+  try { req.body = validarVehiculo(req.body, false); }
+  catch (error) { return res.status(400).json({mensaje:error.message}); }
   const {
     marca, modelo, anio, anio_modelo, color, tipo, vin, km_ingreso,
     n_motor, n_serie, estado_vehiculo, propietario_registral
@@ -148,16 +153,17 @@ const getHistorialByPlaca = async (req, res) => {
   const rawPlaca = req.params.placa.trim().toUpperCase();
   const cleanPlaca = rawPlaca.replace(/[^A-Z0-9]/g, '');
 
-  if (!cleanPlaca) {
+  if (!/^[A-Z0-9 -]{3,12}$/.test(rawPlaca) || !cleanPlaca) {
     return res.status(400).json({ mensaje: 'Debe ingresar una placa válida' });
   }
 
   try {
-    const { data: vehiculos, error: vErr } = await supabase
+    let query = supabase
       .from('vehiculos')
       .select('*, clientes(nombre, apellido, telefono, dni, direccion)')
-      .or(`placa.ilike.%${cleanPlaca}%,placa.ilike.%${rawPlaca}%`)
-      .limit(1);
+      .in('placa', [...new Set([rawPlaca,cleanPlaca,`${cleanPlaca.slice(0,3)}-${cleanPlaca.slice(3)}`])]);
+    if(req.vehiculosPermitidos) query=query.in('id',req.vehiculosPermitidos.length?req.vehiculosPermitidos:[-1]);
+    const { data: vehiculos, error: vErr } = await query.limit(1);
 
     if (vErr) throw vErr;
 
