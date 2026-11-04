@@ -145,7 +145,10 @@ const eliminarVehiculo = async (req, res) => {
     res.json({ mensaje: 'Vehículo eliminado' });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ mensaje: 'Error al eliminar vehículo' });
+    if (err.code === '23503') return res.status(409).json({
+      mensaje: 'No se puede eliminar este vehículo porque tiene cotizaciones, mantenimientos u otro historial vinculado. Para vaciar el taller completo se necesita la limpieza con respaldo.'
+    });
+    res.status(500).json({ mensaje: 'No se pudo eliminar el vehículo. Inténtalo nuevamente.' });
   }
 };
 

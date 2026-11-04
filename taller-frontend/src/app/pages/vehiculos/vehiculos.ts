@@ -235,20 +235,34 @@ export class VehiculosComponent implements OnInit {
         this.mostrarModalEliminar = false;
         this.cargar();
       },
-      error: () => {
+      error: (err) => {
         this.eliminando = false;
-        alert('Error al eliminar');
+        alert(err.error?.mensaje || 'No se pudo eliminar el vehículo. Inténtalo nuevamente.');
       }
     });
   }
 
   eliminarSeleccionados() {
-    if (!confirm(`¿Eliminar ${this.seleccionados.size} seleccionados?`)) return;
-    Array.from(this.seleccionados).forEach(id => {
+    const ids = Array.from(this.seleccionados);
+    if (!ids.length || this.eliminando || !confirm(`¿Eliminar ${ids.length} seleccionados?`)) return;
+    this.eliminando = true;
+    let completados = 0;
+    const errores: string[] = [];
+    const terminar = () => {
+      completados++;
+      if (completados !== ids.length) return;
+      this.eliminando = false;
+      if (errores.length) alert(errores.join('\n'));
+      this.cargar();
+    };
+    ids.forEach(id => {
       this.http.delete(`${environment.apiUrl}/vehiculos/${id}`).subscribe({
-        next: () => this.cargar()
+        next: () => { this.seleccionados.delete(id); terminar(); },
+        error: (err) => {
+          errores.push(`Vehículo ${id}: ${err.error?.mensaje || 'No se pudo eliminar.'}`);
+          terminar();
+        }
       });
     });
-    this.seleccionados.clear();
   }
 }

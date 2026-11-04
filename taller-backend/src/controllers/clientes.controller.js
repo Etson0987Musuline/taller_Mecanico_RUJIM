@@ -111,7 +111,10 @@ const eliminarCliente = async (req, res) => {
     res.json({ mensaje: 'Cliente eliminado' });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ mensaje: 'Error al eliminar cliente' });
+    if (err.code === '23503') return res.status(409).json({
+      mensaje: 'No se puede eliminar este cliente porque tiene una cuenta, preferencias o historial vinculado. Para vaciar el taller completo se necesita la limpieza con respaldo; borrar clientes individualmente conserva esas relaciones.'
+    });
+    res.status(500).json({ mensaje: 'No se pudo eliminar el cliente. Inténtalo nuevamente.' });
   }
 };
 
