@@ -79,15 +79,26 @@ exports.logout = async (req, res) => {
   setCookie(res, cookieName, "", 0);
   res.json({ mensaje: "Sesión cerrada." });
 };
-exports.google = (req, res) => {
+exports.google = async (req, res) => {
+  const volver = (mensaje) => res.set('Cache-Control','no-store').redirect(`${origenes()[0]}/login?error=${encodeURIComponent(mensaje)}`);
   if (
     !process.env.SUPABASE_URL ||
     !process.env.SUPABASE_PUBLIC_KEY ||
     !process.env.AUTH_PUBLIC_URL
   )
-    return res
-      .status(503)
-      .json({ mensaje: "El acceso con Google todavía no está configurado." });
+    return volver('El acceso con Google todavía no está configurado. Contacta al administrador del taller.');
+  try {
+    const response = await fetch(`${process.env.SUPABASE_URL.replace(/\/$/, '')}/auth/v1/settings`, {
+      headers: { apikey: process.env.SUPABASE_PUBLIC_KEY },
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!response.ok) return volver('No se pudo comprobar el acceso con Google. Inténtalo nuevamente más tarde.');
+    const settings = await response.json();
+    if (settings.external?.google !== true)
+      return volver('El registro y acceso con Google aún no está habilitado. El administrador debe configurar el proveedor Google en Supabase.');
+  } catch {
+    return volver('No se pudo conectar con el servicio de acceso. Inténtalo nuevamente más tarde.');
+  }
   const verifier = crypto.randomBytes(48).toString("base64url");
   const state = crypto.randomBytes(32).toString("hex");
   setCookie(res, "rujim_pkce", verifier, 600);
