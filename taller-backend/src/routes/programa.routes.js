@@ -20,6 +20,7 @@ router.post("/mantenimientos", soloAdmin, c.mantenimiento);
 router.patch("/vehiculos/:id/km", soloPersonal, c.kilometraje);
 router.patch("/preferencias", roles("cliente"), c.preferencias);
 router.patch("/perfil", roles("cliente"), c.perfil);
+router.patch("/registro-contacto", roles("cliente"), c.registroContacto);
 router.post("/alertas/leida", c.leerAlerta);
 router.post("/recordatorios", soloAdmin, c.crearRecordatorio);
 router.patch(

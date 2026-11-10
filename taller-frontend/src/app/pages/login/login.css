@@ -1,4 +1,4 @@
-﻿:host { display: block; }
+:host { display: block; }
 .access-page { min-height: 100vh; padding: 36px 24px; background: radial-gradient(ellipse at 12% 0%, #23324a 0%, transparent 55%), #0b111b; color: #f8fafc; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
 .access-shell { max-width: 1040px; margin: 0 auto; }
 .access-header { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 30px; }
@@ -60,3 +60,18 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 3px solid 
   .access-footer { flex-direction: column; align-items: flex-start; }
 }
 @media (prefers-reduced-motion: reduce) { .access-button { transition: none; } }
+
+/* Un panel por vez: el registro se abre desde el acceso principal. */
+.access-panels { grid-template-columns: minmax(0, 520px); justify-content: center; }
+.register-toggle { margin-top: 12px; border: 1px solid #64748b; color: #f8fafc; background: transparent; }
+.register-toggle:hover { background: #24334b; }
+.registration-back { border: 0; background: transparent; padding: 0; margin-bottom: 24px; color: #253f61; font: inherit; font-size: .76rem; cursor: pointer; }
+.registration-form { display: grid; gap: 10px; }
+.registration-form > label { font-size: .8rem; font-weight: 700; }
+.registration-form > input { min-width: 0; width: 100%; border: 1px solid #9c8b6c; border-radius: 9px; background: #fffdf7; color: #212d3e; padding: 12px 14px; font: inherit; font-size: .85rem; }
+.registration-form small, .channel-note { color: #596271; font-size: .72rem; line-height: 1.6; }
+.notification-choice { display: flex; align-items: flex-start; gap: 10px; margin-top: 8px; }
+.notification-choice input { margin-top: 4px; flex-shrink: 0; width: 17px; height: 17px; accent-color: #253f61; }
+.notification-choice span { font-size: .75rem; font-weight: 400; line-height: 1.65; }
+.channel-note { margin: 0 0 4px; }
+.client-google:disabled { opacity: .65; cursor: wait; }

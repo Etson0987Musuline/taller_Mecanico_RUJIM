@@ -1,4 +1,4 @@
-﻿<main class="access-page">
+<main class="access-page">
   <div class="access-shell">
     <header class="access-header">
       <a routerLink="/consulta" class="brand-link" aria-label="Ir al inicio de Taller RUJIM">
@@ -15,6 +15,7 @@
     }
 
     <div class="access-panels">
+      @if (!mostrarRegistro) {
       <section class="access-card staff-card" aria-labelledby="staff-title">
         <div class="panel-eyebrow"><span class="panel-number">01</span> PERSONAL DEL TALLER</div>
         <div class="panel-icon"><i class="bi bi-tools" aria-hidden="true"></i></div>
@@ -35,6 +36,7 @@
               Iniciar sesión <i class="bi bi-arrow-right" aria-hidden="true"></i>
             }
           </button>
+          <button type="button" class="access-button register-toggle" (click)="mostrarRegistro = true" [disabled]="cargando">Registrarme como cliente <i class="bi bi-person-plus" aria-hidden="true"></i></button>
         </form>
 
         <div class="access-divider"><span>O SI ERES ADMINISTRADOR</span></div>
@@ -44,7 +46,10 @@
         <p class="staff-footnote"><i class="bi bi-shield-check" aria-hidden="true"></i> Solo administradores previamente autorizados.</p>
       </section>
 
+      }
+      @if (mostrarRegistro) {
       <section class="access-card client-card" aria-labelledby="client-title">
+        <button type="button" class="registration-back" (click)="mostrarRegistro = false" [disabled]="cargando"><i class="bi bi-arrow-left" aria-hidden="true"></i> Volver al inicio de sesión</button>
         <div class="panel-eyebrow"><span class="panel-number">02</span> CLIENTES RUJIM</div>
         <div class="panel-icon"><i class="bi bi-car-front" aria-hidden="true"></i></div>
         <h2 id="client-title">Tu vehículo,<br>siempre al día.</h2>
@@ -59,13 +64,24 @@
           </ul>
         </div>
 
-        <a class="access-button client-google" [href]="registroUrl">
-          <i class="bi bi-google" aria-hidden="true"></i> Registrarme con Google
-          <i class="bi bi-arrow-right" aria-hidden="true"></i>
-        </a>
-        <p class="returning-client">¿Ya tienes una cuenta? <a [href]="registroUrl">Ingresar como cliente</a></p>
+        <form (ngSubmit)="registrarCliente()" class="registration-form">
+          <label for="client-phone">Número de teléfono o WhatsApp</label>
+          <input id="client-phone" name="telefono" type="tel" autocomplete="tel" inputmode="tel" maxlength="22" required
+                 placeholder="Ej. 987 654 321 o +51 987 654 321" [(ngModel)]="telefono" aria-describedby="phone-help">
+          <small id="phone-help">Para Perú ingresa 9 dígitos. Para otro país, incluye + y el código de país.</small>
+          <label class="notification-choice" for="client-whatsapp">
+            <input id="client-whatsapp" name="whatsapp" type="checkbox" [(ngModel)]="autorizaWhatsapp">
+            <span>Autorizo avisos por WhatsApp sobre mantenimientos y el retiro de mi vehículo. Puedo cambiar esta preferencia desde mi cuenta.</span>
+          </label>
+          <p class="channel-note">Esta opción no autoriza promociones. El envío de WhatsApp depende del servicio de notificaciones del taller.</p>
+          <button type="submit" class="access-button client-google" [disabled]="cargando">
+            @if (cargando) { Guardando... } @else { <i class="bi bi-google" aria-hidden="true"></i> {{ confirmandoRegistro ? 'Guardar y continuar' : 'Registrarme con Google' }} }
+          </button>
+        </form>
+        <p class="returning-client">¿Ya tienes una cuenta? <a [href]="registroUrl" (click)="limpiarRegistro()">Ingresar como cliente</a></p>
         <p class="privacy-note"><i class="bi bi-lock" aria-hidden="true"></i><span>Registrarte no autoriza automáticamente mensajes promocionales. Puedes gestionar tus preferencias de contacto desde tu cuenta.</span></p>
       </section>
+      }
     </div>
 
     <footer class="access-footer">

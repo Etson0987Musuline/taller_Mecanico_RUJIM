@@ -284,6 +284,31 @@ exports.preferencias = async (req, res) => {
   if (error) return fallo(res, error);
   res.json({ mensaje: "Preferencias guardadas." });
 };
+exports.registroContacto = async (req, res) => {
+  if (req.usuario?.rol !== 'cliente' || !req.usuario.cliente_id)
+    return res.status(403).json({ mensaje: 'Solo puedes guardar el contacto de tu propia cuenta cliente.' });
+  const { telefono, whatsapp } = req.body || {};
+  if (typeof telefono !== 'string' || telefono.length > 22 || typeof whatsapp !== 'boolean')
+    return res.status(400).json({ mensaje: 'Revisa el teléfono y la autorización de WhatsApp.' });
+  let normalizado = telefono.replace(/[\s()-]/g, '');
+  if (/^9\d{8}$/.test(normalizado)) normalizado = '+51' + normalizado;
+  if (!/^\+[1-9]\d{7,14}$/.test(normalizado))
+    return res.status(400).json({ mensaje: 'Ingresa un celular peruano de 9 dígitos o incluye + y el código de país.' });
+  try {
+    // El cliente se obtiene de la sesión; nunca de un ID enviado por el navegador.
+    const { error: contactoError } = await db.from('clientes')
+      .update({ telefono: normalizado }).eq('id', req.usuario.cliente_id);
+    if (contactoError) throw contactoError;
+    // Conservar las preferencias de correo e internas existentes.
+    const { error: preferenciaError } = await db.from('preferencias_comunicacion')
+      .upsert({ cliente_id: req.usuario.cliente_id, whatsapp, updated_at: new Date().toISOString() }, { onConflict: 'cliente_id' });
+    if (preferenciaError) throw preferenciaError;
+    res.json({ mensaje: 'Contacto y preferencia de WhatsApp guardados.' });
+  } catch (error) {
+    res.status(503).json({ mensaje: 'No se pudo completar el guardado del contacto. Inténtalo nuevamente.' });
+  }
+};
+
 exports.perfil = async (req, res) => {
   try {
     if (!req.usuario.cliente_id)
