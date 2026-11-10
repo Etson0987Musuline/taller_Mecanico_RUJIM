@@ -80,6 +80,7 @@ exports.logout = async (req, res) => {
   res.json({ mensaje: "Sesión cerrada." });
 };
 exports.google = async (req, res) => {
+  const tipo = req.query?.tipo === 'cliente' ? 'cliente' : 'admin';
   const volver = (mensaje) => res.set('Cache-Control','no-store').redirect(`${origenes()[0]}/login?error=${encodeURIComponent(mensaje)}`);
   if (
     !process.env.SUPABASE_URL ||
@@ -100,7 +101,7 @@ exports.google = async (req, res) => {
     return volver('No se pudo conectar con el servicio de acceso. Inténtalo nuevamente más tarde.');
   }
   const verifier = crypto.randomBytes(48).toString("base64url");
-  const state = crypto.randomBytes(32).toString("hex");
+  const state = `${tipo}.${crypto.randomBytes(32).toString("hex")}`;
   setCookie(res, "rujim_pkce", verifier, 600);
   setCookie(res, "rujim_oauth_state", state, 600);
   const callback = `${process.env.AUTH_PUBLIC_URL.replace(/\/$/, "")}/auth/google/callback?state=${state}`;
@@ -113,6 +114,7 @@ exports.google = async (req, res) => {
   );
   url.searchParams.set("code_challenge_method", "s256");
   url.searchParams.set("scopes", "openid email profile");
+  url.searchParams.set("prompt", "select_account");
   res.set("Cache-Control", "no-store").redirect(url.toString());
 };
 exports.googleCallback = async (req, res) => {
@@ -125,6 +127,7 @@ exports.googleCallback = async (req, res) => {
     if (
       !cookie.rujim_pkce ||
       !cookie.rujim_oauth_state ||
+      !/^(admin|cliente)\.[a-f0-9]{64}$/.test(cookie.rujim_oauth_state) ||
       typeof req.query.state !== "string" ||
       cookie.rujim_oauth_state !== req.query.state ||
       typeof req.query.code !== "string"
@@ -164,6 +167,14 @@ exports.googleCallback = async (req, res) => {
       throw new Error(
         "Se requiere una identidad Google con correo verificado.",
       );
+    const tipo = cookie.rujim_oauth_state.split('.')[0];
+    const { data: existente, error: usuarioError } = await db.from('usuarios')
+      .select('id,rol,activo,google_habilitado').eq('email', user.email.trim().toLowerCase()).maybeSingle();
+    if (usuarioError) throw new Error('No se pudo comprobar el acceso. Inténtalo nuevamente.');
+    if (tipo === 'admin' && (!existente || existente.rol !== 'admin' || !existente.activo || !existente.google_habilitado))
+      throw new Error('Este acceso es exclusivo para administradores autorizados. Si eres cliente, utiliza el registro de clientes.');
+    if (tipo === 'cliente' && existente && (existente.rol !== 'cliente' || !existente.activo))
+      throw new Error('Esta cuenta no puede registrarse como cliente. Utiliza el acceso del personal o consulta al administrador.');
     const { data: u, error: linkError } = await db.rpc("vincular_google", {
       p_uid: user.id,
       p_email: user.email,
@@ -175,11 +186,13 @@ exports.googleCallback = async (req, res) => {
           ? linkError.message
           : "No se pudo vincular la cuenta. Contacta al administrador.",
       );
+    if (!u || u.rol !== (tipo === 'admin' ? 'admin' : 'cliente'))
+      throw new Error('La cuenta no corresponde al tipo de acceso seleccionado.');
     await crearSesion(res, u);
     res.redirect(`${home}/login?google=ok`);
   } catch (e) {
     res.redirect(
-      `${home}/login?error=${encodeURIComponent(e.message.startsWith("fetch") ? "No se pudo conectar con el proveedor." : e.message)}`,
+      `${home}/login?error=${encodeURIComponent(typeof e.message === 'string' && !e.message.startsWith('fetch') ? e.message : 'No se pudo completar el acceso con Google. Inténtalo nuevamente.')}`,
     );
   }
 };

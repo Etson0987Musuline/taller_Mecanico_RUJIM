@@ -13,7 +13,8 @@ import { AuthService } from '../../core/services/auth.service';
   styleUrls: ['./login.css']
 })
 export class LoginComponent implements OnInit {
-  googleUrl=`${environment.apiUrl}/auth/google`;
+  googleUrl=`${environment.apiUrl}/auth/google?tipo=admin`;
+  registroUrl=`${environment.apiUrl}/auth/google?tipo=cliente`;
   ngOnInit(){
     this.error=this.route.snapshot.queryParamMap.get('error')||'';
     if(this.route.snapshot.queryParamMap.get('google')==='ok'){

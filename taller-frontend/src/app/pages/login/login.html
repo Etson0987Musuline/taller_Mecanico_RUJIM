@@ -1,55 +1,76 @@
-<div class="login-wrapper d-flex align-items-center justify-content-center min-vh-100 p-3">
-  <div class="login-card shadow-lg p-4 p-md-5">
-
-    <div class="text-center mb-4">
-      <a routerLink="/" class="d-inline-block mb-3 login-logo-link" title="Ir al inicio">
-        <img src="/img/logo-white.png" alt="Taller Automotriz RUJIM" class="login-brand-logo">
+﻿<main class="access-page">
+  <div class="access-shell">
+    <header class="access-header">
+      <a routerLink="/consulta" class="brand-link" aria-label="Ir al inicio de Taller RUJIM">
+        <img src="/img/logo-white.png" alt="Taller Automotriz RUJIM" class="brand-logo">
       </a>
-      <p class="text-secondary-custom small mb-0">Sistema de Gestión y Control de Taller</p>
-    </div>
+      <span class="header-caption">Cuidamos tu vehículo. Te mantenemos informado.</span>
+    </header>
 
     @if (error) {
-      <div class="alert custom-alert-danger py-2 px-3 small d-flex align-items-center mb-4">
-        <i class="bi bi-exclamation-circle-fill text-danger me-2"></i>
+      <div class="access-error" role="alert" aria-live="polite">
+        <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
         <span>{{ error }}</span>
       </div>
     }
 
-    <div class="mb-3">
-      <label class="form-label small fw-semibold text-light">Correo electrónico</label>
-      <div class="input-group login-input-group">
-        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-        <input type="email" class="form-control" placeholder="admin@taller.com"
-               [(ngModel)]="email" (keyup.enter)="login()">
-      </div>
+    <div class="access-panels">
+      <section class="access-card staff-card" aria-labelledby="staff-title">
+        <div class="panel-eyebrow"><span class="panel-number">01</span> PERSONAL DEL TALLER</div>
+        <div class="panel-icon"><i class="bi bi-tools" aria-hidden="true"></i></div>
+        <h1 id="staff-title">Bienvenido<br>de nuevo.</h1>
+        <p class="panel-description">Acceso para administradores y mecánicos del taller.</p>
+
+        <form (ngSubmit)="login()" class="staff-form">
+          <label for="staff-email">Correo electrónico</label>
+          <input id="staff-email" name="email" type="email" autocomplete="username"
+                 placeholder="tu.correo@ejemplo.com" required [(ngModel)]="email">
+          <label for="staff-password">Contraseña</label>
+          <input id="staff-password" name="password" type="password" autocomplete="current-password"
+                 placeholder="Ingresa tu contraseña" required [(ngModel)]="password">
+          <button type="submit" class="access-button staff-submit" [disabled]="cargando">
+            @if (cargando) {
+              <span class="spinner-border spinner-border-sm" aria-hidden="true"></span> Ingresando...
+            } @else {
+              Iniciar sesión <i class="bi bi-arrow-right" aria-hidden="true"></i>
+            }
+          </button>
+        </form>
+
+        <div class="access-divider"><span>O SI ERES ADMINISTRADOR</span></div>
+        <a class="access-button admin-google" [href]="googleUrl">
+          <i class="bi bi-google" aria-hidden="true"></i> Entrar con Google
+        </a>
+        <p class="staff-footnote"><i class="bi bi-shield-check" aria-hidden="true"></i> Solo administradores previamente autorizados.</p>
+      </section>
+
+      <section class="access-card client-card" aria-labelledby="client-title">
+        <div class="panel-eyebrow"><span class="panel-number">02</span> CLIENTES RUJIM</div>
+        <div class="panel-icon"><i class="bi bi-car-front" aria-hidden="true"></i></div>
+        <h2 id="client-title">Tu vehículo,<br>siempre al día.</h2>
+        <p class="panel-description">Regístrate con Google para consultar tus vehículos y el historial de tus servicios.</p>
+
+        <div class="client-notice" aria-labelledby="data-use-title">
+          <h3 id="data-use-title">¿Para qué utilizaremos tus datos?</h3>
+          <ul class="notice-list">
+            <li><i class="bi bi-calendar2-check" aria-hidden="true"></i><div><strong>Próximos mantenimientos</strong><span>Informarte cuándo tu vehículo necesita una nueva revisión.</span></div></li>
+            <li><i class="bi bi-key" aria-hidden="true"></i><div><strong>Tu vehículo está listo</strong><span>Avisarte cuando puedas recogerlo después de su atención en el taller.</span></div></li>
+            <li><i class="bi bi-gift" aria-hidden="true"></i><div><strong>Promociones del taller</strong><span>Comunicarte novedades y beneficios, únicamente si lo autorizas.</span></div></li>
+          </ul>
+        </div>
+
+        <a class="access-button client-google" [href]="registroUrl">
+          <i class="bi bi-google" aria-hidden="true"></i> Registrarme con Google
+          <i class="bi bi-arrow-right" aria-hidden="true"></i>
+        </a>
+        <p class="returning-client">¿Ya tienes una cuenta? <a [href]="registroUrl">Ingresar como cliente</a></p>
+        <p class="privacy-note"><i class="bi bi-lock" aria-hidden="true"></i><span>Registrarte no autoriza automáticamente mensajes promocionales. Puedes gestionar tus preferencias de contacto desde tu cuenta.</span></p>
+      </section>
     </div>
 
-    <div class="mb-4">
-      <label class="form-label small fw-semibold text-light">Contraseña</label>
-      <div class="input-group login-input-group">
-        <span class="input-group-text"><i class="bi bi-lock"></i></span>
-        <input type="password" class="form-control" placeholder="••••••••"
-               [(ngModel)]="password" (keyup.enter)="login()">
-      </div>
-    </div>
-
-    <button class="btn btn-login-submit w-100 fw-bold py-2 mb-3" (click)="login()" [disabled]="cargando">
-      @if (cargando) {
-        <span class="spinner-border spinner-border-sm me-2"></span>
-        <span>Ingresando...</span>
-      } @else {
-        <i class="bi bi-box-arrow-in-right me-2"></i>
-        <span>Iniciar Sesión</span>
-      }
-    </button>
-
-    <a class="btn btn-outline-light w-100 mb-3" [href]="googleUrl"><i class="bi bi-google me-2"></i>Registrarse o iniciar sesión con Google</a>
-    <p class="small text-secondary-custom text-center">Acceso para clientes y personal autorizado. El taller asigna los permisos de cada cuenta.</p>
-    <div class="text-center">
-      <a routerLink="/consulta" class="back-link small">
-        <i class="bi bi-arrow-left me-1"></i>Volver a Consulta Pública y Seguimiento
-      </a>
-    </div>
-
+    <footer class="access-footer">
+      <a routerLink="/consulta"><i class="bi bi-arrow-left" aria-hidden="true"></i> Volver al inicio</a>
+      <span>Taller Automotriz RUJIM · Atención y seguimiento</span>
+    </footer>
   </div>
-</div>
+</main>

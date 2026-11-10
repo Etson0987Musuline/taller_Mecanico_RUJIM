@@ -35,3 +35,58 @@ test('un fallo del proveedor no muestra una página técnica ni detalles interno
     assert.equal(new URL(res.url).pathname,'/login');assert.ok(!res.url.includes('privado'));
   }
 });
+
+const db = require('../src/config/supabase');
+const { googleCallback, login } = require('../src/controllers/sesion.controller');
+
+test('Google separa clientes y administradores sin crear cuentas de personal', async () => {
+  const casos = [
+    ['admin', {rol:'admin',activo:true,google_habilitado:true}, 'admin', true],
+    ['admin', null, 'cliente', false],
+    ['admin', {rol:'cliente',activo:true}, 'cliente', false],
+    ['admin', {rol:'mecanico',activo:true,google_habilitado:true}, 'mecanico', false],
+    ['admin', {rol:'admin',activo:true,google_habilitado:false}, 'admin', false],
+    ['admin', {rol:'admin',activo:false,google_habilitado:true}, 'admin', false],
+    ['cliente', null, 'cliente', true],
+    ['cliente', {rol:'cliente',activo:true}, 'cliente', true],
+    ['cliente', {rol:'admin',activo:true}, 'admin', false],
+    ['cliente', {rol:'mecanico',activo:true}, 'mecanico', false],
+    ['cliente', {rol:'cliente',activo:false}, 'cliente', false],
+    ['cliente', null, 'admin', false],
+  ];
+  for (const [tipo, existente, rol, permitido] of casos) {
+    let sesiones=0, vinculaciones=0;
+    global.fetch=async()=>({ok:true,json:async()=>({access_token:'test-token'})});
+    db.auth={getUser:async()=>({data:{user:{id:'uid',email:'cliente@example.com',email_confirmed_at:'2026-01-01',identities:[{provider:'google',identity_data:{email:'cliente@example.com',email_verified:true}}]}},error:null})};
+    db.from=tabla=>tabla==='usuarios'?{select(){return this},eq(){return this},maybeSingle:async()=>({data:existente,error:null})}:{insert:async()=>{sesiones++;return {error:null}}};
+    db.rpc=async()=>{vinculaciones++;return {data:{id:1,rol},error:null}};
+    const state=`${tipo}.${'a'.repeat(64)}`, res=response();
+    await googleCallback({headers:{cookie:`rujim_pkce=test; rujim_oauth_state=${state}`},query:{state,code:'code'}},res);
+    assert.equal(sesiones, permitido?1:0, JSON.stringify({tipo,existente,rol}));
+    if (tipo==='admin' && !permitido) assert.equal(vinculaciones,0);
+    assert.equal(new URL(res.url).searchParams.get('google'),permitido?'ok':null);
+  }
+});
+
+test('no permite cambiar el tipo de acceso durante el callback', async()=>{
+  let contacted=false;
+  global.fetch=async()=>{contacted=true;throw new Error('no debe llamar')};
+  const res=response();
+  await googleCallback({headers:{cookie:`rujim_pkce=test; rujim_oauth_state=cliente.${'a'.repeat(64)}`},query:{state:`admin.${'a'.repeat(64)}`,code:'code'}},res);
+  assert.equal(contacted,false);
+  assert.match(new URL(res.url).searchParams.get('error'),/venció/);
+});
+
+test('el personal conserva su acceso por correo y contraseña', async()=>{
+  const bcrypt=require('bcryptjs');
+  for(const rol of ['admin','mecanico']) {
+    const usuario={id:7,nombre:'Personal',email:'personal@example.com',rol,password_hash:await bcrypt.hash('Una contraseña de prueba',4)};
+    let sesiones=0;
+    db.rpc=async()=>({data:1,error:null});
+    db.from=tabla=>tabla==='usuarios'?{select(){return this},eq(){return this},maybeSingle:async()=>({data:usuario,error:null})}:{insert:async()=>{sesiones++;return {error:null}}};
+    const res={...response(),status(n){this.codigo=n;return this},json(data){this.data=data;return this}};
+    await login({body:{email:usuario.email,password:'Una contraseña de prueba'}},res);
+    assert.equal(res.data.usuario.rol,rol);
+    assert.equal(sesiones,1);
+  }
+});
