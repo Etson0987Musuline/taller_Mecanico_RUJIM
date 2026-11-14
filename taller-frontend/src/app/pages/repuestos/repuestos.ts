@@ -126,6 +126,7 @@ export class RepuestosComponent implements OnInit {
 
   getImagenUrl(imagen: string | null) {
     if (!imagen) return null;
+    if (/^https:\/\//i.test(imagen)) return imagen;
     return `${this.urlBase}${imagen}`;
   }
 
