@@ -1,4 +1,5 @@
 const supabase = require('../config/supabase');
+const { filas } = require('../services/programa.service');
 const XLSX     = require('xlsx');
 const sharp    = require('sharp');
 const path     = require('path');
@@ -6,12 +7,12 @@ const fs       = require('fs');
 
 const getRepuestos = async (req, res) => {
   try {
-    const { data, error } = await supabase
+    const data = await filas(() => supabase
       .from('repuestos')
       .select('*')
-      .order('nombre');
+      .order('nombre')
+      .order('id'));
 
-    if (error) throw error;
     res.json(data);
   } catch (err) {
     console.error(err);
