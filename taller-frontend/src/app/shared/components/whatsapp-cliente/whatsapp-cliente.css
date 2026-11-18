@@ -1,0 +1,3 @@
+.contacto-fondo { position: fixed; inset: 0; background: #0009; z-index: 1090; }
+.contacto-dialogo { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(640px, calc(100vw - 24px)); max-height: calc(100dvh - 32px); overflow-y: auto; z-index: 1091; background: white; color: #212529; border-radius: 12px; box-shadow: 0 12px 48px #0005; }
+.contacto-dialogo textarea { resize: vertical; min-height: 140px; }

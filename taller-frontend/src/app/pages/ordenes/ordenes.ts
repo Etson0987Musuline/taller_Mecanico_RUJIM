@@ -1,3 +1,4 @@
+import { WhatsappClienteComponent, OrdenContacto } from '../../shared/components/whatsapp-cliente/whatsapp-cliente';
 import { Component, OnInit, ChangeDetectorRef, ChangeDetectionStrategy, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -9,7 +10,7 @@ import { environment } from '../../../environments/environment';
 @Component({
   selector: 'app-ordenes',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, WhatsappClienteComponent],
   templateUrl: './ordenes.html',
   styleUrl: './ordenes.css',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -69,12 +70,8 @@ export class OrdenesComponent implements OnInit {
   serviciosDisponibles: any[] = [];
   repuestosDisponibles: any[] = [];
 
-  // Modal WhatsApp
-  mostrarModalWhatsApp = false;
-  ordenWhatsApp: any = null;
-  telefonoWhatsApp = '';
-  mensajeWhatsApp = '';
-  plantillaActiva = 'listo';
+  ordenWhatsApp: OrdenContacto | null = null;
+
 
   // Modal Historial por Placa (Hoja de Vida)
   mostrarModalHistorial = false;
@@ -521,48 +518,8 @@ export class OrdenesComponent implements OnInit {
     return serv + rep + mo;
   }
 
-  // ── WhatsApp Notifier ──
-  abrirModalWhatsApp(o: any) {
+  abrirModalWhatsApp(o: OrdenContacto) {
     this.ordenWhatsApp = o;
-    let tel = (o.telefono || '').replace(/\D/g, '');
-    if (tel.length === 9) tel = '51' + tel;
-    this.telefonoWhatsApp = tel;
-    this.seleccionarPlantillaWhatsApp(o.estado === 'listo' ? 'listo' : 'avance');
-    this.mostrarModalWhatsApp = true;
-    this.cdr.detectChanges();
-  }
-
-  seleccionarPlantillaWhatsApp(tipo: string) {
-    this.plantillaActiva = tipo;
-    const o = this.ordenWhatsApp;
-    if (!o) return;
-    const cliente = o.cliente || 'Cliente';
-    const vehiculo = o.vehiculo || 'su vehículo';
-    const placa = o.placa || '';
-    const codigo = o.codigo || '';
-    const total = o.total_factura ? `S/ ${parseFloat(o.total_factura).toFixed(2)}` : 'S/ 0.00';
-
-    if (tipo === 'listo') {
-      this.mensajeWhatsApp = `Hola *${cliente}* 👋, le saludamos del *Taller Automotriz*. Le informamos que su vehículo *${vehiculo}* (Placa: *${placa}*) correspondiente a la orden *#${codigo}* ya se encuentra ✅ *LISTO PARA RETIRAR*.\n\n💰 Total a pagar: *${total}*.\n📍 ¡Puede pasar a nuestras instalaciones en nuestro horario habitual!`;
-    } else if (tipo === 'avance') {
-      this.mensajeWhatsApp = `Hola *${cliente}* 👋, le informamos del avance de su vehículo *${vehiculo}* (Placa: *${placa}*). Actualmente se encuentra: *${this.getBadge(o.estado).label}* 🛠️.\nPuede consultar el avance en vivo en nuestra web con su placa. ¡Estamos a su servicio!`;
-    } else if (tipo === 'diagnostico') {
-      this.mensajeWhatsApp = `Hola *${cliente}* 👋, hemos finalizado el diagnóstico técnico de su vehículo *${vehiculo}* (Placa: *${placa}*). Por favor contáctenos para coordinar el presupuesto y la aprobación de los trabajos a realizar.`;
-    } else if (tipo === 'ingreso') {
-      this.mensajeWhatsApp = `Hola *${cliente}* 👋, confirmamos el ingreso de su vehículo *${vehiculo}* (Placa: *${placa}*) a nuestras instalaciones con la Orden de Servicio *#${codigo}*. Le mantendremos informado de cada avance.`;
-    }
-    this.cdr.detectChanges();
-  }
-
-  enviarWhatsApp() {
-    if (!this.telefonoWhatsApp) {
-      alert('Debe ingresar un número de teléfono válido');
-      return;
-    }
-    const url = `https://wa.me/${this.telefonoWhatsApp}?text=${encodeURIComponent(this.mensajeWhatsApp)}`;
-    window.open(url, '_blank');
-    this.mostrarModalWhatsApp = false;
-    this.cdr.detectChanges();
   }
 
   // ── Cambio Rápido de Estado Directo ──

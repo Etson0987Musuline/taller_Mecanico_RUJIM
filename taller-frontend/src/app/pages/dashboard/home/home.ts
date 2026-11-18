@@ -1,3 +1,4 @@
+import { WhatsappClienteComponent, OrdenContacto } from '../../../shared/components/whatsapp-cliente/whatsapp-cliente';
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
@@ -9,7 +10,7 @@ import { environment } from '../../../../environments/environment';
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [CommonModule, RouterLink, FormsModule, WhatsappClienteComponent],
   templateUrl: './home.html',
   styleUrl: './home.css'
 })
@@ -351,17 +352,10 @@ export class HomeComponent implements OnInit {
     return Math.round(((monto || 0) / total) * 100);
   }
 
-  notificarWhatsApp(o: any) {
-    let tel = (o.telefono || '').replace(/\D/g, '');
-    if (!tel) {
-      alert(`La orden #${o.codigo} no tiene registrado un número telefónico para ${o.cliente}.`);
-      return;
-    }
-    if (tel.length === 9) tel = '51' + tel;
-    const total = o.total_factura ? `S/ ${parseFloat(o.total_factura).toFixed(2)}` : 'S/ 0.00';
-    const msg = `Hola *${o.cliente}* 👋, le saludamos del *Taller Automotriz*. Le informamos que su vehículo *${o.vehiculo}* (Placa: *${o.placa}*) correspondiente a la orden *#${o.codigo}* ya se encuentra ✅ *LISTO PARA RETIRAR*.\n\n💰 Total liquidado: *${total}*.\n📍 ¡Puede pasar por nuestras instalaciones a recoger su unidad!`;
-    const url = `https://wa.me/${tel}?text=${encodeURIComponent(msg)}`;
-    window.open(url, '_blank');
+  ordenWhatsApp: OrdenContacto | null = null;
+
+  notificarWhatsApp(o: OrdenContacto) {
+    this.ordenWhatsApp = o;
   }
 
   consultarPlaca() {

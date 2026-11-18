@@ -102,6 +102,9 @@
             </div>
           </div>
 
+          <button type="button" class="btn btn-sm btn-success mb-2" (click)="notificarWhatsApp(t)">
+            <i class="bi bi-whatsapp me-1"></i>Mensaje al cliente
+          </button>
           <!-- Acciones operativas de taller -->
           <div class="d-flex gap-2 pt-2 border-top">
             <button class="btn btn-sm btn-outline-success flex-fill" (click)="abrirAgregarRepuestoRapido(t)">
@@ -539,3 +542,5 @@
     </div>
   </div>
 </div>
+
+<app-whatsapp-cliente *ngIf="ordenWhatsApp as orden" [orden]="orden" (cerrar)="ordenWhatsApp=null"></app-whatsapp-cliente>

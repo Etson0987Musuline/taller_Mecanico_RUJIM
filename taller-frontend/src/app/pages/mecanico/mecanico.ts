@@ -1,3 +1,4 @@
+import { WhatsappClienteComponent, OrdenContacto } from '../../shared/components/whatsapp-cliente/whatsapp-cliente';
 import { Component, OnInit, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router,RouterLink } from '@angular/router';
@@ -12,13 +13,18 @@ import { environment } from '../../../environments/environment';
 @Component({
   selector: 'app-mecanico',
   standalone: true,
-  imports: [CommonModule, FormsModule,RouterLink],
+  imports: [CommonModule, FormsModule,RouterLink, WhatsappClienteComponent],
   templateUrl: './mecanico.html',
   styleUrl: './mecanico.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MecanicoComponent implements OnInit {
   usuario: any;
+  ordenWhatsApp: OrdenContacto | null = null;
+
+  notificarWhatsApp(orden: OrdenContacto) {
+    this.ordenWhatsApp = orden;
+  }
 
   // Pestañas principales de trabajo del mecánico
   vistaMecanico: 'trabajos' | 'nueva_orden' | 'historial' = 'trabajos';

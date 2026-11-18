@@ -1,0 +1,32 @@
+<div class="contacto-fondo" (click)="cerrarDialogo()"></div>
+<section class="contacto-dialogo" role="dialog" aria-modal="true" aria-labelledby="whatsapp-cliente-titulo">
+  <header class="d-flex justify-content-between align-items-center gap-2 bg-success text-white p-3">
+    <h5 id="whatsapp-cliente-titulo" class="m-0"><i class="bi bi-whatsapp me-2"></i>Mensaje al cliente</h5>
+    <button type="button" class="btn-close btn-close-white" aria-label="Cerrar mensaje" (click)="cerrarDialogo()"></button>
+  </header>
+  <div class="p-3">
+    <p><strong>{{ orden.cliente }}</strong> · {{ orden.placa }} · Orden #{{ orden.codigo }}</p>
+    <label for="whatsapp-cliente-telefono" class="form-label">Teléfono del cliente</label>
+    <input id="whatsapp-cliente-telefono" type="tel" autocomplete="tel" class="form-control"
+      [(ngModel)]="telefono" placeholder="987 654 321 o +51 987 654 321" aria-describedby="whatsapp-telefono-ayuda">
+    <p id="whatsapp-telefono-ayuda" class="small text-muted mt-1">Agregamos +51 a los celulares peruanos de 9 dígitos. Editar aquí no cambia la ficha del cliente.</p>
+    <div class="d-flex flex-wrap gap-2 my-3" aria-label="Plantillas de mensaje">
+      <button type="button" class="btn btn-sm btn-outline-success" [class.active]="plantilla==='avance'" (click)="seleccionarPlantilla('avance')">Estado actual</button>
+      <button type="button" class="btn btn-sm btn-outline-success" [class.active]="plantilla==='listo'" (click)="seleccionarPlantilla('listo')">Listo para retirar</button>
+      <button type="button" class="btn btn-sm btn-outline-success" [class.active]="plantilla==='diagnostico'" (click)="seleccionarPlantilla('diagnostico')">Diagnóstico</button>
+      <button type="button" class="btn btn-sm btn-outline-success" [class.active]="plantilla==='ingreso'" (click)="seleccionarPlantilla('ingreso')">Recepción</button>
+    </div>
+    <label for="whatsapp-cliente-mensaje" class="form-label">Revisa y edita el mensaje</label>
+    <textarea id="whatsapp-cliente-mensaje" class="form-control" rows="6" [(ngModel)]="mensaje"></textarea>
+    <p *ngIf="error" class="alert alert-warning mt-3 mb-0" role="status">{{ error }}</p>
+    <p class="small text-muted mt-3 mb-0">Se abrirá WhatsApp con la cuenta que tengas conectada. Revisa el destinatario y pulsa Enviar allí. Abrir el enlace no confirma el envío.</p>
+  </div>
+  <footer class="p-3 border-top">
+    <div class="d-flex justify-content-end gap-2">
+      <button type="button" class="btn btn-secondary" (click)="cerrarDialogo()">Cerrar</button>
+      <a *ngIf="enlace as url; else incompleto" class="btn btn-success" [href]="url" target="_blank" rel="noopener noreferrer">Abrir WhatsApp</a>
+      <ng-template #incompleto><button type="button" class="btn btn-success" disabled>Abrir WhatsApp</button></ng-template>
+    </div>
+    <p *ngIf="enlace as url" class="small mt-3 mb-0">¿No se abrió la ventana? <a [href]="url" target="_self">Abrir en esta pestaña</a>. Esta opción te llevará fuera del panel.</p>
+  </footer>
+</section>

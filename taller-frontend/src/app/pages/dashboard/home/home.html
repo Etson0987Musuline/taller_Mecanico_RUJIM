@@ -850,3 +850,5 @@
   </div>
 
 </div>
+
+<app-whatsapp-cliente *ngIf="ordenWhatsApp as orden" [orden]="orden" (cerrar)="ordenWhatsApp=null"></app-whatsapp-cliente>
