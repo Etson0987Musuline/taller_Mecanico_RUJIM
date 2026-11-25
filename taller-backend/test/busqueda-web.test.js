@@ -14,23 +14,29 @@ test('no consulta proveedores sin clave ni con una consulta inválida', async ()
   assert.equal(respuesta.codigo, 503); assert.equal(respuesta.data.codigo, 'BUSQUEDA_WEB_NO_CONFIGURADA'); assert.equal(llamadas, 0);
 });
 
-test('consulta Brave con la clave en cabecera y devuelve páginas externas válidas sin duplicarlas', async () => {
+test('consulta Tavily en modo básico con la clave en cabecera y devuelve páginas válidas sin duplicarlas', async () => {
   const buscar = crearBusquedaWeb({ apiKey: () => 'clave-de-prueba', fetcher: async (url, options) => {
-    assert.equal(url.origin, 'https://api.search.brave.com');
-    assert.equal(url.searchParams.get('q'), 'bomba & filtro repuesto automotriz Perú');
-    assert.equal(options.headers['X-Subscription-Token'], 'clave-de-prueba');
+    assert.equal(url.origin, 'https://api.tavily.com');
+    assert.equal(options.method, 'POST');
+    const body = JSON.parse(options.body);
+    assert.equal(body.query, 'bomba & filtro repuesto automotriz Perú');
+    assert.equal(body.search_depth, 'basic');
+    assert.equal(body.auto_parameters, false);
+    assert.equal(body.include_answer, false);
+    assert.equal(options.headers.Authorization, 'Bearer clave-de-prueba');
     assert.ok(!url.href.includes('clave-de-prueba')); assert.ok(options.signal);
-    return { ok: true, json: async () => ({ web: { results: [
-      { title: '<b>Bomba</b>', description: 'Para Toyota', url: 'https://ejemplo.test/bomba' },
+    return { ok: true, json: async () => ({ results: [
+      { title: '<b>Bomba</b>', content: 'Para Toyota', url: 'https://ejemplo.test/bomba' },
       { title: 'Duplicado', url: 'https://ejemplo.test/bomba' },
       { title: 'No válido', url: 'javascript:alert(1)' },
       { title: 'Credenciales', url: 'https://usuario:clave@ejemplo.test/' },
       { title: 'Otro', url: 'https://otro.test/filtro' },
-    ] } }) };
+    ] }) };
   } });
   const respuesta = res(); await buscar(req(' bomba  & filtro '), respuesta);
   assert.deepEqual(respuesta.data.resultados.map(r => r.titulo), ['Bomba', 'Otro']);
-  assert.equal(respuesta.data.fuente, 'Brave Search'); assert.equal(respuesta.data.consulta, 'bomba & filtro');
+  assert.equal(respuesta.data.fuente, 'Tavily'); assert.equal(respuesta.data.consulta, 'bomba & filtro');
+  assert.equal(respuesta.data.resultados[0].descripcion, 'Para Toyota');
 });
 
 test('distingue cero resultados de un fallo del proveedor sin exponer detalles privados', async () => {
@@ -38,13 +44,13 @@ test('distingue cero resultados de un fallo del proveedor sin exponer detalles p
     const respuesta = res(); await crearBusquedaWeb({ apiKey: () => 'prueba', fetcher })(req('sensor'), respuesta);
     assert.equal(respuesta.codigo, 503); assert.ok(!JSON.stringify(respuesta.data).includes('privad'));
   }
-  const respuesta = res(); await crearBusquedaWeb({ apiKey: () => 'prueba', fetcher: async () => ({ ok: true, json: async () => ({ type: 'search' }) }) })(req('sensor'), respuesta);
+  const respuesta = res(); await crearBusquedaWeb({ apiKey: () => 'prueba', fetcher: async () => ({ ok: true, json: async () => ({ results: [] }) }) })(req('sensor'), respuesta);
   assert.deepEqual(respuesta.data.resultados, []); assert.equal(respuesta.codigo, undefined);
 });
 
 test('limita búsquedas por usuario y permite continuar al vencer la ventana', async () => {
   let llamadas = 0, tiempo = 0;
-  const buscar = crearBusquedaWeb({ apiKey: () => 'prueba', now: () => tiempo, fetcher: async () => { llamadas++; return { ok: true, json: async () => ({ type: 'search' }) }; } });
+  const buscar = crearBusquedaWeb({ apiKey: () => 'prueba', now: () => tiempo, fetcher: async () => { llamadas++; return { ok: true, json: async () => ({ results: [] }) }; } });
   for (let i = 0; i < 10; i++) await buscar(req('sensor'), res());
   const limitada = res(); await buscar(req('sensor'), limitada); assert.equal(limitada.codigo, 429); assert.equal(llamadas, 10);
   await buscar({ ...req('sensor'), usuario: { id: 2 } }, res()); assert.equal(llamadas, 11);

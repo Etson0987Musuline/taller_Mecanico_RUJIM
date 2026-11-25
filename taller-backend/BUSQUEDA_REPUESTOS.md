@@ -11,18 +11,21 @@ Modificar la consulta cancela la petición anterior y retira sus sugerencias.
 
 ## Activación
 
-1. Obtener una clave de Brave Search API con acceso a Web Search.
-2. Configurar `BRAVE_SEARCH_API_KEY` como secreto del backend en el entorno deseado.
+1. Obtener una clave de Tavily Search.
+2. Configurar `TAVILY_API_KEY` como secreto del backend en el entorno deseado.
    En desarrollo se utiliza `taller-backend/.env`. Nunca ponerla en Angular ni Git.
 3. Publicar juntos el frontend y el backend actualizados. Reiniciar el servidor local
    si se acaba de agregar la variable en desarrollo.
 4. Entrar como administrador o mecánico y probar una búsqueda de repuesto.
 
 La ruta `GET /api/repuestos/sugerencias-web?q=...` requiere sesión de personal,
-limita cada cuenta a diez consultas por minuto y aplica un tiempo de espera de siete
+limita cada cuenta a diez consultas por minuto y aplica un tiempo de espera de doce
 segundos. Sin clave devuelve un mensaje de configuración pendiente; un error del
 proveedor no afecta el inventario. No se habilitan suscripciones ni se configuran
 credenciales automáticamente.
 
 Documentación del proveedor:
-https://api-dashboard.search.brave.com/api-reference/web/search/get
+https://docs.tavily.com/documentation/api-reference/endpoint/search
+
+Se fuerza `search_depth: basic` y se desactiva `auto_parameters` para conservar
+el costo de una búsqueda básica y evitar el ascenso automático a modo avanzado.

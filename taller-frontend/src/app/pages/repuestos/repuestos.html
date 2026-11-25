@@ -182,7 +182,7 @@
 <section *ngIf="consultaWeb" class="card border-0 shadow-sm mb-3" aria-label="Sugerencias de internet" aria-live="polite" [attr.aria-busy]="buscandoWeb">
   <div class="card-body">
     <h5 class="mb-1">Sugerencias de internet</h5>
-    <p class="small text-muted mb-3">Resultados de Brave Search para «{{ consultaWeb }}». Son páginas externas; no indican existencias ni precios del taller. Verifica la compatibilidad con tu vehículo.</p>
+    <p class="small text-muted mb-3">Resultados de Tavily para «{{ consultaWeb }}». Son páginas externas; no indican existencias ni precios del taller. Verifica la compatibilidad con tu vehículo.</p>
     <p *ngIf="buscandoWeb" class="mb-0">Buscando páginas relacionadas...</p>
     <p *ngIf="errorWeb" class="text-danger mb-0" role="alert">{{ errorWeb }}</p>
     <p *ngIf="!buscandoWeb && !errorWeb && !sugerenciasWeb.length" class="text-muted mb-0">No se encontraron sugerencias. Prueba con el código del repuesto, la marca o el modelo del vehículo.</p>
