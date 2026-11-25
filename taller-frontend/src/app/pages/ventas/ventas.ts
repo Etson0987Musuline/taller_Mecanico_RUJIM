@@ -5,6 +5,7 @@ import { VentasService } from '../../core/services/ventas.service';
 import { HttpClient } from '@angular/common/http';
 import { RolService } from '../../core/services/rol.service';
 import { environment } from '../../../environments/environment';
+import { coincideRepuesto } from '../../core/utils/busqueda-repuestos';
 
 @Component({
   selector: 'app-ventas',
@@ -98,12 +99,7 @@ export class VentasComponent implements OnInit {
     if (this.categoriaActiva !== 'Todas')
       resultado = resultado.filter(p => p.categoria === this.categoriaActiva);
     if (q)
-      resultado = resultado.filter(p =>
-        p.nombre?.toLowerCase().includes(q) ||
-        p.codigo?.toLowerCase().includes(q) ||
-        p.codigo_barra?.includes(q) ||
-        p.categoria?.toLowerCase().includes(q)
-      );
+      resultado = resultado.filter(p => coincideRepuesto(p, q));
     this.productosMostrados = resultado.slice(0, 20);
     this.cdr.detectChanges();
   }

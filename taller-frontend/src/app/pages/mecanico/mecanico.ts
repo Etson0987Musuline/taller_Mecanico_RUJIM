@@ -1,4 +1,5 @@
 import { WhatsappClienteComponent, OrdenContacto } from '../../shared/components/whatsapp-cliente/whatsapp-cliente';
+import { coincideRepuesto } from '../../core/utils/busqueda-repuestos';
 import { Component, OnInit, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router,RouterLink } from '@angular/router';
@@ -179,7 +180,7 @@ export class MecanicoComponent implements OnInit {
       return;
     }
     this.repuestosFiltradosRapido = this.repuestosDisponibles.filter(r =>
-      r.nombre.toLowerCase().includes(q) || (r.codigo && r.codigo.toLowerCase().includes(q))
+      coincideRepuesto(r, q)
     ).slice(0, 7);
   }
 
@@ -431,7 +432,7 @@ export class MecanicoComponent implements OnInit {
   buscarRepuesto() {
     const q = this.busquedaRepuesto.toLowerCase();
     this.repuestosFiltrados = this.repuestosDisponibles.filter(r =>
-      r.nombre.toLowerCase().includes(q) || r.codigo?.toLowerCase().includes(q)
+      coincideRepuesto(r, q)
     ).slice(0, 6);
     setTimeout(() => { this.mostrarSugRepuesto = this.repuestosFiltrados.length > 0 && q.length > 0; this.cdr.detectChanges(); });
   }

@@ -1,0 +1,8 @@
+{
+  "extends": "./tsconfig.spec.json",
+  "include": [
+    "src/app/core/utils/busqueda-repuestos.spec.ts",
+    "src/app/pages/repuestos/repuestos.spec.ts",
+    "src/**/*.d.ts"
+  ]
+}

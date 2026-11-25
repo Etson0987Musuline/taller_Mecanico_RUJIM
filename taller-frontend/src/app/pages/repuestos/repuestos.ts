@@ -2,10 +2,20 @@ import { Component, OnInit, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { catchError, exhaustMap, of, timer, Subscription } from 'rxjs';
 import { RolService } from '../../core/services/rol.service';
 import { environment } from '../../../environments/environment';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import { coincideRepuesto } from '../../core/utils/busqueda-repuestos';
+
+interface SugerenciaWeb {
+  titulo: string;
+  descripcion: string;
+  url: string;
+  dominio: string;
+}
 
 @Component({
   selector: 'app-repuestos',
@@ -16,11 +26,17 @@ import { saveAs } from 'file-saver';
 })
 export class RepuestosComponent implements OnInit {
   esAdmin = false;
+  tipoCambio: { tasa: number; fecha: string } | null = null;
   repuestos: any[] = [];
   filtrados: any[] = [];
   busqueda   = '';
   cargando   = false;
   vista: 'tabla' | 'cuadricula' = 'tabla';
+  sugerenciasWeb: SugerenciaWeb[] = [];
+  buscandoWeb = false;
+  consultaWeb = '';
+  errorWeb = '';
+  private peticionWeb?: Subscription;
 
   mostrarModal = false;
   guardando    = false;
@@ -54,6 +70,24 @@ export class RepuestosComponent implements OnInit {
     private ngZone: NgZone
   ) {
     this.esAdmin = this.rol.isAdmin();
+    timer(0, 15 * 60 * 1000).pipe(
+      exhaustMap(() => this.http.get<{ tasa: number; fecha: string }>(`${this.url}/tipo-cambio`).pipe(
+        catchError(() => of(null)),
+      )),
+      takeUntilDestroyed(),
+    ).subscribe(tipoCambio => {
+      this.tipoCambio = tipoCambio;
+      this.cdr.markForCheck();
+    });
+  }
+
+  precioMostrado(precio: number, moneda?: string): number {
+    return moneda === 'USD' && this.tipoCambio ? precio * this.tipoCambio.tasa : precio;
+  }
+
+  simboloPrecio(moneda?: string): string {
+    if (moneda === 'USD') return this.tipoCambio ? 'S/' : 'US$';
+    return !moneda || moneda === 'PEN' ? 'S/' : moneda;
   }
 
   ngOnInit() { this.cargar(); }
@@ -67,7 +101,7 @@ export class RepuestosComponent implements OnInit {
         next: (data) => {
           this.ngZone.run(() => {
             this.repuestos  = data;
-            this.filtrados  = data;
+            this.filtrados  = data.filter(r => coincideRepuesto(r, this.busqueda));
             this.cargando   = false;
             this.categorias = [...new Set(data.map((r: any) => r.categoria).filter(Boolean))];
             Promise.resolve().then(() => this.cdr.detectChanges());
@@ -84,17 +118,40 @@ export class RepuestosComponent implements OnInit {
   }
 
   filtrar() {
-    const q = this.busqueda.toLowerCase();
-    this.filtrados = this.repuestos.filter(r =>
-      r.nombre?.toLowerCase().includes(q) ||
-      r.codigo?.toLowerCase().includes(q) ||
-      r.categoria?.toLowerCase().includes(q) ||
-      r.marca?.toLowerCase().includes(q) ||
-      r.codigo_barra?.includes(q)
-    );
+    this.peticionWeb?.unsubscribe();
+    this.sugerenciasWeb = [];
+    this.buscandoWeb = false;
+    this.consultaWeb = '';
+    this.errorWeb = '';
+    this.filtrados = this.repuestos.filter(r => coincideRepuesto(r, this.busqueda));
     this.seleccionados.clear();
     this.cdr.detectChanges();
   }
+
+  buscarEnInternet() {
+    const q = this.busqueda.replace(/\s+/g, ' ').trim();
+    if (this.buscandoWeb || q.length < 3 || q.length > 160) return;
+    this.errorWeb = '';
+    this.sugerenciasWeb = [];
+    this.consultaWeb = q;
+    this.buscandoWeb = true;
+    this.peticionWeb = this.http.get<{ resultados: SugerenciaWeb[] }>(`${this.url}/sugerencias-web`, { params: { q } }).subscribe({
+      next: respuesta => {
+        if (this.consultaWeb !== q) return;
+        this.sugerenciasWeb = respuesta.resultados;
+        this.buscandoWeb = false;
+        this.cdr.detectChanges();
+      },
+      error: err => {
+        if (this.consultaWeb !== q) return;
+        this.errorWeb = err.error?.mensaje || 'No se pudieron obtener sugerencias de internet. Intenta nuevamente.';
+        this.buscandoWeb = false;
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  ngOnDestroy() { this.peticionWeb?.unsubscribe(); }
 
   // ── Imagen ──
   onImagenSeleccionada(event: any) {

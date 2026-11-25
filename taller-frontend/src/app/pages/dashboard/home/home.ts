@@ -1,4 +1,5 @@
 import { WhatsappClienteComponent, OrdenContacto } from '../../../shared/components/whatsapp-cliente/whatsapp-cliente';
+import { coincideRepuesto } from '../../../core/utils/busqueda-repuestos';
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
@@ -219,13 +220,7 @@ export class HomeComponent implements OnInit {
 
     let res = this.productos.filter(p => {
       // Búsqueda por texto
-      const coincideTexto = !q ||
-        (p.nombre && p.nombre.toLowerCase().includes(q)) ||
-        (p.codigo && p.codigo.toLowerCase().includes(q)) ||
-        (p.codigo_barra && p.codigo_barra.toLowerCase().includes(q)) ||
-        (p.codigo_oem && p.codigo_oem.toLowerCase().includes(q)) ||
-        (p.marca && p.marca.toLowerCase().includes(q)) ||
-        (p.categoria && p.categoria.toLowerCase().includes(q));
+      const coincideTexto = coincideRepuesto(p, q);
 
       // Búsqueda por categoría
       const coincideCat = cat === 'Todas' || p.categoria === cat;

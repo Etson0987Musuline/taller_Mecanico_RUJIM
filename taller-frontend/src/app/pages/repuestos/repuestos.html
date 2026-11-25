@@ -1,3 +1,4 @@
+<p class="small text-muted mb-3">@if (tipoCambio; as cambio) { Conversión referencial BCRP · S/ {{ cambio.tasa | number:"1.3-4" }} por USD · {{ cambio.fecha }} } @else { Tipo de cambio no disponible. Se muestra la moneda original. }</p>
 <!-- Encabezado -->
 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
   <div>
@@ -87,17 +88,26 @@
 <div class="d-flex gap-2 mb-3 align-items-center flex-wrap">
 
   <!-- Buscador -->
-  <div class="input-group" style="max-width:350px">
+  <div class="input-group" style="max-width:440px">
 
     <span class="input-group-text">
       <i class="bi bi-search"></i>
     </span>
 
     <input class="form-control"
-           placeholder="Buscar por nombre, código, marca..."
+           placeholder="Nombre, descripción, código o marca..."
+           aria-label="Buscar repuestos por nombre, descripción, código o marca"
+           maxlength="160"
            [(ngModel)]="busqueda"
            (input)="filtrar()">
   </div>
+
+  <button type="button" class="btn btn-outline-primary"
+          (click)="buscarEnInternet()" [disabled]="busqueda.trim().length < 3 || buscandoWeb">
+    <span *ngIf="buscandoWeb" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+    <i *ngIf="!buscandoWeb" class="bi bi-globe me-1" aria-hidden="true"></i>
+    {{ buscandoWeb ? 'Buscando en internet...' : 'Sugerencias de internet' }}
+  </button>
 
   <!-- Vista -->
   <div class="btn-group">
@@ -168,6 +178,24 @@
   </div>
 
 </div>
+
+<section *ngIf="consultaWeb" class="card border-0 shadow-sm mb-3" aria-label="Sugerencias de internet" aria-live="polite" [attr.aria-busy]="buscandoWeb">
+  <div class="card-body">
+    <h5 class="mb-1">Sugerencias de internet</h5>
+    <p class="small text-muted mb-3">Resultados de Brave Search para «{{ consultaWeb }}». Son páginas externas; no indican existencias ni precios del taller. Verifica la compatibilidad con tu vehículo.</p>
+    <p *ngIf="buscandoWeb" class="mb-0">Buscando páginas relacionadas...</p>
+    <p *ngIf="errorWeb" class="text-danger mb-0" role="alert">{{ errorWeb }}</p>
+    <p *ngIf="!buscandoWeb && !errorWeb && !sugerenciasWeb.length" class="text-muted mb-0">No se encontraron sugerencias. Prueba con el código del repuesto, la marca o el modelo del vehículo.</p>
+    <div class="list-group list-group-flush">
+      <a *ngFor="let sugerencia of sugerenciasWeb" [href]="sugerencia.url" target="_blank" rel="noopener noreferrer"
+         class="list-group-item list-group-item-action px-0">
+        <strong>{{ sugerencia.titulo }}</strong> <i class="bi bi-box-arrow-up-right small" aria-hidden="true"></i>
+        <div class="small text-muted text-break">{{ sugerencia.dominio }}</div>
+        <p class="small mb-0">{{ sugerencia.descripcion }}</p>
+      </a>
+    </div>
+  </div>
+</section>
 
 <!-- ══ VISTA TABLA ══ -->
 <div *ngIf="vista === 'tabla'"
@@ -262,6 +290,10 @@
               {{ r.codigo }}
             </div>
 
+            <div *ngIf="r.descripcion" class="small text-muted text-break" style="max-width:300px" [title]="r.descripcion">
+              {{ r.descripcion | slice:0:150 }}{{ r.descripcion.length > 150 ? '…' : '' }}
+            </div>
+
             <span *ngIf="stockBajo(r)"
                   class="badge bg-danger small">
 
@@ -283,11 +315,11 @@
           </td>
 
           <td class="text-success fw-semibold">
-            S/ {{ r.precio_venta | number:'1.2-2' }}
+            {{ simboloPrecio(r.moneda) }} {{ precioMostrado(r.precio_venta, r.moneda) | number:'1.2-2' }}
           </td>
 
           <td class="text-muted small">
-            S/ {{ r.precio_compra | number:'1.2-2' }}
+            {{ simboloPrecio(r.moneda) }} {{ precioMostrado(r.precio_compra, r.moneda) | number:'1.2-2' }}
           </td>
 
           <td *ngIf="verMas"
@@ -305,25 +337,25 @@
           <td *ngIf="verMas"
               class="small">
 
-            S/ {{ r.precio_mayor | number:'1.2-2' }}
+            {{ simboloPrecio(r.moneda) }} {{ precioMostrado(r.precio_mayor, r.moneda) | number:'1.2-2' }}
           </td>
 
           <td *ngIf="verMas"
               class="small">
 
-            S/ {{ r.precio_dist1 | number:'1.2-2' }}
+            {{ simboloPrecio(r.moneda) }} {{ precioMostrado(r.precio_dist1, r.moneda) | number:'1.2-2' }}
           </td>
 
           <td *ngIf="verMas"
               class="small">
 
-            S/ {{ r.precio_dist2 | number:'1.2-2' }}
+            {{ simboloPrecio(r.moneda) }} {{ precioMostrado(r.precio_dist2, r.moneda) | number:'1.2-2' }}
           </td>
 
           <td *ngIf="verMas"
               class="small">
 
-            S/ {{ r.precio_dist3 | number:'1.2-2' }}
+            {{ simboloPrecio(r.moneda) }} {{ precioMostrado(r.precio_dist3, r.moneda) | number:'1.2-2' }}
           </td>
 
           <!-- Acciones -->
@@ -359,7 +391,7 @@
           <td [colSpan]="verMas ? 15 : 9"
               class="text-center text-muted py-4">
 
-            No hay repuestos registrados
+            {{ busqueda.trim() ? 'No se encontraron repuestos en el inventario. Prueba otras palabras o consulta las sugerencias de internet.' : 'No hay repuestos registrados' }}
 
           </td>
 
@@ -437,6 +469,10 @@
           {{ r.codigo || '—' }}
         </div>
 
+        <p *ngIf="r.descripcion" class="small text-muted mt-1 mb-1" [title]="r.descripcion">
+          {{ r.descripcion | slice:0:110 }}{{ r.descripcion.length > 110 ? '…' : '' }}
+        </p>
+
         <div class="d-flex justify-content-between align-items-center mt-1">
 
           <span class="badge bg-light text-dark border"
@@ -455,7 +491,7 @@
         </div>
 
         <div class="cuadricula-precio">
-          S/ {{ r.precio_venta | number:'1.2-2' }}
+          {{ simboloPrecio(r.moneda) }} {{ precioMostrado(r.precio_venta, r.moneda) | number:'1.2-2' }}
         </div>
 
       </div>
@@ -490,7 +526,7 @@
        style="font-size:2.5rem"></i>
 
     <p class="mt-2">
-      No hay repuestos registrados
+      {{ busqueda.trim() ? 'No se encontraron repuestos en el inventario. Prueba otras palabras o consulta las sugerencias de internet.' : 'No hay repuestos registrados' }}
     </p>
 
   </div>
